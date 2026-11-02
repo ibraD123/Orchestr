@@ -1,0 +1,1056 @@
+<title>Basira</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Basira is AI product content intelligence for brands and agencies selling on Amazon, Noon, Salla, Zid and Shopify.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a sage-ink "oasis" palette; an editorial grotesque headline over a live product audit,
+   then one continuous loop (detect → listen → fix → publish → measure) told as working UI. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --surface-2:#E7EDEA; --line:#D3DDD8;
+  --ink:#0C1A17; --ink-2:#4A5A55; --ink-3:#7A8A85;
+  --brand:#0B5D52; --brand-soft:#DAEBE6; --on-brand:#FFFFFF;
+  --saffron:#C8771E; --saffron-ink:#94540F; --saffron-soft:#F6E7D3;
+  --bad:#B93A26; --bad-soft:#F6E1DC; --good:#1D7A4C; --good-soft:#DBEFE3;
+  --shadow:0 1px 2px rgba(12,26,23,.06),0 12px 40px -12px rgba(12,26,23,.18);
+  --font-display:"Bricolage Grotesque","Readex Pro",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Readex Pro",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1210; --surface:#101B18; --surface-2:#16231F; --line:#23332E;
+  --ink:#E7EFEC; --ink-2:#A2B2AC; --ink-3:#71827C;
+  --brand:#52C4AE; --brand-soft:#123129; --on-brand:#04120F;
+  --saffron:#EBA24C; --saffron-ink:#F2B86B; --saffron-soft:#33230F;
+  --bad:#F08A73; --bad-soft:#3A1B15; --good:#62D293; --good-soft:#11301F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 16px 48px -16px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1210; --surface:#101B18; --surface-2:#16231F; --line:#23332E;
+  --ink:#E7EFEC; --ink-2:#A2B2AC; --ink-3:#71827C;
+  --brand:#52C4AE; --brand-soft:#123129; --on-brand:#04120F;
+  --saffron:#EBA24C; --saffron-ink:#F2B86B; --saffron-soft:#33230F;
+  --bad:#F08A73; --bad-soft:#3A1B15; --good:#62D293; --good-soft:#11301F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 16px 48px -16px rgba(0,0,0,.6);
+  color-scheme:dark}
+html[lang="ar"]{--font-display:"Reem Kufi","Readex Pro",system-ui,sans-serif}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.02em;line-height:1.05}
+html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{letter-spacing:0;line-height:1.3}
+p{margin:0}
+.wrap{max-width:1200px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:104px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--saffron-ink);display:inline-flex;gap:10px;align-items:center}
+html[lang="ar"] .eyebrow{font-family:var(--font-body);letter-spacing:0;font-size:14px;font-weight:500}
+.eyebrow::before{content:"";width:18px;height:2px;background:var(--saffron);border-radius:2px}
+.h2{font-size:clamp(34px,4.6vw,56px);font-weight:700}
+.lede{font-size:clamp(17px,1.5vw,19px);color:var(--ink-2);max-width:60ch}
+.sec-head{display:grid;gap:18px;max-width:780px;margin-bottom:56px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.tnum{font-variant-numeric:tabular-nums}
+.flip{transition:transform .2s}
+[dir="rtl"] .flip{transform:scaleX(-1)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;padding-inline:22px;border-radius:999px;border:1px solid transparent;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;transition:transform .15s,background .15s,box-shadow .15s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--brand);color:var(--on-brand);box-shadow:0 8px 24px -10px var(--brand)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{background:var(--surface)}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav.scrolled{border-bottom-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Bricolage Grotesque",var(--font-body);font-weight:700;font-size:21px;letter-spacing:-.02em}
+.logo-mark{width:30px;height:30px}
+.logo small{font-family:"Readex Pro",sans-serif;font-weight:400;font-size:15px;color:var(--ink-3);letter-spacing:0}
+.nav-links{display:flex;gap:26px;margin-inline-start:12px}
+.nav-links a{text-decoration:none;color:var(--ink-2);font-size:15px}
+.nav-links a:hover{color:var(--ink)}
+.nav-end{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.lang button{border:0;background:transparent;height:32px;min-width:42px;padding-inline:10px;border-radius:999px;cursor:pointer;font-size:14px;color:var(--ink-2)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.nav .btn{height:40px;padding-inline:18px}
+@media (max-width:920px){.nav-links{display:none}}
+@media (max-width:520px){.nav .btn-primary{display:none}.logo small{display:none}}
+
+/* hero */
+.hero{padding-block:64px 56px;position:relative;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%237A8A85' stroke-opacity='.22' stroke-width='1'%3E%3Cpath d='M28 6l6.4 15.6L50 28l-15.6 6.4L28 50l-6.4-15.6L6 28l15.6-6.4z'/%3E%3Crect x='14' y='14' width='28' height='28' transform='rotate(45 28 28)'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 70% 30%,#000 10%,transparent 70%);mask-image:radial-gradient(ellipse 70% 60% at 70% 30%,#000 10%,transparent 70%)}
+.hero-grid{display:grid;grid-template-columns:1.02fr 1fr;gap:64px;align-items:center}
+.hero-copy{display:grid;gap:26px;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:10px;width:max-content;max-width:100%;padding:6px 14px 6px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;color:var(--ink-2)}
+[dir="rtl"] .pill{padding:6px 6px 6px 14px}
+.pill b{background:var(--saffron-soft);color:var(--saffron-ink);font-weight:500;border-radius:999px;padding:2px 10px;font-size:12.5px}
+.h1{font-size:clamp(44px,6.4vw,84px);font-weight:750;letter-spacing:-.035em;line-height:.98}
+.h1 em{font-style:normal;color:var(--brand);position:relative;white-space:nowrap}
+.h1 em::after{content:"";position:absolute;inset-inline:0;bottom:.04em;height:.12em;background:var(--saffron);opacity:.55;border-radius:4px;z-index:-1}
+html[lang="ar"] .h1{font-size:clamp(40px,5.6vw,74px);line-height:1.2;font-weight:700}
+.hero-sub{font-size:clamp(17px,1.5vw,19.5px);color:var(--ink-2);max-width:56ch}
+.audit-form{display:flex;gap:8px;padding:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);max-width:560px}
+.audit-form input{flex:1;min-width:0;border:0;background:transparent;padding-inline:16px;font-size:15.5px;outline:none}
+.audit-form input::placeholder{color:var(--ink-3)}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--ink-3)}
+.hero-meta span{display:inline-flex;gap:8px;align-items:center}
+.hero-meta svg{width:16px;height:16px;color:var(--good)}
+.form-note{font-size:14px;color:var(--good);min-height:1.4em}
+@media (max-width:980px){.hero-grid{grid-template-columns:1fr;gap:48px}}
+@media (max-width:520px){.audit-form{flex-direction:column;border-radius:18px}.audit-form input{height:46px}.audit-form .btn{width:100%}}
+
+/* demo card */
+.demo{position:relative;min-width:0}
+.demo-card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+.demo-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line)}
+.demo-url{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;background:var(--surface-2);border-radius:999px;padding:5px 12px}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;border:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:999px;height:30px;padding-inline:12px;font-size:13px;cursor:pointer;color:var(--ink-2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.demo-body{display:grid;grid-template-columns:190px 1fr;gap:20px;padding:20px}
+@media (max-width:520px){.demo-body{grid-template-columns:1fr}}
+.shot{display:grid;gap:8px;align-content:start}
+.shot-main{position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;display:grid;place-items:center;transition:background .6s}
+.demo[data-state="before"] .shot-main{background:linear-gradient(160deg,#B9BDB9,#8E948F)}
+.demo[data-state="after"] .shot-main{background:radial-gradient(120% 90% at 50% 20%,#FFFFFF 0%,#F4F2EE 60%,#E9E5DD 100%)}
+.shot-main svg.bottle{width:62%;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .6s}
+.demo[data-state="before"] .shot-main svg.bottle{transform:rotate(-8deg) translateY(6px);filter:grayscale(.55) brightness(.82) contrast(.9)}
+.demo[data-state="after"] .shot-main svg.bottle{transform:none;filter:drop-shadow(0 14px 14px rgba(60,40,10,.25))}
+.garble{position:absolute;inset-inline:10px;bottom:10px;background:#E12E2E;color:#fff;font-size:15px;padding:4px 8px;border-radius:6px;text-align:center;transform:rotate(-3deg);font-family:Arial,sans-serif;transition:opacity .4s}
+.demo[data-state="after"] .garble{opacity:0}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.thumb{aspect-ratio:1;border-radius:7px;border:1px dashed var(--line);display:grid;place-items:center;font-size:10px;color:var(--ink-3);overflow:hidden;position:relative;transition:all .5s}
+.thumb svg{width:56%}
+.demo[data-state="after"] .thumb{border-style:solid;border-color:transparent}
+.demo[data-state="after"] .thumb.t1{background:#F4F2EE}
+.demo[data-state="after"] .thumb.t2{background:#2A1A0E;color:#F2C88A;font-family:"Reem Kufi",sans-serif;font-size:11px;line-height:1.15;text-align:center}
+.demo[data-state="after"] .thumb.t3{background:#E9E0D2}
+.demo[data-state="after"] .thumb.t4{background:#5C1E1E}
+.thumb .t-in{opacity:0;transition:opacity .5s .2s;display:grid;place-items:center;width:100%;height:100%}
+.demo[data-state="after"] .thumb .t-in{opacity:1}
+.demo[data-state="after"] .thumb .t-empty{display:none}
+.demo[data-state="before"] .thumb.t1{border-style:solid;background:linear-gradient(160deg,#B9BDB9,#8E948F)}
+.demo[data-state="before"] .thumb.t1 .t-in{opacity:1;filter:grayscale(.6) brightness(.8)}
+.demo-info{display:grid;gap:14px;align-content:start;min-width:0}
+.score{display:flex;gap:14px;align-items:center}
+.ring{width:74px;height:74px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.ring .track{stroke:var(--surface-2)}
+.ring .val{stroke:var(--bad);stroke-linecap:round;stroke-dasharray:213.6;stroke-dashoffset:113;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1),stroke .6s}
+.demo[data-state="after"] .ring .val{stroke:var(--good);stroke-dashoffset:19}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.score-txt{display:grid;gap:2px;font-size:13px;color:var(--ink-3)}
+.score-txt strong{font-size:15px;color:var(--ink);font-weight:500}
+.ptitle{font-size:14px;line-height:1.45;font-weight:500;min-height:3.9em}
+.ptitle .ar{display:block;font-weight:400;color:var(--ink-2);margin-top:4px}
+.demo[data-state="before"] .ptitle .ar{display:none}
+.v-after{display:none}.demo[data-state="after"] .v-after{display:revert}.demo[data-state="after"] .v-before{display:none}
+.issues{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.issues li{display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:start;font-size:13px;line-height:1.4;padding:8px 10px;border-radius:9px;background:var(--bad-soft);transition:background .5s}
+.issues li .ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--bad);color:#fff;transition:background .5s}
+.issues li .ic svg{width:12px;height:12px}
+.issues li .ok{display:none}
+.demo[data-state="after"] .issues li{background:var(--good-soft)}
+.demo[data-state="after"] .issues li .ic{background:var(--good)}
+.demo[data-state="after"] .issues li .ok{display:block}
+.demo[data-state="after"] .issues li .no{display:none}
+.issues small{display:block;color:var(--ink-3);font-size:12px}
+.demo-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--line);background:var(--surface-2);font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--bad);display:inline-block;margin-inline-end:8px}
+.demo[data-state="after"] .live-dot{background:var(--good);box-shadow:0 0 0 4px var(--good-soft)}
+.fix-btn{height:36px;padding-inline:16px;font-size:13.5px}
+.demo[data-state="after"] .fix-btn{background:var(--surface);color:var(--ink);border-color:var(--line);box-shadow:none}
+.float-tag{position:absolute;z-index:2;background:var(--ink);color:var(--bg);font-size:12.5px;padding:8px 12px;border-radius:10px;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.float-tag.a{top:-18px;inset-inline-end:24px}
+.float-tag.b{bottom:70px;inset-inline-start:-22px;background:var(--saffron);color:#1b1004}
+@media (max-width:1100px){.float-tag.b{display:none}}
+@media (max-width:520px){.float-tag{display:none}}
+
+/* channel strip */
+.channels{padding-block:28px 8px}
+.channels .wrap{display:flex;align-items:center;gap:20px 44px;flex-wrap:wrap;justify-content:center;color:var(--ink-3)}
+.channels p{font-size:13px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
+html[lang="ar"] .channels p{font-family:var(--font-body);letter-spacing:0}
+.chan{display:flex;gap:10px 36px;flex-wrap:wrap;justify-content:center}
+.chan span{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;color:var(--ink-2);opacity:.75}
+.chan span small{font-family:"Readex Pro",sans-serif;font-weight:400;font-size:13px;opacity:.8;margin-inline-start:2px}
+
+/* problem */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.prob{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px;display:grid;gap:12px;align-content:start}
+.prob .k{font-family:var(--font-mono);font-size:12px;color:var(--bad);letter-spacing:.08em;text-transform:uppercase}
+html[lang="ar"] .prob .k{font-family:var(--font-body);letter-spacing:0;font-size:13px}
+.prob h3{font-size:22px;font-weight:650}
+.prob p{color:var(--ink-2);font-size:15.5px}
+@media (max-width:880px){.problem-grid{grid-template-columns:1fr}}
+
+/* loop */
+.loop{background:var(--ink);color:var(--bg)}
+.loop .eyebrow{color:var(--saffron)}
+.loop .lede{color:color-mix(in srgb,var(--bg) 70%,var(--ink))}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:28px;position:relative}
+.step{border:0;background:transparent;text-align:start;padding:16px 4px 12px;cursor:pointer;color:color-mix(in srgb,var(--bg) 55%,var(--ink));border-top:2px solid color-mix(in srgb,var(--bg) 18%,var(--ink));display:grid;gap:4px;transition:color .2s,border-color .2s}
+.step .n{font-family:var(--font-mono);font-size:12px}
+.step .t{font-family:var(--font-display);font-size:22px;font-weight:650}
+.step[aria-selected="true"]{color:var(--bg);border-top-color:var(--saffron)}
+.step:hover{color:var(--bg)}
+@media (max-width:760px){.steps{grid-template-columns:repeat(5,minmax(110px,1fr));overflow-x:auto;scrollbar-width:none}.step .t{font-size:18px}}
+.panel{display:grid;grid-template-columns:.85fr 1.15fr;gap:48px;align-items:center;min-height:400px}
+.panel[hidden]{display:none!important}
+.panel-copy{display:grid;gap:18px;min-width:0}
+.panel-copy h3{font-size:clamp(28px,3vw,38px);font-weight:700}
+.panel-copy p{color:color-mix(in srgb,var(--bg) 70%,var(--ink));font-size:17px}
+.ticks{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.ticks li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px}
+.ticks li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border-radius:50%;background:var(--saffron) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b1004' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/11px no-repeat}
+.ui{background:var(--surface);color:var(--ink);border-radius:18px;padding:20px;box-shadow:0 30px 80px -30px rgba(0,0,0,.6);min-width:0;display:grid;gap:14px}
+.ui-head{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;color:var(--ink-3);flex-wrap:wrap}
+.ui-head strong{color:var(--ink);font-size:15px;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.good{background:var(--good-soft);color:var(--good)}.tag.warn{background:var(--saffron-soft);color:var(--saffron-ink)}
+.scroll-x{overflow-x:auto}
+table.cat{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+table.cat th{font-weight:500;color:var(--ink-3);text-align:start;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line)}
+table.cat td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.cat tr:last-child td{border-bottom:0}
+.bar{display:flex;align-items:center;gap:8px}
+.bar i{display:block;height:6px;border-radius:6px;background:var(--surface-2);width:70px;position:relative;overflow:hidden}
+.bar i::after{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--w);background:var(--c,var(--bad));border-radius:6px}
+.quotes{display:grid;gap:10px}
+.quote{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);align-items:center}
+.quote q{font-size:15.5px;quotes:none;direction:rtl;text-align:right;font-family:"Readex Pro",sans-serif;grid-column:1/-1}
+.quote .d{font-size:12px;color:var(--ink-3)}
+.aspects{display:grid;gap:8px}
+.aspect{display:grid;grid-template-columns:110px 1fr 40px;gap:10px;align-items:center;font-size:13px}
+.aspect .track{height:8px;border-radius:8px;background:var(--surface-2);overflow:hidden}
+.aspect .track i{display:block;height:100%;width:var(--w);background:var(--c,var(--bad));border-radius:8px}
+.diff{display:grid;gap:8px;font-size:14px}
+.diff div{padding:10px 12px;border-radius:10px;line-height:1.45}
+.diff .del{background:var(--bad-soft);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 60%,transparent);color:var(--ink-2)}
+.diff .add{background:var(--good-soft)}
+.diff .add.ar{direction:rtl;text-align:right}
+.slides{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mini{aspect-ratio:4/5;border-radius:10px;position:relative;overflow:hidden;display:grid;place-items:center}
+.mini svg.bottle{width:52%}
+.mini .cap{position:absolute;inset-inline:6px;bottom:6px;font-size:10.5px;line-height:1.25;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.88);color:#1b1004;text-align:center}
+.sync{display:grid;gap:8px}
+.sync-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px}
+.sync-row .mk{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-family:"Bricolage Grotesque",sans-serif;font-size:13px}
+.sync-row .meta{display:grid;font-size:13.5px;min-width:0}
+.sync-row .meta small{color:var(--ink-3);font-size:12px}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--ink-3);font-size:10px;font-family:var(--font-mono)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--surface-2);border-radius:12px;padding:12px;display:grid;gap:2px}
+.kpi small{font-size:12px;color:var(--ink-3)}
+.kpi b{font-family:var(--font-display);font-size:22px;font-variant-numeric:tabular-nums}
+.kpi i{font-style:normal;font-size:12px;color:var(--good)}
+@media (max-width:900px){.panel{grid-template-columns:1fr;gap:32px}}
+
+/* arabic type */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.type-card{border-radius:20px;padding:28px;display:grid;gap:18px;border:1px solid var(--line);background:var(--surface)}
+.type-card .lbl{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink-2)}
+.canvas{border-radius:14px;aspect-ratio:16/9;display:grid;place-items:center;position:relative;overflow:hidden}
+.canvas.bad{background:linear-gradient(135deg,#2B2B2B,#4A4A4A)}
+.canvas.good{background:linear-gradient(135deg,#2A1A0E,#5A3410)}
+.broken{font-family:Arial,"Helvetica Neue",sans-serif;font-size:clamp(30px,4vw,50px);color:#F4E9D8;letter-spacing:.12em;unicode-bidi:bidi-override;direction:ltr}
+.broken-2{position:absolute;bottom:14px;font-family:Arial,sans-serif;font-size:14px;color:#cfcfcf;letter-spacing:.2em;unicode-bidi:bidi-override;direction:ltr}
+.proper{font-family:"Reem Kufi",sans-serif;font-size:clamp(38px,5vw,64px);color:#F2C88A;direction:rtl;line-height:1.1;text-align:center}
+.proper small{display:block;font-family:"Readex Pro",sans-serif;font-size:clamp(13px,1.4vw,17px);color:#F4E9D8;margin-top:8px;font-weight:300}
+.mark{position:absolute;border:2px solid #FF5A4A;border-radius:8px}
+.type-card ul{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:15px;color:var(--ink-2)}
+.type-card ul li{display:flex;gap:10px}
+.type-card ul li::before{content:"";flex:none;margin-top:9px;width:6px;height:6px;border-radius:50%;background:var(--c)}
+.type-notes{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:28px}
+.tn{display:grid;gap:6px;padding-top:16px;border-top:1px solid var(--line)}
+.tn b{font-weight:600}
+.tn p{font-size:14.5px;color:var(--ink-2)}
+@media (max-width:880px){.type-grid{grid-template-columns:1fr}.type-notes{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.type-notes{grid-template-columns:1fr}}
+
+/* studio */
+.studio-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tpl{display:grid;gap:14px;align-content:start}
+.tpl-art{aspect-ratio:4/5;border-radius:16px;overflow:hidden;position:relative;border:1px solid var(--line)}
+.tpl h3{font-size:19px;font-weight:650;font-family:var(--font-body);letter-spacing:0}
+.tpl p{font-size:14.5px;color:var(--ink-2)}
+.tpl .why{font-size:12.5px;color:var(--saffron-ink);font-family:var(--font-mono)}
+html[lang="ar"] .tpl .why{font-family:var(--font-body)}
+@media (max-width:980px){.studio-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.studio-grid{grid-template-columns:1fr}}
+.seasons{margin-top:48px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:24px 28px;border-radius:20px;background:var(--surface);border:1px solid var(--line)}
+.seasons h3{font-size:20px;font-family:var(--font-body);letter-spacing:0;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:13.5px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--bg);display:inline-flex;gap:8px;align-items:center}
+.chip small{color:var(--ink-3);font-family:var(--font-mono);font-size:11.5px}
+@media (max-width:760px){.seasons{grid-template-columns:1fr}}
+.models{margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:24px 28px;border-radius:20px;background:var(--brand-soft)}
+.models h3{font-size:20px;font-family:var(--font-body);letter-spacing:0;font-weight:600}
+@media (max-width:760px){.models{grid-template-columns:1fr}}
+
+/* guard */
+.guard-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.guard{display:grid;grid-template-columns:48px 1fr;gap:18px;padding:26px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.guard .ico{width:48px;height:48px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}
+.guard .ico svg{width:24px;height:24px}
+.guard h3{font-size:19px;font-family:var(--font-body);letter-spacing:0;font-weight:600;margin-bottom:6px}
+.guard p{font-size:15px;color:var(--ink-2)}
+@media (max-width:760px){.guard-grid{grid-template-columns:1fr}}
+
+/* agency */
+.agency{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.report-top{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface-2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.client-logo{display:flex;gap:10px;align-items:center;font-weight:600}
+.client-logo i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7A3E9D,#C0508A);display:block}
+.report-body{padding:22px;display:grid;gap:16px}
+.report-row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.report-row:last-child{border-bottom:0;padding-bottom:0}
+.report-row b{font-variant-numeric:tabular-nums}
+.wa{display:grid;gap:8px;padding:14px;border-radius:14px;background:#E3F5E8;color:#0F2E1C;font-size:14px;max-width:360px}
+:root[data-theme="dark"] .wa{background:#123A24;color:#D7F2E0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wa{background:#123A24;color:#D7F2E0}}
+.wa small{opacity:.65;font-size:12px}
+.feat-list{display:grid;gap:22px;margin-top:8px}
+.feat{display:grid;grid-template-columns:24px 1fr;gap:14px}
+.feat svg{width:22px;height:22px;color:var(--brand);margin-top:2px}
+.feat b{display:block;font-weight:600;margin-bottom:2px}
+.feat p{color:var(--ink-2);font-size:15px}
+@media (max-width:900px){.agency{grid-template-columns:1fr}}
+
+/* pricing */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px;display:grid;gap:20px;grid-template-rows:auto auto auto 1fr auto;position:relative}
+.plan.hot{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.plan.hot .muted{color:color-mix(in srgb,var(--bg) 65%,var(--ink))}
+.plan .badge{position:absolute;top:-12px;inset-inline-start:30px;background:var(--saffron);color:#1b1004;font-size:12.5px;font-weight:500;padding:4px 12px;border-radius:999px}
+.plan h3{font-size:22px;font-family:var(--font-body);letter-spacing:0;font-weight:600}
+.muted{color:var(--ink-2);font-size:15px}
+.price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.price b{font-family:"Bricolage Grotesque",sans-serif;font-size:46px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.price span{font-size:14px}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:15px;align-content:start}
+.plan ul li{display:flex;gap:10px}
+.plan ul li svg{flex:none;width:18px;height:18px;margin-top:3px;color:var(--brand)}
+.plan.hot ul li svg{color:var(--saffron)}
+.plan .btn{width:100%}
+.plan.hot .btn-primary{background:var(--saffron);color:#1b1004;box-shadow:none}
+.price-note{text-align:center;color:var(--ink-3);font-size:14px;margin-top:24px}
+@media (max-width:940px){.price-grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto}}
+
+/* faq */
+.faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px}
+.faq details{border-bottom:1px solid var(--line);padding-block:20px}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font-size:18px;font-weight:500}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--font-mono);font-size:22px;line-height:1;color:var(--ink-3);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin-top:12px;color:var(--ink-2);max-width:62ch}
+@media (max-width:860px){.faq{grid-template-columns:1fr;gap:24px}}
+
+/* cta */
+.cta{padding-block:40px 104px}
+.cta-box{border-radius:28px;background:var(--brand);color:var(--on-brand);padding:clamp(32px,6vw,72px);display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;position:relative;overflow:hidden;isolation:isolate}
+.cta-box::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.14;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1'%3E%3Cpath d='M28 6l6.4 15.6L50 28l-15.6 6.4L28 50l-6.4-15.6L6 28l15.6-6.4z'/%3E%3C/g%3E%3C/svg%3E");-webkit-mask-image:linear-gradient(90deg,transparent,#000);mask-image:linear-gradient(90deg,transparent,#000)}
+.cta-box h2{font-size:clamp(32px,4.2vw,52px);font-weight:700}
+.cta-box p{opacity:.85;margin-top:16px;font-size:17px;max-width:46ch}
+.cta-form{display:grid;gap:10px;background:var(--surface);color:var(--ink);padding:22px;border-radius:20px;box-shadow:var(--shadow)}
+.cta-form label{font-size:13px;color:var(--ink-2);display:grid;gap:6px}
+.cta-form input{height:46px;border-radius:11px;border:1px solid var(--line);background:var(--bg);padding-inline:14px;font-size:15px;width:100%;min-width:0}
+.cta-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cta-form .btn{margin-top:6px}
+@media (max-width:900px){.cta-box{grid-template-columns:1fr}}
+@media (max-width:440px){.cta-form .row2{grid-template-columns:1fr}}
+footer{border-top:1px solid var(--line);padding-block:40px;color:var(--ink-3);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer nav{display:flex;gap:22px;flex-wrap:wrap}
+footer a{text-decoration:none}
+footer a:hover{color:var(--ink)}
+</style>
+
+<!-- shared drawings -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8A4B14"/><stop offset=".55" stop-color="#4A230A"/><stop offset="1" stop-color="#26110A"/></linearGradient>
+    <linearGradient id="gold" x1="0" x2="1"><stop offset="0" stop-color="#9C7330"/><stop offset=".45" stop-color="#F3D58C"/><stop offset="1" stop-color="#A27A32"/></linearGradient>
+    <linearGradient id="shine" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <symbol id="bottle" viewBox="0 0 120 170">
+      <rect x="42" y="4" width="36" height="30" rx="5" fill="url(#gold)"/>
+      <rect x="48" y="32" width="24" height="14" fill="#7B5A22"/>
+      <rect x="12" y="44" width="96" height="120" rx="16" fill="url(#glass)"/>
+      <rect x="22" y="52" width="10" height="100" rx="5" fill="url(#shine)"/>
+      <rect x="30" y="86" width="60" height="44" rx="4" fill="#F3E3C3"/>
+      <rect x="30" y="86" width="60" height="44" rx="4" fill="none" stroke="#B48A3C" stroke-width="1.5"/>
+      <text x="60" y="104" text-anchor="middle" font-family="Reem Kufi, sans-serif" font-size="12" fill="#3A1C08">عود الليل</text>
+      <text x="60" y="120" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="6.5" letter-spacing="1.2" fill="#6B4416">OUD AL LAYL</text>
+    </symbol>
+    <symbol id="garment" viewBox="0 0 120 140">
+      <path d="M38 8l22 10 22-10 30 18-12 26-12-6v90H32V46l-12 6L8 26z" fill="currentColor"/>
+      <path d="M48 12q12 14 24 0" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Basira">
+      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--brand)"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="var(--on-brand)"/><circle cx="16" cy="16" r="3" fill="var(--brand)"/></svg>
+      Basira <small>بصيرة</small>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#arabic" data-i18n="nav.arabic">Arabic-first</a>
+      <a href="#studio" data-i18n="nav.studio">Studio</a>
+      <a href="#agencies" data-i18n="nav.agencies">For agencies</a>
+      <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+    </nav>
+    <div class="nav-end">
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="lang-en" aria-pressed="true" data-lang="en">EN</button>
+        <button type="button" id="lang-ar" aria-pressed="false" data-lang="ar">ع</button>
+      </div>
+      <a class="btn btn-primary" href="#start" data-i18n="nav.cta">Free audit</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><b data-i18n="hero.pill.b">New</b><span data-i18n="hero.pill">Native Arabic typography in every image</span></span>
+      <h1 class="h1" data-i18n="hero.h1">See every listing the way your <em>buyers</em> do.</h1>
+      <p class="hero-sub" data-i18n="hero.sub">Basira is product content intelligence for brands and agencies selling on Amazon, Noon, Salla, Zid and Shopify. It finds what is costing you sales, learns from what buyers write in reviews, fixes the content in Arabic and English, and publishes the fix.</p>
+      <form class="audit-form" id="audit-form" novalidate>
+        <label for="audit-url" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" data-i18n="hero.label">Store or product link</label>
+        <input id="audit-url" type="text" inputmode="url" autocomplete="url" placeholder="noon.com/saudi-en/your-store" data-i18n-ph="hero.ph">
+        <button class="btn btn-primary" type="submit"><span data-i18n="hero.btn">Audit my store</span><svg class="flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </form>
+      <p class="form-note" id="audit-note" aria-live="polite"></p>
+      <div class="hero-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m1">Free audit of 20 products</span></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m2">Report in Arabic and English</span></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m3">Nothing goes live without your approval</span></span>
+      </div>
+    </div>
+
+    <div class="demo" id="demo" data-state="before">
+      <div class="float-tag a"><span class="live-dot"></span><span class="v-before" data-i18n="demo.tagA">4 issues found on this listing</span><span class="v-after" data-i18n="demo.tagA2">Published to Noon · 2 min ago</span></div>
+      <div class="float-tag b" data-i18n="demo.tagB">18 reviews ask how long it lasts</div>
+      <div class="demo-card">
+        <div class="demo-top">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="demo-url">noon.com/saudi-en/oud-al-layl-edp-100ml</span>
+          <div class="seg" role="group" aria-label="Preview state">
+            <button type="button" id="st-before" data-state="before" aria-pressed="true" data-i18n="demo.before">Before</button>
+            <button type="button" id="st-after" data-state="after" aria-pressed="false" data-i18n="demo.after">After Basira</button>
+          </div>
+        </div>
+        <div class="demo-body">
+          <div class="shot">
+            <div class="shot-main">
+              <svg class="bottle" aria-label="Oud Al Layl bottle"><use href="#bottle"/></svg>
+              <span class="garble" dir="ltr" aria-hidden="true">ﻉ ﻭ ﺩ  ﺍ ﻝ ﻝ ﻱ ﻝ</span>
+            </div>
+            <div class="thumbs" aria-hidden="true">
+              <div class="thumb t1"><span class="t-in"><svg><use href="#bottle"/></svg></span></div>
+              <div class="thumb t2"><span class="t-empty">+</span><span class="t-in">ثبات<br>١٢ ساعة</span></div>
+              <div class="thumb t3"><span class="t-empty">+</span><span class="t-in"><svg style="width:40%"><use href="#bottle"/></svg></span></div>
+              <div class="thumb t4"><span class="t-empty">+</span><span class="t-in" style="color:#F3D58C;font-size:16px">✦</span></div>
+            </div>
+          </div>
+          <div class="demo-info">
+            <div class="score">
+              <div class="ring" aria-hidden="true"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" cx="40" cy="40" r="34"/></svg><b id="score-num">47</b></div>
+              <div class="score-txt"><strong data-i18n="demo.score">Content score</strong><span class="v-before" data-i18n="demo.scoreB">Below category median of 72</span><span class="v-after" data-i18n="demo.scoreA">Top 10% in Fragrance · KSA</span></div>
+            </div>
+            <p class="ptitle"><span class="v-before">Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume</span><span class="v-after">Oud Al Layl Eau de Parfum 100ml · Smoked Oud &amp; Saffron</span><span class="ar" dir="rtl">عطر عود الليل ١٠٠ مل · عود مدخّن وزعفران</span></p>
+            <ul class="issues">
+              <li><span class="ic"><svg class="no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><span class="v-before" data-i18n="demo.i1">Arabic text in the image is broken</span><span class="v-after" data-i18n="demo.i1a">Arabic set natively, right to left</span></span></li>
+              <li><span class="ic"><svg class="no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><span class="v-before" data-i18n="demo.i2">No Arabic title, invisible to Arabic search</span><span class="v-after" data-i18n="demo.i2a">Arabic title with the terms buyers search</span></span></li>
+              <li><span class="ic"><svg class="no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><span class="v-before" data-i18n="demo.i3">Buyers keep asking about longevity</span><span class="v-after" data-i18n="demo.i3a">Longevity slide answers it up front</span><small data-i18n="demo.i3s">From 18 reviews in Gulf Arabic</small></span></li>
+              <li><span class="ic"><svg class="no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><span class="v-before" data-i18n="demo.i4">Main image breaks the marketplace photo rules</span><span class="v-after" data-i18n="demo.i4a">Clean studio main image, 3 new slides</span></span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="demo-foot">
+          <span><span class="live-dot"></span><span class="v-before" data-i18n="demo.fB">Sample listing · audited just now</span><span class="v-after" data-i18n="demo.fA">Approved by Sara · live on Noon KSA</span></span>
+          <button class="btn btn-primary fix-btn" type="button" id="fix-btn"><span class="v-before" data-i18n="demo.fix">Fix with Basira</span><span class="v-after" data-i18n="demo.reset">Show original</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="channels">
+  <div class="wrap">
+    <p data-i18n="chan.t">Works where you sell</p>
+    <div class="chan" dir="ltr"><span>amazon<small>.sa .ae .eg</small></span><span>noon</span><span>Salla</span><span>Zid</span><span>Shopify</span></div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="prob.e">The problem</span>
+      <h2 class="h2" data-i18n="prob.h">Most listings lose the sale before anyone reads them.</h2>
+      <p class="lede" data-i18n="prob.l">Image generators make pictures. They don't know why your product isn't selling, they can't write Arabic, and they stop at a file on your desktop.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="prob"><span class="k" data-i18n="prob.1k">Blind spots</span><h3 data-i18n="prob.1h">Nobody audits 3,000 SKUs by hand</h3><p data-i18n="prob.1p">Missing size charts, one-photo listings and English-only titles stay live for months because no one has time to check every product on every marketplace.</p></div>
+      <div class="prob"><span class="k" data-i18n="prob.2k">Unread signals</span><h3 data-i18n="prob.2h">Buyers already told you what's wrong</h3><p data-i18n="prob.2p">"Runs small", "colour isn't like the photo", "doesn't last". It's in the reviews and return reasons, written in four dialects, and nobody turns it into a fix.</p></div>
+      <div class="prob"><span class="k" data-i18n="prob.3k">Broken Arabic</span><h3 data-i18n="prob.3h">AI images can't spell in Arabic</h3><p data-i18n="prob.3p">Generators draw Arabic as disconnected, reversed letters. For a Saudi or Emirati buyer, that reads as a cheap, untrustworthy brand.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="loop" id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="loop.e">How it works</span>
+      <h2 class="h2" data-i18n="loop.h">One loop from problem to proof.</h2>
+      <p class="lede" data-i18n="loop.l">Basira doesn't stop at a nice picture. Each fix starts from a reason and ends with a number you can show your client.</p>
+    </div>
+    <div class="steps" role="tablist" aria-label="Basira loop">
+      <button class="step" role="tab" id="tab-1" aria-controls="p-1" aria-selected="true"><span class="n">01</span><span class="t" data-i18n="s1">Detect</span></button>
+      <button class="step" role="tab" id="tab-2" aria-controls="p-2" aria-selected="false" tabindex="-1"><span class="n">02</span><span class="t" data-i18n="s2">Listen</span></button>
+      <button class="step" role="tab" id="tab-3" aria-controls="p-3" aria-selected="false" tabindex="-1"><span class="n">03</span><span class="t" data-i18n="s3">Fix</span></button>
+      <button class="step" role="tab" id="tab-4" aria-controls="p-4" aria-selected="false" tabindex="-1"><span class="n">04</span><span class="t" data-i18n="s4">Publish</span></button>
+      <button class="step" role="tab" id="tab-5" aria-controls="p-5" aria-selected="false" tabindex="-1"><span class="n">05</span><span class="t" data-i18n="s5">Measure</span></button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-1" aria-labelledby="tab-1">
+      <div class="panel-copy">
+        <h3 data-i18n="p1.h">Audit the whole catalog in minutes</h3>
+        <p data-i18n="p1.p">Connect a store or paste a link. Basira scores every listing against marketplace rules and the best performers in its category, then ranks what to fix first.</p>
+        <ul class="ticks"><li data-i18n="p1.t1">Images, titles, bullets, attributes and A+ content</li><li data-i18n="p1.t2">Arabic coverage and search terms buyers actually use</li><li data-i18n="p1.t3">Ranked by sales at risk, not by count of issues</li></ul>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><strong data-i18n="p1.ui">Catalog health</strong><span class="tag" data-i18n="sample">Sample data</span></div>
+        <div class="scroll-x">
+          <table class="cat">
+            <thead><tr><th data-i18n="p1.c1">Product</th><th data-i18n="p1.c2">Channel</th><th data-i18n="p1.c3">Score</th><th data-i18n="p1.c4">Top issue</th></tr></thead>
+            <tbody>
+              <tr><td>Linen Abaya · Sand</td><td>Noon</td><td><span class="bar tnum"><i style="--w:38%"></i>38</span></td><td><span class="tag bad" data-i18n="p1.r1">No size chart</span></td></tr>
+              <tr><td>Oud Al Layl 100ml</td><td>Amazon.sa</td><td><span class="bar tnum"><i style="--w:47%"></i>47</span></td><td><span class="tag bad" data-i18n="p1.r2">Broken Arabic</span></td></tr>
+              <tr><td>Kids Thobe · White</td><td>Salla</td><td><span class="bar tnum"><i style="--w:56%;--c:var(--saffron)"></i>56</span></td><td><span class="tag warn" data-i18n="p1.r3">1 photo only</span></td></tr>
+              <tr><td>Dates Gift Box 1kg</td><td>Zid</td><td><span class="bar tnum"><i style="--w:64%;--c:var(--saffron)"></i>64</span></td><td><span class="tag warn" data-i18n="p1.r4">English-only title</span></td></tr>
+              <tr><td>Bakhoor Burner</td><td>Shopify</td><td><span class="bar tnum"><i style="--w:88%;--c:var(--good)"></i>88</span></td><td><span class="tag good" data-i18n="p1.r5">Healthy</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-2" aria-labelledby="tab-2" hidden>
+      <div class="panel-copy">
+        <h3 data-i18n="p2.h">Read reviews in every dialect</h3>
+        <p data-i18n="p2.p">Basira reads reviews, questions and return reasons in Gulf, Egyptian, Levantine and Modern Standard Arabic, and in English. It groups them by what buyers care about and links each complaint to a content gap.</p>
+        <ul class="ticks"><li data-i18n="p2.t1">Size, fabric, colour accuracy, longevity, packaging</li><li data-i18n="p2.t2">Spots trends across all SKUs in a category</li><li data-i18n="p2.t3">Every insight links back to the original quotes</li></ul>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><strong data-i18n="p2.ui">What buyers say · Oud Al Layl</strong><span class="tag" data-i18n="sample">Sample data</span></div>
+        <div class="quotes">
+          <div class="quote"><q>الريحة حلوة بس ما تثبت، بعد ساعتين راحت</q><span class="d" data-i18n="p2.d1">Gulf Arabic · Riyadh</span><span class="tag bad" data-i18n="p2.a1">Longevity</span></div>
+          <div class="quote"><q>الحجم أصغر من اللي في الصورة خالص</q><span class="d" data-i18n="p2.d2">Egyptian · Cairo</span><span class="tag warn" data-i18n="p2.a2">Size vs photo</span></div>
+          <div class="quote"><q>التغليف فخم ومناسب للهدايا</q><span class="d" data-i18n="p2.d3">MSA · Dubai</span><span class="tag good" data-i18n="p2.a3">Packaging</span></div>
+        </div>
+        <div class="aspects">
+          <div class="aspect"><span data-i18n="p2.a1">Longevity</span><span class="track"><i style="--w:62%"></i></span><span class="mono">62%</span></div>
+          <div class="aspect"><span data-i18n="p2.a2">Size vs photo</span><span class="track"><i style="--w:24%;--c:var(--saffron)"></i></span><span class="mono">24%</span></div>
+          <div class="aspect"><span data-i18n="p2.a3">Packaging</span><span class="track"><i style="--w:14%;--c:var(--good)"></i></span><span class="mono">14%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-3" aria-labelledby="tab-3" hidden>
+      <div class="panel-copy">
+        <h3 data-i18n="p3.h">Fix it on brand, in both languages</h3>
+        <p data-i18n="p3.p">Basira picks the right template for the problem, generates the images with the best model for the job and writes the copy in your brand voice. You review everything side by side.</p>
+        <ul class="ticks"><li data-i18n="p3.t1">Your fonts, colours and logo in every slide</li><li data-i18n="p3.t2">Gulf-ready Arabic copy, not word-for-word translation</li><li data-i18n="p3.t3">Product shape and colour checked against your original photo</li></ul>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><strong data-i18n="p3.ui">Proposed fix · 4 slides, new title</strong><span class="tag warn" data-i18n="p3.st">Waiting for approval</span></div>
+        <div class="slides">
+          <div class="mini" style="background:#F4F2EE"><svg class="bottle"><use href="#bottle"/></svg></div>
+          <div class="mini" style="background:#2A1A0E"><span style="font-family:'Reem Kufi',sans-serif;color:#F2C88A;font-size:clamp(14px,1.6vw,20px);text-align:center;line-height:1.2" dir="rtl">ثبات<br>١٢ ساعة</span></div>
+          <div class="mini" style="background:#E9E0D2"><svg class="bottle" style="width:40%"><use href="#bottle"/></svg><span class="cap" dir="rtl">عود · زعفران · عنبر</span></div>
+          <div class="mini" style="background:#5C1E1E"><svg class="bottle" style="width:40%"><use href="#bottle"/></svg><span class="cap" dir="rtl">هدية العيد</span></div>
+        </div>
+        <div class="diff">
+          <div class="del">Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume</div>
+          <div class="add">Oud Al Layl Eau de Parfum 100ml · Smoked Oud &amp; Saffron · Up to 12h</div>
+          <div class="add ar">عطر عود الليل أو دو بارفان ١٠٠ مل · عود مدخّن وزعفران · ثبات حتى ١٢ ساعة</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-4" aria-labelledby="tab-4" hidden>
+      <div class="panel-copy">
+        <h3 data-i18n="p4.h">Publish to every channel at once</h3>
+        <p data-i18n="p4.p">Approve once and Basira updates the listing everywhere it lives, in the format each marketplace expects. Every version is saved, so you can roll back in one click.</p>
+        <ul class="ticks"><li data-i18n="p4.t1">Amazon SP-API, Noon, Salla, Zid and Shopify</li><li data-i18n="p4.t2">Image sizes, character limits and rules per channel</li><li data-i18n="p4.t3">Full history of who changed what and when</li></ul>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><strong data-i18n="p4.ui">Sync status · Oud Al Layl</strong><span class="tag" data-i18n="sample">Sample data</span></div>
+        <div class="sync">
+          <div class="sync-row"><span class="mk" style="background:#FEEE00;color:#1A1A1A">n</span><span class="meta">Noon KSA · UAE<small data-i18n="p4.r1">4 images, AR + EN title</small></span><span class="tag good" data-i18n="p4.live">Live</span></div>
+          <div class="sync-row"><span class="mk" style="background:#232F3E;color:#FF9900">a</span><span class="meta">Amazon.sa<small data-i18n="p4.r2">7 images, A+ module</small></span><span class="tag good" data-i18n="p4.live">Live</span></div>
+          <div class="sync-row"><span class="mk" style="background:#004956;color:#BAF3E6">S</span><span class="meta">Salla<small data-i18n="p4.r3">Store theme images</small></span><span class="tag warn" data-i18n="p4.q">In queue</span></div>
+          <div class="sync-row"><span class="mk" style="background:#5B2BE0;color:#fff">Z</span><span class="meta">Zid<small data-i18n="p4.r4">Waiting for client sign-off</small></span><span class="tag" data-i18n="p4.w">Needs approval</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-5" aria-labelledby="tab-5" hidden>
+      <div class="panel-copy">
+        <h3 data-i18n="p5.h">Prove what each fix earned</h3>
+        <p data-i18n="p5.p">Basira tracks conversion, click-through and returns before and after every change, so you know which fixes worked and can repeat them across the catalog.</p>
+        <ul class="ticks"><li data-i18n="p5.t1">Before and after for every published change</li><li data-i18n="p5.t2">Return reasons tracked against the fix</li><li data-i18n="p5.t3">Results roll into your client report automatically</li></ul>
+      </div>
+      <div class="ui">
+        <div class="ui-head"><strong data-i18n="p5.ui">Conversion rate · 8 weeks</strong><span class="tag" data-i18n="example">Example</span></div>
+        <svg class="chart" viewBox="0 0 330 170" role="img" aria-label="Conversion rate example: about 2.1% before the fix, rising to 3.4% after">
+          <g stroke="var(--line)" stroke-width="1"><line x1="30" x2="320" y1="140" y2="140"/><line x1="30" x2="320" y1="110" y2="110" stroke-dasharray="2 4"/><line x1="30" x2="320" y1="80" y2="80" stroke-dasharray="2 4"/><line x1="30" x2="320" y1="50" y2="50" stroke-dasharray="2 4"/><line x1="30" x2="320" y1="20" y2="20" stroke-dasharray="2 4"/></g>
+          <g text-anchor="end"><text x="24" y="143">0%</text><text x="24" y="113">1%</text><text x="24" y="83">2%</text><text x="24" y="53">3%</text><text x="24" y="23">4%</text></g>
+          <g text-anchor="middle"><text x="30" y="158">W1</text><text x="150" y="158">W4</text><text x="310" y="158">W8</text></g>
+          <line x1="150" x2="150" y1="14" y2="140" stroke="var(--saffron)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="156" y="26" style="fill:var(--saffron-ink)" text-anchor="start" data-i18n="p5.fix">fix published</text>
+          <path d="M30 77 L70 80 L110 74 L150 77 L190 59 L230 50 L270 41 L310 38 L310 140 L30 140Z" fill="var(--brand)" fill-opacity=".12"/>
+          <path d="M30 77 L70 80 L110 74 L150 77" fill="none" stroke="var(--ink-3)" stroke-width="2.2"/>
+          <path d="M150 77 L190 59 L230 50 L270 41 L310 38" fill="none" stroke="var(--brand)" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="310" cy="38" r="4.5" fill="var(--brand)"/>
+        </svg>
+        <div class="kpis">
+          <div class="kpi"><small data-i18n="p5.k1">Conversion</small><b>3.4%</b><i>+1.3 pts</i></div>
+          <div class="kpi"><small data-i18n="p5.k2">Click-through</small><b>1.9%</b><i>+0.6 pts</i></div>
+          <div class="kpi"><small data-i18n="p5.k3">Returns</small><b>4.1%</b><i>−2.2 pts</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="arabic">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="ar.e">Arabic-first</span>
+      <h2 class="h2" data-i18n="ar.h">Arabic that reads like it was written by a person.</h2>
+      <p class="lede" data-i18n="ar.l">Basira never asks an image model to spell. The picture comes from the model, the words are set by a real typesetting engine with proper Arabic shaping, then the two are combined.</p>
+    </div>
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="lbl"><span class="tag bad" data-i18n="ar.bad">Typical AI generator</span></div>
+        <div class="canvas bad" aria-label="Broken Arabic: disconnected, reversed letters">
+          <span class="broken" aria-hidden="true">ﻉ ﻭ ﺩ ﺍ ﻝ ﻝ ﻱ ﻝ</span>
+          <span class="broken-2" aria-hidden="true">ﺓ ﻉ ﺎ ﺳ ١٢ ﺕ ﺎ ﺒ ﺛ</span>
+          <span class="mark" style="inset:28% 12% 36% 12%"></span>
+        </div>
+        <ul style="--c:var(--bad)"><li data-i18n="ar.b1">Letters drawn separately, never joined</li><li data-i18n="ar.b2">Word order flipped left to right</li><li data-i18n="ar.b3">Shapes and dots that don't exist in Arabic</li></ul>
+      </div>
+      <div class="type-card">
+        <div class="lbl"><span class="tag good" data-i18n="ar.good">Basira</span></div>
+        <div class="canvas good"><div class="proper">عود الليل<small>ثبات يدوم حتى ١٢ ساعة</small></div></div>
+        <ul style="--c:var(--good)"><li data-i18n="ar.g1">Correct joining, ligatures and diacritics</li><li data-i18n="ar.g2">Right-to-left layout for every element, arrows included</li><li data-i18n="ar.g3">Typefaces chosen for Arabic, matched to your Latin brand font</li></ul>
+      </div>
+    </div>
+    <div class="type-notes">
+      <div class="tn"><b data-i18n="ar.n1">Gulf, not textbook</b><p data-i18n="ar.n1p">Copy written for Saudi and Emirati buyers, with Egyptian and Levantine variants when you sell there.</p></div>
+      <div class="tn"><b data-i18n="ar.n2">Arabic search terms</b><p data-i18n="ar.n2p">Covers spelling variants like أ/ا and ة/ه, plus Arabizi and transliterated brand names.</p></div>
+      <div class="tn"><b data-i18n="ar.n3">Numerals by market</b><p data-i18n="ar.n3p">Arabic-Indic (١٢) or Western (12) digits, set per channel and audience.</p></div>
+      <div class="tn"><b data-i18n="ar.n4">Bilingual slides</b><p data-i18n="ar.n4p">Arabic and English on one image without crowding, or a separate set per language.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="studio" style="padding-top:24px">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="st.e">Studio</span>
+      <h2 class="h2" data-i18n="st.h">Templates built around buyer questions.</h2>
+      <p class="lede" data-i18n="st.l">Every template exists to answer one doubt a buyer has before checkout. Upload one product photo and Basira builds the full set, routing each slide to the image model that does it best.</p>
+    </div>
+    <div class="studio-grid">
+      <div class="tpl">
+        <div class="tpl-art" style="background:linear-gradient(170deg,#EFE6DA,#D9C9B3);display:grid;place-items:center">
+          <svg viewBox="0 0 120 160" style="width:60%" aria-hidden="true"><circle cx="60" cy="26" r="16" fill="#8A5A3C"/><path d="M60 6c-20 0-26 16-24 32 2 14 0 40-6 60h60c-6-20-8-46-6-60 2-16-4-32-24-32z" fill="#3B2F2A"/><path d="M30 98l-6 58h72l-6-58z" fill="#3B2F2A"/><path d="M44 46h32l8 52H36z" fill="#C9B79C"/></svg>
+        </div>
+        <span class="why" data-i18n="st.1w">Answers: how does it look on me?</span>
+        <h3 data-i18n="st.1h">On-model shot</h3>
+        <p data-i18n="st.1p">The product on a model who matches your audience, created from a flat photo.</p>
+      </div>
+      <div class="tpl">
+        <div class="tpl-art" style="background:#F7F6F2;display:grid;place-items:center;color:#D8CDBB;position:relative">
+          <svg viewBox="0 0 120 140" style="width:56%;color:#D8CDBB"><use href="#garment"/></svg>
+          <svg viewBox="0 0 200 250" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><g stroke="#B9623A" stroke-width="1.5" fill="#B9623A" font-size="9" font-family="IBM Plex Mono, monospace"><line x1="52" y1="196" x2="148" y2="196"/><text x="88" y="210" stroke="none">54 cm</text><line x1="168" y1="66" x2="168" y2="184"/><text x="172" y="128" stroke="none">72</text></g></svg>
+        </div>
+        <span class="why" data-i18n="st.2w">Answers: will it fit?</span>
+        <h3 data-i18n="st.2h">Size chart</h3>
+        <p data-i18n="st.2p">Your real measurements on a clean flat lay, plus fit advice taken from reviews.</p>
+      </div>
+      <div class="tpl">
+        <div class="tpl-art" style="background:linear-gradient(170deg,#2A1A0E,#4A2C12);display:grid;align-content:center;gap:10px;padding:18px;color:#F2C88A">
+          <span style="font-family:'Reem Kufi',sans-serif;font-size:clamp(20px,2.2vw,28px);line-height:1.2" dir="rtl">مكوّنات فاخرة</span>
+          <span dir="rtl" style="display:grid;gap:6px;font-size:13px;color:#F4E9D8"><span>◆ عود كمبودي</span><span>◆ زعفران</span><span>◆ عنبر</span></span>
+        </div>
+        <span class="why" data-i18n="st.3w">Answers: what is it made of?</span>
+        <h3 data-i18n="st.3h">Material and details</h3>
+        <p data-i18n="st.3p">Composition, notes and care in short callouts that are easy to scan.</p>
+      </div>
+      <div class="tpl">
+        <div class="tpl-art" style="background:#EDE8DF;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:18px;align-content:center">
+          <span style="aspect-ratio:1;border-radius:10px;background:#C7B299"></span><span style="aspect-ratio:1;border-radius:10px;background:#5C6B7A"></span><span style="aspect-ratio:1;border-radius:10px;background:#F5F1EA;border:1px solid #DDD3C4"></span><span style="aspect-ratio:1;border-radius:10px;background:#8B5E3C"></span>
+        </div>
+        <span class="why" data-i18n="st.4w">Answers: what do I wear it with?</span>
+        <h3 data-i18n="st.4h">Complete the look</h3>
+        <p data-i18n="st.4p">Styled pairings that help buyers picture the product in their life.</p>
+      </div>
+    </div>
+    <div class="seasons">
+      <h3 data-i18n="st.sh">Seasonal packs</h3>
+      <div class="chips">
+        <span class="chip" data-i18n="st.s1">Ramadan</span>
+        <span class="chip" data-i18n="st.s2">Eid al-Fitr</span>
+        <span class="chip" data-i18n="st.s3">Eid al-Adha</span>
+        <span class="chip"><span data-i18n="st.s4">Saudi National Day</span><small>23.09</small></span>
+        <span class="chip"><span data-i18n="st.s5">UAE National Day</span><small>02.12</small></span>
+        <span class="chip" data-i18n="st.s6">White Friday</span>
+        <span class="chip"><span>11.11</span></span>
+        <span class="chip" data-i18n="st.s7">Back to school</span>
+      </div>
+    </div>
+    <div class="models">
+      <h3 data-i18n="st.mh">Models for your audience</h3>
+      <p style="color:var(--ink-2)" data-i18n="st.mp">Modest styling, with or without hijab, Gulf, Levantine and North African looks, or your own brand model kept consistent across the whole catalog.</p>
+    </div>
+  </div>
+</section>
+
+<section id="trust" style="padding-top:24px">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="g.e">Guardrails</span>
+      <h2 class="h2" data-i18n="g.h">Safe to run on a client's catalog.</h2>
+    </div>
+    <div class="guard-grid">
+      <div class="guard"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/></svg></span><div><h3 data-i18n="g.1h">Product fidelity check</h3><p data-i18n="g.1p">Every generated image is compared with your original photo. If the shape, colour or logo drifts, Basira flags it before you see it.</p></div></div>
+      <div class="guard"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h4"/></svg></span><div><h3 data-i18n="g.2h">Marketplace rules built in</h3><p data-i18n="g.2p">Main image backgrounds, text-on-image limits, title length and banned claims are checked per channel before anything is published.</p></div></div>
+      <div class="guard"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><div><h3 data-i18n="g.3h">Regional compliance</h3><p data-i18n="g.3p">Flags claims that need SFDA approval, missing Arabic labelling and wording that marketplaces in the region reject.</p></div></div>
+      <div class="guard"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7M17 11l2 2 4-4"/></svg></span><div><h3 data-i18n="g.4h">A person approves every change</h3><p data-i18n="g.4p">Nothing goes live on its own. You or your client approve each fix, and every version can be restored.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="agencies" style="padding-top:24px">
+  <div class="wrap agency">
+    <div style="display:grid;gap:22px;min-width:0">
+      <span class="eyebrow" data-i18n="ag.e">For agencies</span>
+      <h2 class="h2" data-i18n="ag.h">Run 40 brands like you run one.</h2>
+      <p class="lede" data-i18n="ag.l">Basira is built for e-commerce agencies in Riyadh, Jeddah, Dubai and Cairo who manage many brands across many marketplaces.</p>
+      <div class="feat-list">
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><div><b data-i18n="ag.1h">A workspace per client</b><p data-i18n="ag.1p">Separate brand kits, stores, credits and team access for every brand you manage.</p></div></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><div><b data-i18n="ag.2h">Reports under your logo</b><p data-i18n="ag.2p">Monthly results in Arabic and English with your branding, ready to send to the client.</p></div></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg><div><b data-i18n="ag.3h">Approvals on WhatsApp</b><p data-i18n="ag.3p">Clients see the before and after and approve with one tap, without logging in.</p></div></div>
+      </div>
+    </div>
+    <div style="display:grid;gap:16px;min-width:0">
+      <div class="report">
+        <div class="report-top"><span class="client-logo"><i></i>Layali Fragrances</span><span class="tag" data-i18n="ag.rt">October report</span></div>
+        <div class="report-body">
+          <div class="report-row"><span data-i18n="ag.r1">Listings fixed</span><b>126</b></div>
+          <div class="report-row"><span data-i18n="ag.r2">Average content score</span><b>58 → 86</b></div>
+          <div class="report-row"><span data-i18n="ag.r3">Conversion change</span><b style="color:var(--good)">+0.9 pts</b></div>
+          <div class="report-row"><span data-i18n="ag.r4">Size-related returns</span><b style="color:var(--good)">−31%</b></div>
+          <span class="tag" style="justify-self:start" data-i18n="example">Example</span>
+        </div>
+      </div>
+      <div class="wa" dir="rtl" style="justify-self:end">
+        <span>تمت مراجعة ٤ صور جديدة لمنتج <b>عود الليل</b>. هل توافق على النشر في نون؟</span>
+        <span style="display:flex;gap:8px"><span class="tag good">✓ موافق</span><span class="tag">عرض التعديلات</span></span>
+        <small>Basira · 10:42</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" style="padding-top:24px">
+  <div class="wrap">
+    <div class="sec-head" style="margin-inline:auto;text-align:center;justify-items:center">
+      <span class="eyebrow" data-i18n="pr.e">Pricing</span>
+      <h2 class="h2" data-i18n="pr.h">Pay for listings fixed, not seats.</h2>
+    </div>
+    <div class="price-grid">
+      <div class="plan">
+        <h3 data-i18n="pr.1h">Seller</h3>
+        <p class="muted" data-i18n="pr.1p">For a brand with one or two stores.</p>
+        <div class="price"><b>399</b><span class="muted" data-i18n="pr.mo">SAR / month</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.1a">2 connected stores</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.1b">Audit up to 500 listings</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.1c">50 listing fixes a month</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.1d">Review insights in Arabic and English</span></li>
+        </ul>
+        <a class="btn btn-ghost" href="#start" data-i18n="pr.start">Start with a free audit</a>
+      </div>
+      <div class="plan hot">
+        <span class="badge" data-i18n="pr.pop">Most agencies pick this</span>
+        <h3 data-i18n="pr.2h">Agency</h3>
+        <p class="muted" data-i18n="pr.2p">For teams managing many brands.</p>
+        <div class="price"><b>1,490</b><span class="muted" data-i18n="pr.mo">SAR / month</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.2a">10 client workspaces</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.2b">400 listing fixes a month</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.2c">Reports under your logo</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.2d">Client approvals on WhatsApp</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.2e">Before and after tracking</span></li>
+        </ul>
+        <a class="btn btn-primary" href="#start" data-i18n="pr.pilot">Book a pilot</a>
+      </div>
+      <div class="plan">
+        <h3 data-i18n="pr.3h">Enterprise</h3>
+        <p class="muted" data-i18n="pr.3p">For large retailers and brand groups.</p>
+        <div class="price"><b data-i18n="pr.custom">Custom</b></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.3a">Unlimited workspaces</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.3b">Custom templates and brand models</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.3c">API and PIM integration</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="pr.3d">Dedicated success manager</span></li>
+        </ul>
+        <a class="btn btn-ghost" href="#start" data-i18n="pr.talk">Talk to us</a>
+      </div>
+    </div>
+    <p class="price-note" data-i18n="pr.note">Prices exclude VAT. Pay by Mada, card or bank transfer. Save two months with yearly billing.</p>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:24px">
+  <div class="wrap faq">
+    <div style="display:grid;gap:18px;align-content:start">
+      <span class="eyebrow" data-i18n="f.e">Questions</span>
+      <h2 class="h2" data-i18n="f.h">What sellers ask us.</h2>
+    </div>
+    <div>
+      <details open><summary data-i18n="f.1q">Which marketplaces does Basira work with?</summary><p data-i18n="f.1a">Amazon (Saudi Arabia, UAE and Egypt), Noon, Salla, Zid and Shopify. You can also export any fix as files for channels we don't connect to yet.</p></details>
+      <details><summary data-i18n="f.2q">Will Basira change my listings without asking?</summary><p data-i18n="f.2a">No. Basira proposes fixes. A person on your team or your client approves each one before it is published, and every earlier version can be restored.</p></details>
+      <details><summary data-i18n="f.3q">Where does the review data come from?</summary><p data-i18n="f.3a">From the official marketplace connections where they include reviews and returns, and from the review and return reports you export from seller centres where they don't.</p></details>
+      <details><summary data-i18n="f.4q">Can AI images misrepresent my product?</summary><p data-i18n="f.4a">That's the main risk with generated images, so every image is checked against your original photo for shape, colour and logo. Anything that drifts is flagged and never sent for approval.</p></details>
+      <details><summary data-i18n="f.5q">Do I need a designer?</summary><p data-i18n="f.5a">No. Upload your logo, colours and fonts once, and every template uses them. Designers on your team can adjust any template and lock the parts that must not change.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="start">
+  <div class="wrap">
+    <div class="cta-box">
+      <div>
+        <h2 data-i18n="c.h">See what your listings are missing.</h2>
+        <p data-i18n="c.p">Send us one store. Within one business day you'll get an audit of your top 20 products, with three fixes ready to approve.</p>
+      </div>
+      <form class="cta-form" id="cta-form">
+        <div class="row2">
+          <label for="c-name"><span data-i18n="c.name">Name</span><input id="c-name" type="text" autocomplete="name" required></label>
+          <label for="c-wa"><span data-i18n="c.wa">WhatsApp</span><input id="c-wa" type="tel" autocomplete="tel" placeholder="+966 5x xxx xxxx" dir="ltr" required></label>
+        </div>
+        <label for="c-store"><span data-i18n="c.store">Store link</span><input id="c-store" type="text" inputmode="url" placeholder="salla.sa/your-store" dir="ltr" required></label>
+        <button class="btn btn-primary" type="submit" data-i18n="c.btn">Request my free audit</button>
+        <p class="form-note" id="cta-note" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Basira · <span data-i18n="ft.t">AI product content intelligence</span></span>
+    <nav aria-label="Footer"><a href="#how" data-i18n="nav.how">How it works</a><a href="#pricing" data-i18n="nav.pricing">Pricing</a><a href="#faq" data-i18n="ft.faq">FAQ</a></nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var AR = {
+    "nav.how":"كيف تعمل","nav.arabic":"العربية أولاً","nav.studio":"الاستوديو","nav.agencies":"للوكالات","nav.pricing":"الأسعار","nav.cta":"تدقيق مجاني",
+    "hero.pill.b":"جديد","hero.pill":"خط عربي أصيل في كل صورة",
+    "hero.h1":"شاهد كل منتج كما <em>يراه عميلك</em>.",
+    "hero.sub":"بصيرة منصة ذكاء اصطناعي لمحتوى المنتجات، للعلامات التجارية والوكالات التي تبيع على أمازون ونون وسلة وزد وشوبيفاي. تكتشف ما يُفقدك المبيعات، وتتعلّم مما يكتبه العملاء في التقييمات، وتصلح المحتوى بالعربية والإنجليزية، ثم تنشر التعديل.",
+    "hero.label":"رابط المتجر أو المنتج","hero.ph":"رابط متجرك على نون أو سلة","hero.btn":"دقّق متجري",
+    "hero.m1":"تدقيق مجاني لـ ٢٠ منتجاً","hero.m2":"تقرير بالعربية والإنجليزية","hero.m3":"لا يُنشر شيء دون موافقتك",
+    "demo.tagA":"٤ مشكلات في هذا المنتج","demo.tagA2":"نُشر على نون · قبل دقيقتين","demo.tagB":"١٨ تقييماً تسأل عن الثبات",
+    "demo.before":"قبل","demo.after":"بعد بصيرة","demo.score":"تقييم المحتوى","demo.scoreB":"أقل من متوسط الفئة (٧٢)","demo.scoreA":"ضمن أفضل ١٠٪ في العطور · السعودية",
+    "demo.i1":"النص العربي في الصورة مكسور","demo.i1a":"خط عربي صحيح من اليمين لليسار",
+    "demo.i2":"لا يوجد عنوان عربي، فلا يظهر في البحث العربي","demo.i2a":"عنوان عربي بالكلمات التي يبحث بها العملاء",
+    "demo.i3":"العملاء يسألون باستمرار عن الثبات","demo.i3a":"شريحة الثبات تجيب من البداية","demo.i3s":"من ١٨ تقييماً باللهجة الخليجية",
+    "demo.i4":"الصورة الرئيسية تخالف قواعد المنصة","demo.i4a":"صورة رئيسية نظيفة و٣ شرائح جديدة",
+    "demo.fB":"منتج تجريبي · تم التدقيق الآن","demo.fA":"وافقت سارة · منشور على نون السعودية","demo.fix":"أصلح مع بصيرة","demo.reset":"عرض الأصل",
+    "chan.t":"تعمل حيث تبيع",
+    "prob.e":"المشكلة","prob.h":"معظم المنتجات تخسر البيع قبل أن يقرأها أحد.",
+    "prob.l":"مولّدات الصور تصنع صوراً فقط. لا تعرف لماذا لا يُباع منتجك، ولا تكتب العربية، وتتوقف عند ملف على جهازك.",
+    "prob.1k":"نقاط عمياء","prob.1h":"لا أحد يدقّق ٣٠٠٠ منتج يدوياً","prob.1p":"جداول مقاسات ناقصة، ومنتجات بصورة واحدة، وعناوين بالإنجليزية فقط تبقى منشورة لأشهر لأن لا أحد لديه وقت لمراجعة كل منتج على كل منصة.",
+    "prob.2k":"إشارات مُهملة","prob.2h":"العملاء أخبروك بالمشكلة مسبقاً","prob.2p":"«المقاس صغير»، «اللون غير الصورة»، «ما يثبت». كلها في التقييمات وأسباب الإرجاع، بأربع لهجات، ولا أحد يحوّلها إلى تعديل.",
+    "prob.3k":"عربية مكسورة","prob.3h":"صور الذكاء الاصطناعي لا تكتب العربية","prob.3p":"المولّدات ترسم الحروف العربية منفصلة ومعكوسة. والمشتري السعودي أو الإماراتي يراها علامة رخيصة لا يُوثق بها.",
+    "loop.e":"كيف تعمل","loop.h":"دورة واحدة من المشكلة إلى الدليل.","loop.l":"بصيرة لا تتوقف عند صورة جميلة. كل تعديل يبدأ بسبب وينتهي برقم تعرضه على عميلك.",
+    "s1":"اكتشف","s2":"استمع","s3":"أصلح","s4":"انشر","s5":"قِس",
+    "p1.h":"دقّق الكتالوج كاملاً في دقائق","p1.p":"اربط متجرك أو الصق رابطاً. تقيّم بصيرة كل منتج وفق قواعد المنصة وأفضل المنتجات في فئته، ثم ترتّب ما يجب إصلاحه أولاً.",
+    "p1.t1":"الصور والعناوين والنقاط والخصائص ومحتوى A+","p1.t2":"تغطية العربية وكلمات البحث التي يستخدمها العملاء فعلاً","p1.t3":"الترتيب حسب المبيعات المعرّضة للخطر، لا حسب عدد المشكلات",
+    "p1.ui":"صحة الكتالوج","sample":"بيانات تجريبية","example":"مثال","p1.c1":"المنتج","p1.c2":"القناة","p1.c3":"التقييم","p1.c4":"أهم مشكلة",
+    "p1.r1":"لا جدول مقاسات","p1.r2":"عربية مكسورة","p1.r3":"صورة واحدة فقط","p1.r4":"عنوان إنجليزي فقط","p1.r5":"سليم",
+    "p2.h":"اقرأ التقييمات بكل لهجة","p2.p":"تقرأ بصيرة التقييمات والأسئلة وأسباب الإرجاع بالخليجية والمصرية والشامية والفصحى والإنجليزية، وتجمعها حسب ما يهم العميل، وتربط كل شكوى بنقص في المحتوى.",
+    "p2.t1":"المقاس والقماش ودقة اللون والثبات والتغليف","p2.t2":"تكتشف الأنماط عبر كل منتجات الفئة","p2.t3":"كل استنتاج مرتبط بالتقييمات الأصلية",
+    "p2.ui":"ماذا يقول العملاء · عود الليل","p2.d1":"خليجي · الرياض","p2.d2":"مصري · القاهرة","p2.d3":"فصحى · دبي","p2.a1":"الثبات","p2.a2":"الحجم مقارنة بالصورة","p2.a3":"التغليف",
+    "p3.h":"أصلح بهوية علامتك وباللغتين","p3.p":"تختار بصيرة القالب المناسب للمشكلة، وتولّد الصور بأفضل نموذج للمهمة، وتكتب النص بأسلوب علامتك. وتراجع أنت كل شيء جنباً إلى جنب.",
+    "p3.t1":"خطوطك وألوانك وشعارك في كل شريحة","p3.t2":"نص عربي خليجي، لا ترجمة حرفية","p3.t3":"شكل المنتج ولونه يُطابَق مع صورتك الأصلية",
+    "p3.ui":"التعديل المقترح · ٤ شرائح وعنوان جديد","p3.st":"بانتظار الموافقة",
+    "p4.h":"انشر على كل القنوات دفعة واحدة","p4.p":"وافق مرة واحدة، وتحدّث بصيرة المنتج في كل مكان يُعرض فيه، بالصيغة التي تطلبها كل منصة. كل نسخة محفوظة، والتراجع بنقرة.",
+    "p4.t1":"أمازون ونون وسلة وزد وشوبيفاي","p4.t2":"مقاسات الصور وحدود الأحرف وقواعد كل قناة","p4.t3":"سجل كامل بمن غيّر ماذا ومتى",
+    "p4.ui":"حالة المزامنة · عود الليل","p4.r1":"٤ صور، عنوان عربي وإنجليزي","p4.r2":"٧ صور، وحدة A+","p4.r3":"صور قالب المتجر","p4.r4":"بانتظار موافقة العميل","p4.live":"منشور","p4.q":"في الطابور","p4.w":"يحتاج موافقة",
+    "p5.h":"أثبت ما حققه كل تعديل","p5.p":"تتابع بصيرة معدل التحويل والنقر والإرجاع قبل كل تعديل وبعده، فتعرف ما الذي نجح وتكرره في الكتالوج كله.",
+    "p5.t1":"قبل وبعد لكل تعديل منشور","p5.t2":"أسباب الإرجاع مقارنة بالتعديل","p5.t3":"النتائج تدخل تقرير العميل تلقائياً",
+    "p5.ui":"معدل التحويل · ٨ أسابيع","p5.fix":"نشر التعديل","p5.k1":"التحويل","p5.k2":"النقر","p5.k3":"الإرجاع",
+    "ar.e":"العربية أولاً","ar.h":"عربية تُقرأ كأن إنساناً كتبها.","ar.l":"بصيرة لا تطلب من نموذج الصور أن يكتب. الصورة من النموذج، والكلمات يصفّها محرّك طباعة حقيقي بتشكيل عربي صحيح، ثم يُدمجان معاً.",
+    "ar.bad":"مولّد صور تقليدي","ar.good":"بصيرة",
+    "ar.b1":"الحروف مرسومة منفصلة ولا تتصل","ar.b2":"ترتيب الكلمات معكوس من اليسار لليمين","ar.b3":"أشكال ونقاط غير موجودة في العربية",
+    "ar.g1":"اتصال صحيح للحروف والتشكيل","ar.g2":"تخطيط من اليمين لليسار لكل عنصر، حتى الأسهم","ar.g3":"خطوط عربية مختارة تناسب خط علامتك اللاتيني",
+    "ar.n1":"خليجية لا كتب مدرسية","ar.n1p":"نصوص مكتوبة للمشتري السعودي والإماراتي، مع نسخ مصرية وشامية حين تبيع هناك.",
+    "ar.n2":"كلمات البحث العربية","ar.n2p":"تغطي اختلافات الكتابة مثل أ/ا وة/ه، والعربيزي، وأسماء العلامات المكتوبة بالعربية.",
+    "ar.n3":"الأرقام حسب السوق","ar.n3p":"أرقام عربية (١٢) أو لاتينية (12) حسب القناة والجمهور.",
+    "ar.n4":"شرائح ثنائية اللغة","ar.n4p":"العربية والإنجليزية في صورة واحدة دون ازدحام، أو مجموعة منفصلة لكل لغة.",
+    "st.e":"الاستوديو","st.h":"قوالب مبنية على أسئلة المشتري.","st.l":"كل قالب يجيب عن شك واحد لدى المشتري قبل الدفع. ارفع صورة واحدة للمنتج، وتبني بصيرة المجموعة كاملة، وترسل كل شريحة إلى النموذج الأفضل لها.",
+    "st.1w":"يجيب: كيف يبدو عليّ؟","st.1h":"صورة على عارضة","st.1p":"المنتج على عارضة تشبه جمهورك، من صورة مسطّحة.",
+    "st.2w":"يجيب: هل سيناسبني؟","st.2h":"جدول المقاسات","st.2p":"قياساتك الحقيقية على صورة نظيفة، مع نصيحة المقاس من التقييمات.",
+    "st.3w":"يجيب: مِمّ صُنع؟","st.3h":"الخامة والتفاصيل","st.3p":"المكوّنات والنوتات والعناية في نقاط قصيرة سهلة القراءة.",
+    "st.4w":"يجيب: مع ماذا ألبسه؟","st.4h":"أكمل الإطلالة","st.4p":"تنسيقات تساعد المشتري على تخيّل المنتج في حياته.",
+    "st.sh":"باقات المواسم","st.s1":"رمضان","st.s2":"عيد الفطر","st.s3":"عيد الأضحى","st.s4":"اليوم الوطني السعودي","st.s5":"اليوم الوطني الإماراتي","st.s6":"الجمعة البيضاء","st.s7":"العودة للمدارس",
+    "st.mh":"عارضات يشبهن جمهورك","st.mp":"إطلالات محتشمة، بحجاب أو دونه، وملامح خليجية وشامية ومغاربية، أو عارضة علامتك الخاصة بنفس الشكل في كل الكتالوج.",
+    "g.e":"الضمانات","g.h":"آمنة للعمل على كتالوج عميلك.",
+    "g.1h":"فحص مطابقة المنتج","g.1p":"تُقارن كل صورة مولّدة بصورتك الأصلية. إذا اختلف الشكل أو اللون أو الشعار، تنبّه بصيرة قبل أن تراها.",
+    "g.2h":"قواعد المنصات مدمجة","g.2p":"خلفية الصورة الرئيسية، وحدود النص على الصور، وطول العنوان، والادعاءات الممنوعة، كلها تُفحص لكل قناة قبل النشر.",
+    "g.3h":"الامتثال الإقليمي","g.3p":"تنبّه إلى الادعاءات التي تحتاج موافقة هيئة الغذاء والدواء، ونقص البيانات العربية، والصياغات التي ترفضها منصات المنطقة.",
+    "g.4h":"إنسان يوافق على كل تعديل","g.4p":"لا يُنشر شيء تلقائياً. أنت أو عميلك توافقون على كل تعديل، ويمكن استعادة أي نسخة.",
+    "ag.e":"للوكالات","ag.h":"أدِر ٤٠ علامة كأنها علامة واحدة.","ag.l":"بصيرة مصممة لوكالات التجارة الإلكترونية في الرياض وجدة ودبي والقاهرة التي تدير علامات كثيرة على منصات كثيرة.",
+    "ag.1h":"مساحة عمل لكل عميل","ag.1p":"هوية وحسابات متاجر ورصيد وصلاحيات فريق منفصلة لكل علامة تديرها.",
+    "ag.2h":"تقارير بشعارك","ag.2p":"نتائج شهرية بالعربية والإنجليزية بهويتك، جاهزة للإرسال إلى العميل.",
+    "ag.3h":"الموافقات عبر واتساب","ag.3p":"يرى العميل قبل وبعد ويوافق بلمسة واحدة دون تسجيل دخول.",
+    "ag.rt":"تقرير أكتوبر","ag.r1":"منتجات تم إصلاحها","ag.r2":"متوسط تقييم المحتوى","ag.r3":"تغيّر التحويل","ag.r4":"إرجاع بسبب المقاس",
+    "pr.e":"الأسعار","pr.h":"ادفع مقابل المنتجات المُصلحة، لا المقاعد.",
+    "pr.1h":"بائع","pr.1p":"لعلامة لديها متجر أو متجران.","pr.mo":"ريال / شهرياً",
+    "pr.1a":"متجران مرتبطان","pr.1b":"تدقيق حتى ٥٠٠ منتج","pr.1c":"٥٠ تعديلاً شهرياً","pr.1d":"تحليل التقييمات بالعربية والإنجليزية","pr.start":"ابدأ بتدقيق مجاني",
+    "pr.pop":"اختيار معظم الوكالات","pr.2h":"وكالة","pr.2p":"للفرق التي تدير علامات كثيرة.",
+    "pr.2a":"١٠ مساحات عمل للعملاء","pr.2b":"٤٠٠ تعديل شهرياً","pr.2c":"تقارير بشعارك","pr.2d":"موافقات العملاء عبر واتساب","pr.2e":"متابعة قبل وبعد","pr.pilot":"احجز تجربة",
+    "pr.3h":"المؤسسات","pr.3p":"لكبار تجار التجزئة ومجموعات العلامات.","pr.custom":"حسب الطلب",
+    "pr.3a":"مساحات عمل غير محدودة","pr.3b":"قوالب وعارضات خاصة بعلامتك","pr.3c":"ربط API وأنظمة PIM","pr.3d":"مدير نجاح مخصص","pr.talk":"تواصل معنا",
+    "pr.note":"الأسعار لا تشمل ضريبة القيمة المضافة. الدفع بمدى أو البطاقة أو التحويل البنكي. وفّر شهرين مع الاشتراك السنوي.",
+    "f.e":"أسئلة","f.h":"ما يسألنا عنه البائعون.",
+    "f.1q":"ما المنصات التي تعمل معها بصيرة؟","f.1a":"أمازون (السعودية والإمارات ومصر)، ونون، وسلة، وزد، وشوبيفاي. ويمكنك تصدير أي تعديل كملفات للقنوات التي لم نربطها بعد.",
+    "f.2q":"هل ستغيّر بصيرة منتجاتي دون سؤالي؟","f.2a":"لا. بصيرة تقترح التعديلات، ويوافق عليها شخص من فريقك أو عميلك قبل النشر، ويمكن استعادة أي نسخة سابقة.",
+    "f.3q":"من أين تأتي بيانات التقييمات؟","f.3a":"من الربط الرسمي مع المنصات حين يتضمن التقييمات والإرجاع، ومن تقارير التقييمات والإرجاع التي تصدّرها من لوحة البائع حين لا يتضمنها.",
+    "f.4q":"هل يمكن أن تُظهر صور الذكاء الاصطناعي منتجي بشكل خاطئ؟","f.4a":"هذا هو الخطر الأكبر في الصور المولّدة، لذلك تُفحص كل صورة مقابل صورتك الأصلية في الشكل واللون والشعار. وأي اختلاف يُرصد ولا يُرسل للموافقة.",
+    "f.5q":"هل أحتاج إلى مصمم؟","f.5a":"لا. ارفع شعارك وألوانك وخطوطك مرة واحدة، وتستخدمها كل القوالب. ويمكن لمصممي فريقك تعديل أي قالب وقفل الأجزاء التي يجب ألا تتغير.",
+    "c.h":"اكتشف ما ينقص منتجاتك.","c.p":"أرسل لنا متجراً واحداً. خلال يوم عمل واحد تحصل على تدقيق لأهم ٢٠ منتجاً، مع ٣ تعديلات جاهزة للموافقة.",
+    "c.name":"الاسم","c.wa":"واتساب","c.store":"رابط المتجر","c.btn":"اطلب تدقيقي المجاني",
+    "ft.t":"ذكاء محتوى المنتجات بالذكاء الاصطناعي","ft.faq":"الأسئلة الشائعة"
+  };
+  var MSG = {
+    en:{auditEmpty:"Paste a link to your store or one product.",audit:"Got it. Scroll down to request the full audit, or watch the sample fix on the right.",sent:"Thanks. We'll message you on WhatsApp within one business day.",missing:"Fill in your name, WhatsApp number and store link."},
+    ar:{auditEmpty:"الصق رابط متجرك أو رابط منتج واحد.",audit:"تم. انزل لطلب التدقيق الكامل، أو شاهد التعديل التجريبي.",sent:"شكراً. سنراسلك على واتساب خلال يوم عمل واحد.",missing:"أدخل اسمك ورقم واتساب ورابط المتجر."}
+  };
+  var root = document.documentElement, current = "en";
+  var nodes = Array.prototype.slice.call(document.querySelectorAll("[data-i18n]"));
+  var phs = Array.prototype.slice.call(document.querySelectorAll("[data-i18n-ph]"));
+  nodes.forEach(function(n){ n._en = n.innerHTML; });
+  phs.forEach(function(n){ n._en = n.getAttribute("placeholder"); });
+
+  function setLang(l){
+    current = l;
+    root.lang = l; root.dir = l === "ar" ? "rtl" : "ltr";
+    nodes.forEach(function(n){ var k = n.getAttribute("data-i18n"); n.innerHTML = (l === "ar" && AR[k]) ? AR[k] : n._en; });
+    phs.forEach(function(n){ var k = n.getAttribute("data-i18n-ph"); n.setAttribute("placeholder", (l === "ar" && AR[k]) ? AR[k] : n._en); });
+    document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
+    setScore(demo.dataset.state === "after" ? 91 : 47, false);
+    try { localStorage.setItem("basira-lang", l); } catch(e){}
+  }
+  document.querySelectorAll(".lang button").forEach(function(b){ b.addEventListener("click", function(){ setLang(b.dataset.lang); }); });
+
+  /* demo */
+  var demo = document.getElementById("demo"), num = document.getElementById("score-num"), userTouched = false, raf;
+  var AD = "٠١٢٣٤٥٦٧٨٩";
+  function fmt(v){ return current === "ar" ? String(v).replace(/\d/g, function(d){ return AD[d]; }) : String(v); }
+  function setScore(to, animate){
+    cancelAnimationFrame(raf);
+    var from = parseInt(num.dataset.v || "47", 10);
+    if (!animate || matchMedia("(prefers-reduced-motion: reduce)").matches){ num.dataset.v = to; num.textContent = fmt(to); return; }
+    var t0 = performance.now();
+    (function tick(t){ var p = Math.min(1, (t - t0) / 1100), e = 1 - Math.pow(1 - p, 3), v = Math.round(from + (to - from) * e);
+      num.textContent = fmt(v); num.dataset.v = v; if (p < 1) raf = requestAnimationFrame(tick); })(t0);
+  }
+  function setState(s){
+    demo.dataset.state = s;
+    document.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.state === s)); });
+    setScore(s === "after" ? 91 : 47, true);
+  }
+  document.querySelectorAll(".seg button").forEach(function(b){ b.addEventListener("click", function(){ userTouched = true; setState(b.dataset.state); }); });
+  document.getElementById("fix-btn").addEventListener("click", function(){ userTouched = true; setState(demo.dataset.state === "after" ? "before" : "after"); });
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches){ setTimeout(function(){ if (!userTouched) setState("after"); }, 3200); }
+
+  /* tabs */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".step"));
+  function select(i){
+    tabs.forEach(function(t, j){ var on = i === j; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on; });
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener("click", function(){ select(i); });
+    t.addEventListener("keydown", function(e){
+      var rtl = root.dir === "rtl", next = rtl ? "ArrowLeft" : "ArrowRight", prev = rtl ? "ArrowRight" : "ArrowLeft";
+      if (e.key === next || e.key === prev){ e.preventDefault(); var k = (i + (e.key === next ? 1 : -1) + tabs.length) % tabs.length; select(k); tabs[k].focus(); }
+    });
+  });
+
+  /* forms (wire to your backend: see README) */
+  document.getElementById("audit-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = document.getElementById("audit-url").value.trim(), note = document.getElementById("audit-note");
+    if (!v){ note.style.color = "var(--bad)"; note.textContent = MSG[current].auditEmpty; return; }
+    note.style.color = ""; note.textContent = MSG[current].audit;
+    document.getElementById("c-store").value = v;
+    userTouched = true; setState("after");
+  });
+  document.getElementById("cta-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var note = document.getElementById("cta-note");
+    var ok = ["c-name","c-wa","c-store"].every(function(id){ return document.getElementById(id).value.trim(); });
+    if (!ok){ note.style.color = "var(--bad)"; note.textContent = MSG[current].missing; return; }
+    note.style.color = ""; note.textContent = MSG[current].sent;
+    if (window.BASIRA_LEAD_ENDPOINT){
+      fetch(window.BASIRA_LEAD_ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({name:document.getElementById("c-name").value, whatsapp:document.getElementById("c-wa").value, store:document.getElementById("c-store").value, lang:current})}).catch(function(){});
+    }
+  });
+
+  /* nav border */
+  var nav = document.getElementById("nav");
+  addEventListener("scroll", function(){ nav.classList.toggle("scrolled", scrollY > 8); }, {passive:true});
+
+  /* initial language */
+  var saved = null; try { saved = localStorage.getItem("basira-lang"); } catch(e){}
+  var initial = saved || ((navigator.language || "").toLowerCase().indexOf("ar") === 0 ? "ar" : "en");
+  if (initial === "ar") setLang("ar");
+})();
+</script>
