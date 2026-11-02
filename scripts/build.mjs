@@ -6,13 +6,20 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 const root = new URL("../", import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), "utf8");
 
-// The audit engine is shared with the server; strip ESM exports so it runs inline.
-const auditEngine = read("server/audit.mjs").replace(/^export /gm, "");
+// Shared modules (audit, templates, CSV import, keywords) run on the server and inline in the app.
+// Each module runs in its own scope; only its exports become names in the page script.
+const inline = (p, n) => {
+  const src = read(p);
+  const names = [...src.matchAll(/^export (?:const|let|function|async function|class) (\w+)/gm)].map((m) => m[1]);
+  const v = `__shared${n}`;
+  return `var ${v} = (function(){\n${src.replace(/^export /gm, "")}\nreturn { ${names.join(", ")} };\n})();\nvar ${names.map((x) => `${x} = ${v}.${x}`).join(", ")};`;
+};
+const shared = ["server/audit.mjs", "server/templates.mjs", "server/catalog-csv.mjs", "server/keywords.mjs"].map((p, i) => inline(p, i)).join("\n");
 
 const pages = { "landing.html": "index.html", "app.html": "app.html" };
 mkdirSync(new URL("dist/", root), { recursive: true });
 for (const [src, out] of Object.entries(pages)) {
-  const body = read(`src/${src}`).replace("/*@AUDIT_ENGINE@*/", () => auditEngine);
+  const body = read(`src/${src}`).replace("/*@AUDIT_ENGINE@*/", () => shared);
   writeFileSync(new URL(`dist/${src}`, root), body);
   writeFileSync(new URL(out, root), `<!doctype html>
 <html lang="en" dir="ltr">

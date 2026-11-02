@@ -13,8 +13,13 @@ This repository holds the marketing site, the product app and the server that po
 | `src/landing.html` | Landing page source (styles, markup, Arabic translations and scripts in one file) |
 | `src/app.html` | Product app: overview, live listing audit, catalog, listing diagnosis, reviews, slide studio, approvals |
 | `server/audit.mjs` | Listing audit engine (pure functions, shared by the server and the app) |
-| `server/render.mjs` | Slide renderer: Arabic and English typeset by Chromium over the product image, exported as 1600 × 2000 PNG |
-| `server/reviews.mjs` | Review analysis with Claude: dialect, sentiment, aspects and suggested fixes |
+| `server/templates.mjs` | 17 slide templates (shared by the server renderer and the app preview) |
+| `server/render.mjs` | Slide renderer: Arabic and English typeset by Chromium over the product image, exported as 1600 × 2000 PNG; also measures main images |
+| `server/connectors/` | Marketplace connectors: Amazon SP-API, Shopify, product pages (Noon, Salla, Zid) and safe outbound HTTP |
+| `server/importer.mjs` | Imports a catalog from a link or CSV, measures main images and audits every listing |
+| `server/catalog-csv.mjs` | Catalog export parser (Noon Seller Lab, Amazon, Salla, Zid), shared with the app |
+| `server/keywords.mjs` | Search-term coverage with Arabic spelling normalisation, shared with the app |
+| `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |
 | `test/` | Unit tests (`npm test`) |
@@ -45,8 +50,14 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | --- | --- | --- |
 | `GET /api/health` | | `{ ok, render, ai, model }` |
 | `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] } }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }` |
-| `POST /api/render` | `{ kind: cover \| benefit \| details \| occasion, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand, headlineAr, headlineEn, bulletsAr, bulletsEn, occasionAr, occasionEn }` | `image/png`, 1600 × 2000 |
+| `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
 | `POST /api/reviews/analyze` | `{ product, reviews: [string \| { text, rating }] }` (up to 200) | `{ total, dialects, themes[], reviews[], fixes[] }` |
+| `POST /api/import` | `{ url, limit? }`: an Amazon, Noon, Shopify, Salla or Zid product or store link | `{ source, count, averageScore, items[{ sku, name, url, image, listing, audit }], warnings }` |
+| `POST /api/import/csv` | `{ csv, channel?, category?, measure? }` | Same as above |
+| `GET /api/connectors` | | Which marketplaces are connected and what they can import |
+| `POST /api/reviews/reply` | `{ review, product, brand }` | `{ language, reply, replyEn, needsPerson, reason }` |
+| `POST /api/keywords` | `{ listing }` | `{ category, items[{ ar, en, inAr, inEn }], covered, total }` |
+| `POST /api/fetch-image` | `{ url }` | `{ dataUrl }` for a public PNG, JPEG or WebP |
 | `POST /api/leads` | `{ name, whatsapp, store, lang }` | `{ ok }`, appended to `data/leads.jsonl` |
 
 Review analysis uses `claude-opus-5-5` (override with `BASIRA_MODEL`) at low effort, with structured output validated by Zod, and server-side fallback (`fallbacks: "default"`) if a request is declined.
@@ -60,6 +71,23 @@ Review analysis uses `claude-opus-5-5` (override with `BASIRA_MODEL`) at low eff
 | `BASIRA_MODEL` | `claude-opus-5-5` | Model for review analysis |
 | `CHROMIUM_PATH` | | Chromium binary for rendering |
 | `BASIRA_DATA_DIR` | `./data` | Where leads are stored |
+| `SPAPI_CLIENT_ID`, `SPAPI_CLIENT_SECRET`, `SPAPI_REFRESH_TOKEN` | | Amazon Selling Partner API app credentials (Login with Amazon) |
+| `SPAPI_SELLER_ID` | | The connected seller account, needed to import a whole Amazon store |
+| `SPAPI_ENDPOINT` | `https://sellingpartnerapi-eu.amazon.com` | SP-API endpoint (Saudi Arabia, UAE and Egypt use the EU one) |
+
+## Marketplace connectors
+
+| Source | Product link | Whole store | How |
+| --- | --- | --- | --- |
+| Amazon (.sa, .ae, .eg) | Yes | Your own seller account | SP-API Catalog Items (English and Arabic locales) and Listings Items, including Amazon's own listing issues |
+| Noon | Yes | Upload a Seller Lab export | The product page's schema.org data, plus its `-ar` twin for Arabic |
+| Shopify | Yes | Yes | The public `/products.json` feed, plus `/ar/` translations |
+| Salla, Zid | Yes | Upload an export | The product page's schema.org data and its Arabic `hreflang` alternate |
+| Any CSV | | Yes | Column names are matched automatically (`title_ar`, `bullet_1`, `main_image`…) |
+
+Outbound requests are HTTPS only, block private addresses at every redirect, and have size and time limits. Main images are downloaded and measured to check size and white background.
+
+What isn't covered yet: Noon's partner API (not publicly available; store catalogs come from exports), reading reviews from marketplaces (paste or export them), and publishing changes back.
 
 ## Language
 
@@ -90,4 +118,9 @@ What is real:
 - **Studio**, when served by the Basira server, renders real 1600 × 2000 PNGs with correct Arabic shaping, from your uploaded product photo or the sample drawing. Without the server it shows the live preview and simulates generation.
 - **Reviews → Analyse your reviews** calls Claude through the server.
 
-Still simulated: the fidelity check, catalog data, approvals and publishing to marketplaces (no marketplace APIs are connected yet), and background removal (upload a PNG with a transparent background).
+- **Catalog → Import** pulls listings from a link (server) or a CSV (works in the browser too, try the sample Noon export).
+- **Templates** has 17 slide templates in four groups; add any of them to a product's slide set in **Studio**.
+- **Search terms** in Audit and on each listing show which common Gulf searches the copy covers.
+- **Reviews → Draft reply** writes a reply in the buyer's own dialect with Claude, and flags reviews that need a person.
+
+Still simulated: the fidelity check, sample catalog data, approvals and publishing back to marketplaces, and background removal (upload a PNG with a transparent background).

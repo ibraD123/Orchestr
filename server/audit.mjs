@@ -101,8 +101,11 @@ export function auditListing(listing) {
 
   // Attributes
   if (category === "fashion" && !l.sizeChart) add("noSizeChart", "high", "attrs");
-  const missing = REQUIRED_ATTRIBUTES[category].filter((a) => !attributes[a]);
-  if (missing.length) add("attrs", missing.length > 1 ? "med" : "low", "attrs", { missing });
+  // attributes === null means the source doesn't expose them (page or file import): don't guess.
+  if (l.attributes !== null) {
+    const missing = REQUIRED_ATTRIBUTES[category].filter((a) => !attributes[a]);
+    if (missing.length) add("attrs", missing.length > 1 ? "med" : "low", "attrs", { missing });
+  }
 
   // Compliance
   const allText = [titleEn, titleAr, ...bulletsEn, ...bulletsAr].join(" \n ");

@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
 import { renderSlide, rendererAvailable } from "./render.mjs";
-import { analyseReviews, aiConfigured, MODEL } from "./reviews.mjs";
+import { analyseReviews, draftReply, aiConfigured, MODEL } from "./reviews.mjs";
+import { keywordCoverage } from "./keywords.mjs";
+import { safeFetch } from "./connectors/net.mjs";
+import { importLink, importCsv, connectorStatus } from "./importer.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
@@ -36,6 +39,17 @@ const routes = {
   "GET /api/health": async () => ({ ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: aiConfigured() ? MODEL : null }),
   "POST /api/audit": async (body) => auditListing(body.listing || body),
   "POST /api/reviews/analyze": async (body) => analyseReviews(body),
+  "POST /api/reviews/reply": async (body) => draftReply(body),
+  "POST /api/keywords": async (body) => keywordCoverage(body.listing || body),
+  "POST /api/fetch-image": async (body) => {
+    const r = await safeFetch(String(body.url || ""), { maxBytes: 8_000_000, headers: { Accept: "image/png,image/jpeg,image/webp" } });
+    const type = (r.headers.get("content-type") || "").split(";")[0];
+    if (!/^image\/(png|jpeg|webp)$/.test(type)) { const e = new Error("That link isn't a PNG, JPEG or WebP image"); e.status = 400; throw e; }
+    return { dataUrl: `data:${type};base64,${r.body.toString("base64")}` };
+  },
+  "GET /api/connectors": async () => connectorStatus(),
+  "POST /api/import": async (body) => importLink(String(body.url || ""), { limit: Math.min(Number(body.limit) || 60, 200) }),
+  "POST /api/import/csv": async (body) => importCsv(String(body.csv || ""), { channel: body.channel, category: body.category, measure: Boolean(body.measure) }),
   "POST /api/leads": async (body) => {
     const lead = {
       name: String(body.name || "").slice(0, 120), whatsapp: String(body.whatsapp || "").slice(0, 40),

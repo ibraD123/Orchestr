@@ -13,12 +13,12 @@ test("numerals convert both ways", () => {
 test("rejects remote image URLs and bad colours", () => {
   assert.throws(() => normaliseSpec({ kind: "cover", image: "https://example.com/a.png" }), /data URL/);
   assert.throws(() => normaliseSpec({ kind: "cover", image: PX, kit: { bg: "red;}" } }), /hex/);
-  assert.throws(() => normaliseSpec({ kind: "poster", image: PX }), /kind/);
+  assert.throws(() => normaliseSpec({ kind: "poster", image: PX }), /template/);
 });
 
 test("escapes text and keeps Arabic right to left", () => {
   const html = slideDocument(normaliseSpec({ kind: "benefit", image: PX, headlineAr: "ثبات <b>12</b> ساعة", headlineEn: "Lasts 12h" }));
-  assert.ok(html.includes('dir="rtl">ثبات &lt;b&gt;١٢&lt;/b&gt; ساعة'));
+  assert.ok(html.includes('dir="rtl">ثبات &lt;b&gt;١٢&lt;/b&gt; ساعة'), html.slice(-600));
   assert.ok(html.includes("Lasts 12h"));
 });
 
@@ -28,4 +28,13 @@ test("renders a 1600x2000 PNG", { timeout: 60000 }, async (t) => {
   assert.equal(png.subarray(1, 4).toString(), "PNG");
   assert.equal(png.readUInt32BE(16), 1600);
   assert.equal(png.readUInt32BE(20), 2000);
+});
+
+test("every template builds in every language", async () => {
+  const { TEMPLATES } = await import("../server/templates.mjs");
+  for (const tpl of TEMPLATES) for (const language of ["ar", "en", "both"]) {
+    const html = slideDocument(normaliseSpec({ template: tpl.id, image: PX, fields: tpl.sample, language, brand: "LAYALI" }));
+    assert.ok(html.includes('class="bz"'), tpl.id);
+    assert.ok(!/undefined|NaN/.test(html.replace(/data:[^"]+/g, "")), `${tpl.id}/${language} leaks undefined`);
+  }
 });

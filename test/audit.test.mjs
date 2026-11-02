@@ -53,3 +53,15 @@ test("white background rule only applies on Amazon and Noon", () => {
 test("does not double-report a missing title", () => {
   assert.equal(keys(auditListing({})).filter((k) => k === "noTitle").length, 1);
 });
+
+test("keyword coverage normalises Arabic spelling variants", async () => {
+  const { keywordCoverage } = await import("../server/keywords.mjs");
+  const r = keywordCoverage({ category: "fragrance", titleAr: "عطر العود الفاخر، ثبات طويل", titleEn: "Oud perfume, Eau de Parfum", bulletsAr: ["مسک ابيض"] });
+  const by = Object.fromEntries(r.items.map((i) => [i.en, i]));
+  assert.ok(by["oud perfume"].inEn);
+  assert.ok(by["perfume"].inAr);
+  assert.ok(by["long lasting"].inAr);
+  assert.ok(by["eau de parfum"].inEn);
+  assert.ok(!by["saffron"].inAr && !by["saffron"].inEn);
+  assert.equal(r.total, 12);
+});

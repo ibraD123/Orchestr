@@ -96,3 +96,42 @@ export async function analyseReviews(input) {
   analysis.reviews = analysis.reviews.filter((r) => r.index >= 0 && r.index < list.length);
   return { model: response.model, ...aggregate(analysis, list.length), reviews: analysis.reviews, fixes: analysis.fixes };
 }
+
+export const ReplyDraft = z.object({
+  language: z.enum(DIALECTS),
+  reply: z.string(),
+  replyEn: z.string(),
+  needsPerson: z.boolean(),
+  reason: z.string()
+});
+
+const REPLY_SYSTEM = `You write public replies to marketplace reviews for a brand that sells in the Gulf and Egypt.
+
+Reply in the same language and dialect as the review (Gulf Arabic to Gulf Arabic, Egyptian to Egyptian, English to English), in a warm, hospitable tone that sounds like a person from the brand, not a template. Two or three short sentences.
+- Thank the buyer by addressing what they actually said.
+- For a complaint, acknowledge it plainly and give one concrete, honest next step (how to use the product better, what to check, or to contact the store). Never promise refunds, replacements, compensation or delivery dates.
+- Never make medical or health claims, never argue, never blame the buyer, never ask for a better rating.
+- Set needsPerson to true when the review reports a damaged, fake or unsafe product, a missing order, an allergic reaction, or anything that needs a person to follow up, and say why in reason. Otherwise reason is an empty string.
+- replyEn is an English translation of reply for the team.`;
+
+/** Draft a public reply to one review. */
+export async function draftReply(input) {
+  const fail = (msg, status = 400) => { const e = new Error(msg); e.status = status; throw e; };
+  const review = String(input?.review || "").trim();
+  if (!review) fail("Send the review text");
+  if (review.length > 3000) fail("The review is too long");
+  if (!aiConfigured()) fail("Replies need ANTHROPIC_API_KEY on the server", 503);
+  client ||= new Anthropic();
+  const response = await client.beta.messages.parse({
+    model: MODEL,
+    max_tokens: 4000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    output_config: { effort: "low", format: betaZodOutputFormat(ReplyDraft) },
+    system: REPLY_SYSTEM,
+    messages: [{ role: "user", content: `Brand: ${String(input.brand || "the store").slice(0, 80)}\nProduct: ${String(input.product || "").slice(0, 200)}\n\nReview:\n${review}` }]
+  });
+  if (response.stop_reason === "refusal") fail("The model declined to reply to this review", 422);
+  if (!response.parsed_output) fail("The model returned an unreadable reply", 502);
+  return response.parsed_output;
+}
