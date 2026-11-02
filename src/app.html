@@ -212,6 +212,28 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .canvas .scan{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(82,196,174,.0) 40%,rgba(82,196,174,.35) 50%,transparent 60%);background-size:100% 220%;animation:scan 1.2s linear infinite;pointer-events:none}
 @keyframes scan{from{background-position:0 120%}to{background-position:0 -120%}}
 .stage-meta{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.canvas .prod img{width:62%;height:70%;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.25))}
+.sitem .canvas .prod img,.ba .canvas .prod img{filter:none}
+.renders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.renders a{display:grid;gap:6px;text-decoration:none;font-size:12.5px;color:var(--ink-2)}
+.renders img{width:100%;aspect-ratio:4/5;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:var(--surface-2)}
+@media (max-width:560px){.renders{grid-template-columns:1fr 1fr}}
+.file{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.file input{font-size:12.5px;max-width:100%}
+.note{font-size:12.5px;color:var(--ink-3)}
+.err{font-size:13px;color:var(--bad)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.form-grid{grid-template-columns:1fr}}
+.field select{height:38px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding-inline:10px;width:100%}
+.check{display:flex;gap:8px;align-items:center;font-size:13.5px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--brand)}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px}
+.audit-grid{grid-template-columns:1.1fr 1fr}
+.audit-out{display:grid;gap:16px;position:sticky;top:80px;min-width:0}
+@media (max-width:1050px){.audit-grid{grid-template-columns:1fr}.audit-out{position:static}}
+.dialects{display:flex;flex-wrap:wrap;gap:6px}
+.fix{display:grid;gap:4px;padding:12px 14px;border-radius:12px;background:var(--brand-soft)}
+.fix .ar{direction:rtl;text-align:right}
 .panel{display:grid;gap:16px}
 .field{display:grid;gap:6px}
 .field label,.field .lbl{font-size:12.5px;color:var(--ink-2);font-weight:500}
@@ -278,6 +300,7 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 
 <script>
 (function(){
+/*@AUDIT_ENGINE@*/
 /* ---------- strings ---------- */
 var S = {
   overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
@@ -301,7 +324,7 @@ var S = {
   language:["Text language","لغة النص"], both:["Both","الاثنتان"], numerals:["Numerals","الأرقام"], numAr:["Arabic ١٢","عربية ١٢"], numEn:["Western 12","لاتينية 12"],
   headAr:["Headline (Arabic)","العنوان (عربي)"], headEn:["Headline (English)","العنوان (إنجليزي)"], bullets:["Details, one per line","التفاصيل، سطر لكل نقطة"], occ:["Occasion line","سطر المناسبة"],
   brandKit:["Brand kit","هوية العلامة"], product:["Product","المنتج"], generate:["Generate 4 slides","ولّد ٤ شرائح"], regenerate:["Generate again","ولّد مجدداً"], sendAppr:["Send for approval","أرسل للموافقة"],
-  st1:["Cut out product from your photo","فصل المنتج عن الخلفية"], st2:["Apply brand kit","تطبيق هوية العلامة"], st3:["Set Arabic and English type","صفّ النص العربي والإنجليزي"], st4:["Check fidelity against original","فحص المطابقة مع الأصل"],
+  st1:["Prepare your product photo","تجهيز صورة المنتج"], st2:["Apply brand kit","تطبيق هوية العلامة"], st3:["Set Arabic and English type","صفّ النص العربي والإنجليزي"], st4:["Check fidelity against original","فحص المطابقة مع الأصل"],
   fidelity:["Fidelity","المطابقة"], rules:["Noon and Amazon rules passed","مطابق لقواعد نون وأمازون"], fromIssue:["Built from","مبني على"], notGen:["Not generated yet","لم يُولَّد بعد"],
   sent:["Sent for approval","أُرسل للموافقة"], apprSub:["Nothing goes live until someone approves it.","لا يُنشر شيء قبل موافقة أحد."],
   approve:["Approve and publish","وافق وانشر"], changes:["Request changes","اطلب تعديلات"], publishing:["Publishing…","جارٍ النشر…"], live:["Live","منشور"], changesReq:["Changes requested","طُلبت تعديلات"],
@@ -311,7 +334,21 @@ var S = {
   dialect:["Dialect","اللهجة"], dialects5:["In 4 Arabic dialects and English","بأربع لهجات عربية والإنجليزية"], gulf:["Gulf","خليجي"], egy:["Egyptian","مصري"], lev:["Levantine","شامي"], msa:["MSA","فصحى"], eng:["English","إنجليزي"],
   revSub:["Reviews, questions and return reasons from all channels, grouped by what buyers care about.","التقييمات والأسئلة وأسباب الإرجاع من كل القنوات، مجمّعة حسب ما يهم العملاء."],
   quotes:["What buyers wrote","ما كتبه العملاء"], linkedTo:["Linked fix","التعديل المرتبط"], sev_high:["High","عالية"], sev_med:["Medium","متوسطة"], sev_low:["Low","منخفضة"],
-  stars:["avg rating","متوسط التقييم"], positive:["positive","إيجابي"], negative:["negative","سلبي"]
+  stars:["avg rating","متوسط التقييم"], positive:["positive","إيجابي"], negative:["negative","سلبي"],
+  audit:["Audit","التدقيق"], auditSub:["Paste any listing and see its score update as you type. The same engine runs on the server for whole catalogs.","الصق أي منتج وشاهد تقييمه يتحدث أثناء الكتابة. المحرك نفسه يعمل على الخادم لكتالوجات كاملة."],
+  channel:["Channel","القناة"], category:["Category","الفئة"], titleEnL:["Title (English)","العنوان (إنجليزي)"], titleArL:["Title (Arabic)","العنوان (عربي)"],
+  bulletsEnL:["Bullet points (English), one per line","النقاط (إنجليزي)، سطر لكل نقطة"], bulletsArL:["Bullet points (Arabic), one per line","النقاط (عربي)، سطر لكل نقطة"],
+  imagesN:["Number of images","عدد الصور"], mainRes:["Main image, shortest side (px)","الصورة الرئيسية، الضلع الأقصر (بكسل)"], whiteBg:["Main image on white background","الصورة الرئيسية على خلفية بيضاء"],
+  sizeChartL:["Has a size chart","يوجد جدول مقاسات"], attrsL:["Filled attributes","الخصائص المعبأة"], result:["Result","النتيجة"], allGood:["No issues found. This listing is ready.","لا توجد مشكلات. المنتج جاهز."],
+  cat_fragrance:["Fragrance","عطور"], cat_fashion:["Fashion","أزياء"], cat_food:["Food","أغذية"], cat_beauty:["Beauty","تجميل"], cat_home:["Home","منزل"],
+  at_volume:["Volume","الحجم"], at_concentration:["Concentration","التركيز"], at_notes:["Notes","النوتات"], at_material:["Material","الخامة"], at_care:["Care","العناية"], at_fit:["Fit","القصة"],
+  at_weight:["Weight","الوزن"], at_origin:["Origin","المنشأ"], at_shelfLife:["Shelf life","مدة الصلاحية"], at_skinType:["Skin type","نوع البشرة"], at_ingredients:["Ingredients","المكوّنات"], at_dimensions:["Dimensions","الأبعاد"],
+  photo:["Product photo","صورة المنتج"], photoNote:["PNG with a transparent background works best. Stays in your browser until you render.","يفضّل PNG بخلفية شفافة. تبقى في متصفحك حتى العرض."], photoTooBig:["Photo must be under 8 MB.","يجب أن تكون الصورة أقل من ٨ ميجابايت."],
+  st4r:["Render 4 PNGs at 1600 × 2000","تصدير ٤ صور PNG بمقاس ١٦٠٠ × ٢٠٠٠"], rendered:["Rendered slides","الشرائح المصدّرة"], download:["Download","تنزيل"],
+  demoTag:["Demo preview","معاينة تجريبية"], serverOn:["Connected to the Basira server","متصل بخادم بصيرة"], renderErr:["Rendering failed:","فشل التصدير:"],
+  analyse:["Analyse your reviews","حلّل تقييماتك"], analyseSub:["Paste reviews, one per line, in any dialect. Claude tags dialect, sentiment and aspects, then proposes fixes.","الصق التقييمات، سطر لكل تقييم، بأي لهجة. يحدد Claude اللهجة والانطباع والجوانب، ثم يقترح تعديلات."],
+  analyseBtn:["Analyse with Claude","حلّل مع Claude"], analysing:["Analysing…","جارٍ التحليل…"], needsServer:["Runs on the Basira server with an Anthropic API key. Start it with npm start.","يعمل على خادم بصيرة بمفتاح Anthropic API. شغّله بالأمر npm start."],
+  fixes:["Suggested fixes","تعديلات مقترحة"], dialectsT:["Dialects","اللهجات"], reviewsN:["reviews","تقييمات"]
 };
 var THEMES = {
   longevity:["Longevity","الثبات"], sizeVsPhoto:["Size vs photo","الحجم مقارنة بالصورة"], packaging:["Packaging","التغليف"], size:["Runs small","المقاس صغير"],
@@ -331,7 +368,17 @@ var ISSUES = {
   noSeason:{sev:"low",slide:3,t:["No Ramadan imagery","لا توجد صور رمضانية"],d:["Gift boxes sell most in Ramadan. Season starts in 4 months.","علب الهدايا تُباع أكثر في رمضان، والموسم بعد ٤ أشهر."]},
   claim:{sev:"high",slide:2,t:["Health claim needs SFDA approval","ادعاء صحي يحتاج موافقة الهيئة"],d:["«Boosts immunity» in the bullets can get the listing removed.","عبارة «يقوي المناعة» قد تؤدي لحذف المنتج."]},
   mt:{sev:"med",slide:0,t:["Arabic looks machine-translated","العربية تبدو ترجمة آلية"],d:["Literal phrasing that Gulf buyers find odd.","صياغة حرفية يستغربها المشتري الخليجي."]},
-  lowRes:{sev:"low",slide:0,t:["Low-resolution main image","صورة رئيسية بدقة منخفضة"],d:["Zoom is disabled below 1000 px.","التكبير معطل تحت ١٠٠٠ بكسل."]}
+  lowRes:{sev:"low",slide:0,t:["Low-resolution main image","صورة رئيسية بدقة منخفضة"],d:["Zoom is disabled below 1000 px.","التكبير معطل تحت ١٠٠٠ بكسل."]},
+  noTitle:{sev:"high",slide:0,t:["No title","لا يوجد عنوان"],d:["The listing can't be found in search without one.","لا يمكن العثور على المنتج في البحث بدونه."]},
+  titleTooLong:{sev:"med",slide:0,t:["Title is too long","العنوان طويل جداً"],d:["The marketplace cuts it off, and buyers don't read past the first line.","تقصّه المنصة، والمشتري لا يقرأ بعد السطر الأول."]},
+  titleTooShort:{sev:"med",slide:0,t:["Title is too short","العنوان قصير جداً"],d:["Add the product type, size and the main benefit.","أضف نوع المنتج والحجم والميزة الأهم."]},
+  keywordStuffing:{sev:"med",slide:0,t:["Title looks keyword-stuffed","العنوان محشو بالكلمات المفتاحية"],d:["Repeated words and filler make it read as spam.","الكلمات المكررة والحشو تجعله يبدو كرسالة مزعجة."]},
+  noBullets:{sev:"high",slide:2,t:["No bullet points","لا توجد نقاط"],d:["Buyers scan bullets before they look at anything else.","المشتري يقرأ النقاط قبل أي شيء آخر."]},
+  fewBullets:{sev:"low",slide:2,t:["Too few bullet points","نقاط قليلة"],d:["This channel shows more; empty slots look unfinished.","هذه القناة تعرض أكثر، والخانات الفارغة تبدو ناقصة."]},
+  arabicTitleNotArabic:{sev:"high",slide:0,t:["Arabic title isn't in Arabic","العنوان العربي ليس بالعربية"],d:["The Arabic field holds Latin text.","حقل العنوان العربي يحتوي نصاً لاتينياً."]},
+  noImages:{sev:"high",slide:0,t:["No images","لا توجد صور"],d:["Listings without images are hidden from search.","المنتجات بلا صور مخفية من البحث."]},
+  fewImages:{sev:"low",slide:1,t:["Fewer images than top listings","صور أقل من أفضل المنتجات"],d:["Add slides that answer buyer questions.","أضف شرائح تجيب عن أسئلة المشترين."]},
+  reviewGap:{sev:"med",slide:1,t:["A frequent complaint isn't answered","شكوى متكررة بلا إجابة"],d:["No image or bullet addresses it.","لا توجد صورة أو نقطة تجيب عنها."]}
 };
 var CH = {noon:{n:"Noon",bg:"#FEEE00",fg:"#1A1A1A",m:"n"},amazon:{n:"Amazon.sa",bg:"#232F3E",fg:"#FF9900",m:"a"},salla:{n:"Salla",bg:"#004956",fg:"#BAF3E6",m:"S"},zid:{n:"Zid",bg:"#5B2BE0",fg:"#fff",m:"Z"},shopify:{n:"Shopify",bg:"#5E8E3E",fg:"#fff",m:"S"}};
 var KITS = [{id:"night",bg:"#2A1A0E",fg:"#F2C88A",ac:"#F4E9D8"},{id:"sand",bg:"#EFE6DA",fg:"#3B2A1A",ac:"#8B5E3C"},{id:"emerald",bg:"#0F3B33",fg:"#E8D9B0",ac:"#CFE6DF"},{id:"rose",bg:"#5C1E1E",fg:"#F3D58C",ac:"#F4E2D8"}];
@@ -389,7 +436,9 @@ var P = [
 ];
 var PM = {}; P.forEach(function(p){ PM[p.id] = p; });
 
-var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"score", dialect:"all",
+var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"score", dialect:"all", api:null, photos:{}, renders:{},
+  al:{channel:"noon", category:"fragrance", titleEn:"Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume", titleAr:"", bulletsEn:"Long lasting\nBest gift for men and women", bulletsAr:"", images:1, res:800, white:false, sizeChart:false, attrs:{volume:true}},
+  rev:{text:"الريحة حلوة بس ما تثبت، بعد ساعتين راحت\nالعطر حلو بس بيروح بسرعة خالص\nالتغليف فخم ومناسب للهدايا\nريحة العود قوية ومميزة، بس الثبات ضعيف\nوصل متأخر يومين\nSmells great but fades within two hours", busy:false, result:null, error:null},
   slide:1, langMode:"both", num:"ar", gen:{}, queue:[
     {id:"q1",pid:"abaya",by:"Omar",status:"pending",issue:"noSizeChart"},
     {id:"q2",pid:"dates",by:"Sara",status:"pending",issue:"noSeason"}
@@ -405,6 +454,13 @@ function digits(s){ return state.num === "ar" ? String(s).replace(/\d/g, functio
 function scoreColor(s){ return s < 50 ? "var(--bad)" : s < 70 ? "var(--saffron)" : "var(--good)"; }
 function sbar(s){ return '<span class="sbar"><i style="--w:'+s+'%;--c:'+scoreColor(s)+'"></i>'+s+'</span>'; }
 function sym(p, cls, extra){ return '<svg class="'+(cls||"")+'" viewBox="0 0 120 170" style="color:'+p.color+';'+(extra||"")+'" aria-hidden="true"><use href="#'+p.sym+'"/></svg>'; }
+function photoOf(p){ return state.photos[p.id] || null; }
+function prodImg(p){ var ph = photoOf(p); return ph ? '<img src="'+ph+'" alt="">' : sym(p); }
+function symbolDataUrl(p){
+  var sy = document.getElementById(p.sym), grads = Array.prototype.map.call(document.querySelectorAll("defs linearGradient"), function(g){ return g.outerHTML; }).join("");
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+sy.getAttribute("viewBox")+'" width="1200" height="1700" style="color:'+p.color+'"><defs>'+grads+'</defs>'+sy.innerHTML.replace(/<text[\s\S]*?<\/text>/g, "")+'</svg>';
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+}
 function chans(p){ return '<span class="chans">'+p.ch.map(function(c){ var x = CH[c]; return '<span class="chan-mk" title="'+x.n+'" style="background:'+x.bg+';color:'+x.fg+'">'+x.m+'</span>'; }).join("")+'</span>'; }
 function sevC(s){ return s === "high" ? "var(--bad)" : s === "med" ? "var(--saffron)" : "var(--ink-3)"; }
 function sevTag(s){ return '<span class="tag '+(s === "high" ? "bad" : s === "med" ? "warn" : "")+'">'+t("sev_"+s)+'</span>'; }
@@ -421,12 +477,13 @@ var ICONS = {
   catalog:'<path d="M4 6h16M4 12h16M4 18h10"/>',
   reviews:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
   studio:'<path d="M12 3l2.6 5.6L20 11l-5.4 2.4L12 19l-2.6-5.6L4 11l5.4-2.4z"/>',
-  approvals:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>'
+  approvals:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
+  audit:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/>'
 };
 function navHTML(mobile){
   var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","catalog","reviews","studio","approvals"].map(function(k){
+  return ["overview","audit","catalog","reviews","studio","approvals"].map(function(k){
     var href = k === "studio" ? "studio-"+state.pid : k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -454,7 +511,7 @@ function vOverview(){
   var maxT = top.length ? top[0][1] : 1;
   var first = P.slice().sort(function(a,b){ return a.score-b.score; }).slice(0,4);
   var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length), ps.length]; });
-  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+t("ovSub")+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+'</span></div>'+
+  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+t("ovSub")+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span></div>'+
   '<div class="kpis">'+
     '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span><span class="up">+9</span> '+t("vsLast")+'</span></div>'+
     '<div class="kpi"><small>'+t("needFix")+'</small><b>'+low+'</b><span>/ '+P.length+'</span></div>'+
@@ -533,6 +590,7 @@ function vReviews(){
   var keys = Object.keys(agg).sort(function(a,b){ return (agg[b].neg+agg[b].pos)-(agg[a].neg+agg[a].pos); });
   var max = Math.max.apply(null, keys.map(function(k){ return agg[k].neg+agg[k].pos; }));
   return '<div class="head"><div><h1>'+t("reviews")+'</h1><p>'+t("revSub")+'</p></div></div>'+
+  analyseCard()+
   '<div class="grid2 even">'+
     '<div class="card"><div class="card-h"><h2>'+t("themes")+'</h2><small><span style="color:var(--bad)">■</span> '+t("negative")+' &nbsp; <span style="color:var(--good)">■</span> '+t("positive")+'</small></div>'+
       keys.map(function(k){ var a = agg[k]; return '<div class="hbar" style="grid-template-columns:140px 1fr 50px"><span>'+tr(THEMES[k])+'</span><span class="tr" style="display:flex;gap:2px;background:transparent"><i style="width:'+(a.neg/max*100)+'%;background:var(--bad);border-radius:9px"></i><i style="width:'+(a.pos/max*100)+'%;background:var(--good);border-radius:9px"></i></span><span class="mono">'+(a.neg+a.pos)+'</span></div>'; }).join("")+
@@ -544,6 +602,72 @@ function vReviews(){
   '</div>';
 }
 
+/* audit */
+function listingFromForm(a){
+  var lines = function(v){ return v.split("\n").map(function(x){ return x.trim(); }).filter(Boolean); };
+  var images = []; for (var i = 0; i < Math.min(+a.images || 0, 12); i++) images.push(i === 0 ? {width:+a.res || 0, height:+a.res || 0, whiteBackground:a.white} : {width:2000, height:2000});
+  var attributes = {}; Object.keys(a.attrs).forEach(function(k){ if (a.attrs[k]) attributes[k] = "yes"; });
+  return {channel:a.channel, category:a.category, titleEn:a.titleEn, titleAr:a.titleAr, bulletsEn:lines(a.bulletsEn), bulletsAr:lines(a.bulletsAr), images:images, attributes:attributes, sizeChart:a.sizeChart};
+}
+function issueDetail(i){
+  var d = i.detail || {};
+  if (i.key === "attrs" && d.missing) return d.missing.map(function(k){ return t("at_"+k); }).join(" · ");
+  if (i.key === "claim" && d.phrase) return "«"+d.phrase+"»";
+  if (i.key === "titleTooLong") return d.length+" / "+d.max;
+  if (i.key === "keywordStuffing" && d.word) return "«"+d.word+"»";
+  if ((i.key === "fewImages" || i.key === "fewBullets") && d.min) return d.count+" / "+d.min;
+  return ISSUES[i.key] ? tr(ISSUES[i.key].d) : "";
+}
+function auditOut(){
+  var r = auditListing(listingFromForm(state.al));
+  return '<div class="card"><div class="card-h"><h2>'+t("result")+'</h2><small>'+CH[r.channel].n+' · '+t("cat_"+r.category)+'</small></div><div class="lhead">'+ring(r.score)+'<div style="flex:1;min-width:200px">'+
+    [["images","images"],["title","title"],["arabic","arabic"],["attrs","attrs"]].map(function(b){ var v = r.breakdown[b[0]]; return '<div class="hbar" style="grid-template-columns:110px 1fr 36px"><span>'+t(b[1])+'</span><span class="tr"><i style="--w:'+v+'%;--c:'+scoreColor(v)+'"></i></span><span class="mono">'+v+'</span></div>'; }).join("")+'</div></div></div>'+
+  '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+r.issues.length+'</small></div>'+
+    (r.issues.length ? r.issues.map(function(i){ var x = ISSUES[i.key] || {t:[i.key,i.key]}; return '<div class="issue" style="--c:'+sevC(i.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b><p>'+esc(issueDetail(i))+'</p></div>'+sevTag(i.sev)+'</div>'; }).join("") : '<p class="empty">'+t("allGood")+'</p>')+'</div>';
+}
+function vAudit(){
+  var a = state.al, req = REQUIRED_ATTRIBUTES[a.category] || [];
+  var opt = function(list, cur, lab){ return list.map(function(v){ return '<option value="'+v+'"'+(v === cur ? " selected" : "")+'>'+lab(v)+'</option>'; }).join(""); };
+  return '<div class="head"><div><h1>'+t("audit")+'</h1><p>'+t("auditSub")+'</p></div></div>'+
+  '<div class="grid2 audit-grid">'+
+    '<form class="card" id="audit-form" style="display:grid;gap:14px" onsubmit="return false">'+
+      '<div class="form-grid"><div class="field"><label for="a-channel">'+t("channel")+'</label><select id="a-channel" data-a="channel">'+opt(AUDIT_CHANNELS, a.channel, function(v){ return CH[v].n; })+'</select></div>'+
+      '<div class="field"><label for="a-category">'+t("category")+'</label><select id="a-category" data-a="category">'+opt(AUDIT_CATEGORIES, a.category, function(v){ return t("cat_"+v); })+'</select></div></div>'+
+      '<div class="field"><label for="a-ten">'+t("titleEnL")+'</label><input id="a-ten" dir="ltr" data-a="titleEn" value="'+esc(a.titleEn)+'"></div>'+
+      '<div class="field"><label for="a-tar">'+t("titleArL")+'</label><input id="a-tar" dir="rtl" data-a="titleAr" value="'+esc(a.titleAr)+'"></div>'+
+      '<div class="form-grid"><div class="field"><label for="a-ben">'+t("bulletsEnL")+'</label><textarea id="a-ben" rows="4" dir="ltr" data-a="bulletsEn">'+esc(a.bulletsEn)+'</textarea></div>'+
+      '<div class="field"><label for="a-bar">'+t("bulletsArL")+'</label><textarea id="a-bar" rows="4" dir="rtl" data-a="bulletsAr">'+esc(a.bulletsAr)+'</textarea></div></div>'+
+      '<div class="form-grid"><div class="field"><label for="a-imgs">'+t("imagesN")+'</label><input id="a-imgs" type="number" min="0" max="12" data-a="images" value="'+a.images+'"></div>'+
+      '<div class="field"><label for="a-res">'+t("mainRes")+'</label><input id="a-res" type="number" min="0" step="100" data-a="res" value="'+a.res+'"></div></div>'+
+      '<div class="checks"><label class="check"><input type="checkbox" id="a-white" data-a="white"'+(a.white ? " checked" : "")+'>'+t("whiteBg")+'</label>'+
+      (a.category === "fashion" ? '<label class="check"><input type="checkbox" id="a-size" data-a="sizeChart"'+(a.sizeChart ? " checked" : "")+'>'+t("sizeChartL")+'</label>' : "")+'</div>'+
+      '<div class="field"><span class="lbl">'+t("attrsL")+'</span><div class="checks">'+req.map(function(k){ return '<label class="check"><input type="checkbox" id="a-at-'+k+'" data-attr="'+k+'"'+(a.attrs[k] ? " checked" : "")+'>'+t("at_"+k)+'</label>'; }).join("")+'</div></div>'+
+    '</form>'+
+    '<div class="audit-out" id="audit-out">'+auditOut()+'</div>'+
+  '</div>';
+}
+function analyseCard(){
+  var r = state.rev, ok = state.api && state.api.ai, res = r.result;
+  return '<div class="card" style="display:grid;gap:12px"><div class="card-h" style="margin:0"><h2>'+t("analyse")+'</h2>'+(state.api && state.api.model ? '<small class="mono">'+esc(state.api.model)+'</small>' : "")+'</div><p class="note">'+t("analyseSub")+'</p>'+
+    '<div class="field"><textarea id="rev-in" rows="6" dir="auto" aria-label="'+t("analyse")+'">'+esc(r.text)+'</textarea></div>'+
+    '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-primary" id="rev-go"'+(ok && !r.busy ? "" : " disabled")+'>'+(r.busy ? t("analysing") : t("analyseBtn"))+'</button>'+(ok ? "" : '<span class="note">'+t("needsServer")+'</span>')+'</div>'+
+    (r.error ? '<p class="err">'+esc(r.error)+'</p>' : "")+
+    (res ? '<div style="display:grid;gap:14px;margin-top:6px">'+
+      '<div><span class="lbl note">'+t("dialectsT")+'</span><div class="dialects" style="margin-top:6px">'+Object.keys(res.dialects).map(function(d){ return '<span class="tag brand">'+d+' · '+res.dialects[d]+'</span>'; }).join("")+'</div></div>'+
+      '<div>'+res.themes.slice(0,6).map(function(th){ var w = Math.round(th.negativeShare*100); return '<div class="hbar" style="grid-template-columns:150px 1fr 70px"><span>'+th.aspect.replace(/_/g," ")+'</span><span class="tr"><i style="--w:'+w+'%;--c:var(--bad)"></i></span><span class="mono">'+th.negative+' / '+th.mentions+'</span></div>'; }).join("")+'</div>'+
+      (res.fixes.length ? '<div style="display:grid;gap:8px"><span class="lbl note">'+t("fixes")+'</span>'+res.fixes.map(function(fx){ return '<div class="fix"><span class="tag" style="justify-self:start">'+esc(fx.target.replace(/_/g," "))+' · '+esc(fx.aspect.replace(/_/g," "))+'</span><span>'+esc(fx.en)+'</span><span class="ar">'+esc(fx.ar)+'</span></div>'; }).join("")+'</div>' : "")+
+    '</div>' : "")+
+  '</div>';
+}
+function runAnalyse(){
+  var r = state.rev, reviews = r.text.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+  r.busy = true; r.error = null; render();
+  fetch("/api/reviews/analyze", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({product: tr(PM[state.pid].name), reviews: reviews})})
+    .then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
+    .then(function(j){ r.result = j; }).catch(function(e){ r.error = e.message; })
+    .then(function(){ r.busy = false; if (state.route === "reviews") render(); });
+}
+
 /* studio */
 var SLIDES = [["slCover","slCoverQ"],["slBenefit","slBenefitQ"],["slDetails","slDetailsQ"],["slOccasion","slOccasionQ"]];
 function slideHTML(p, i, small){
@@ -552,20 +676,20 @@ function slideHTML(p, i, small){
   var bg = i === 0 ? "radial-gradient(120% 90% at 50% 20%,#FFFFFF 0%,#F6F5F2 60%,#ECE9E3 100%)" : k.bg;
   var fg = i === 0 ? "#222" : k.fg;
   var h = '<div class="canvas" style="background:'+bg+';color:'+fg+(small ? ';box-shadow:none;border-radius:0;width:100%' : "")+'">';
-  if (i === 0){ h += '<div class="prod">'+sym(p)+'</div>'; }
+  if (i === 0){ h += '<div class="prod">'+prodImg(p)+'</div>'; }
   if (i === 1){
-    h += '<div class="prod" style="inset:30% 0 0 0">'+sym(p)+'</div><div class="txt" style="top:8%;text-align:center;justify-items:center">'+
+    h += '<div class="prod" style="inset:30% 0 0 0">'+prodImg(p)+'</div><div class="txt" style="top:8%;text-align:center;justify-items:center">'+
       (ar ? '<div class="hd" dir="rtl">'+esc(digits(st.headAr))+'</div>' : "")+(en ? '<div class="'+(ar ? "sub" : "hd en")+'" dir="ltr">'+esc(st.headEn)+'</div>' : "")+'</div>';
   }
   if (i === 2){
     var bl = ar ? st.bAr : st.bEn, lines = bl.split("\n").filter(Boolean).slice(0,5);
     var rtl = ar;
-    h += '<div class="prod" style="inset:0 '+(rtl ? "48% 0 0" : "0 0 48%")+'">'+sym(p)+'</div><div class="txt" style="top:22%;'+(rtl ? "inset-inline:auto;right:6%;left:auto" : "left:6%;right:auto")+';width:46%" dir="'+(rtl ? "rtl" : "ltr")+'">'+
+    h += '<div class="prod" style="inset:0 '+(rtl ? "48% 0 0" : "0 0 48%")+'">'+prodImg(p)+'</div><div class="txt" style="top:22%;'+(rtl ? "inset-inline:auto;right:6%;left:auto" : "left:6%;right:auto")+';width:46%" dir="'+(rtl ? "rtl" : "ltr")+'">'+
       '<div class="hd'+(rtl ? "" : " en")+'" style="font-size:'+(rtl ? "8.5cqw" : "7cqw")+';color:'+k.fg+'">'+(rtl ? "المكوّنات" : "What's inside")+'</div><ul style="color:'+k.ac+'">'+lines.map(function(l){ return '<li>'+esc(rtl ? digits(l) : l)+'</li>'; }).join("")+'</ul>'+
       (ar && en ? '<div class="sub" dir="ltr" style="color:'+k.ac+'">'+esc(st.bEn.split("\n").filter(Boolean).join(" · "))+'</div>' : "")+'</div>';
   }
   if (i === 3){
-    h += '<div class="prod" style="inset:0 0 18% 0">'+sym(p)+'</div><div class="txt" style="bottom:8%;text-align:center;justify-items:center">'+
+    h += '<div class="prod" style="inset:0 0 18% 0">'+prodImg(p)+'</div><div class="txt" style="bottom:8%;text-align:center;justify-items:center">'+
       (ar ? '<div class="hd" dir="rtl">'+esc(digits(st.oAr))+'</div>' : "")+(en ? '<div class="'+(ar ? "sub" : "hd en")+'" dir="ltr">'+esc(st.oEn)+'</div>' : "")+'</div>';
   }
   if (i > 0) h += '<span class="logo" style="color:'+k.ac+'">LAYALI</span>';
@@ -574,30 +698,34 @@ function slideHTML(p, i, small){
 function vStudio(){
   var p = PM[state.pid], g = state.gen[p.id] || {phase:"idle"}, st = p.st;
   var linked = openIssues(p).filter(function(k){ return ISSUES[k].slide === state.slide; });
-  var stepNames = ["st1","st2","st3","st4"];
+  var server = state.api && state.api.render;
+  var stepNames = ["st1","st2","st3", server ? "st4r" : "st4"];
+  var outs = state.renders[p.id];
   return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
     '<select class="sel" id="pick" aria-label="'+t("product")+'">'+P.map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
   '<div class="studio">'+
     '<div class="slist" style="grid-template-columns:1fr">'+SLIDES.map(function(s,i){ return '<button type="button" class="sitem" data-slide="'+i+'" aria-pressed="'+(state.slide === i)+'"><span class="mini">'+slideHTML(p,i,true)+'</span><span><b>'+t(s[0])+'</b><small>'+t(s[1])+'</small></span></button>'; }).join("")+'</div>'+
     '<div class="stage"><div style="position:relative;width:min(100%,400px)" id="canvas-wrap">'+slideHTML(p,state.slide,false)+(g.phase === "run" ? '<div class="scan"></div>' : "")+'</div>'+
       '<div class="stage-meta">'+
-        (g.phase === "done" || g.phase === "sent" ? '<span class="tag good">'+t("fidelity")+' 98.6%</span><span class="tag good">'+t("rules")+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
+        (g.phase === "done" || g.phase === "sent" ? (g.server ? '<span class="tag good">PNG 1600 × 2000 × 4</span>' : '<span class="tag good">'+t("fidelity")+' 98.6%</span><span class="tag good">'+t("rules")+'</span><span class="tag">'+t("demoTag")+'</span>') : g.phase === "error" ? '<span class="tag bad">'+t("renderErr")+' '+esc(g.error)+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
         (linked.length ? '<span class="tag warn">'+t("fromIssue")+': '+tr(ISSUES[linked[0]].t)+'</span>' : "")+
       '</div></div>'+
     '<div class="card panel">'+
+      '<div class="field"><label for="f-photo">'+t("photo")+'</label><div class="file"><input type="file" id="f-photo" accept="image/png,image/jpeg,image/webp"></div><span class="note" id="photo-note">'+t("photoNote")+'</span></div>'+
       '<div class="field"><span class="lbl">'+t("language")+'</span><div class="seg" role="group">'+[["ar","العربية"],["en","English"],["both",t("both")]].map(function(x){ return '<button type="button" data-lm="'+x[0]+'" aria-pressed="'+(state.langMode === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div></div>'+
       '<div class="field"><span class="lbl">'+t("numerals")+'</span><div class="seg" role="group"><button type="button" data-num="ar" aria-pressed="'+(state.num === "ar")+'">'+t("numAr")+'</button><button type="button" data-num="en" aria-pressed="'+(state.num === "en")+'">'+t("numEn")+'</button></div></div>'+
       (state.slide === 1 ? '<div class="field"><label for="f-har">'+t("headAr")+'</label><input id="f-har" dir="rtl" data-f="headAr" value="'+esc(st.headAr)+'"></div><div class="field"><label for="f-hen">'+t("headEn")+'</label><input id="f-hen" dir="ltr" data-f="headEn" value="'+esc(st.headEn)+'"></div>' : "")+
       (state.slide === 2 ? '<div class="field"><label for="f-bar">'+t("bullets")+' · AR</label><textarea id="f-bar" rows="3" dir="rtl" data-f="bAr">'+esc(st.bAr)+'</textarea></div><div class="field"><label for="f-ben">'+t("bullets")+' · EN</label><textarea id="f-ben" rows="3" dir="ltr" data-f="bEn">'+esc(st.bEn)+'</textarea></div>' : "")+
       (state.slide === 3 ? '<div class="field"><label for="f-oar">'+t("occ")+' · AR</label><input id="f-oar" dir="rtl" data-f="oAr" value="'+esc(st.oAr)+'"></div><div class="field"><label for="f-oen">'+t("occ")+' · EN</label><input id="f-oen" dir="ltr" data-f="oEn" value="'+esc(st.oEn)+'"></div>' : "")+
       '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+KITS.map(function(k,i){ return '<button type="button" data-kit="'+i+'" aria-pressed="'+(st.kit === i)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div></div>'+
-      (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(s,i){ var c = i < g.step ? "done" : i === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(s)+(i === 3 && c === "done" ? ' · 98.6%' : "")+'</div>'; }).join("")+'</div>' : "")+
+      (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(s,i){ var c = i < g.step ? "done" : i === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(s)+(i === 3 && c === "done" && !g.server ? ' · 98.6%' : "")+'</div>'; }).join("")+'</div>' : "")+
       '<div style="display:grid;gap:8px">'+
         '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? t("generate") : t("regenerate"))+'</button>'+
         '<button type="button" class="btn btn-ghost" id="send"'+(g.phase === "done" ? "" : " disabled")+'>'+(g.phase === "sent" ? t("sent")+" ✓" : t("sendAppr"))+'</button>'+
       '</div>'+
     '</div>'+
-  '</div>';
+  '</div>'+
+  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(u,i){ return '<a href="'+u+'" download="'+p.id+'-'+["cover","benefit","details","occasion"][i]+'.png"><img src="'+u+'" alt="'+t(SLIDES[i][0])+'"><span>'+t("download")+' · '+t(SLIDES[i][0])+'</span></a>'; }).join("")+'</div></div>' : "");
 }
 
 function vApprovals(){
@@ -619,14 +747,14 @@ function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","catalog","reviews","approvals"].indexOf(h) > -1) state.route = h;
+  else if (["overview","audit","catalog","reviews","approvals"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
 function render(scroll){
   renderSide();
   var r = state.route;
-  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : vOverview();
+  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : vOverview();
   document.title = "Basira · " + t(r === "listing" ? "catalog" : r);
   if (scroll) window.scrollTo(0,0);
 }
@@ -650,6 +778,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-kit]"))){ PM[state.pid].st.kit = +el.dataset.kit; render(); return; }
   if ((el = e.target.closest("#gen"))){ runGen(state.pid); return; }
   if ((el = e.target.closest("#send"))){ sendAppr(state.pid); return; }
+  if ((el = e.target.closest("#rev-go"))){ runAnalyse(); return; }
   if ((el = e.target.closest("[data-approve]"))){ approve(el.dataset.approve); return; }
   if ((el = e.target.closest("[data-changes]"))){ var it = findQ(el.dataset.changes); it.status = "changes"; render(); toast(t("requested")); return; }
 });
@@ -657,14 +786,47 @@ document.addEventListener("keydown", function(e){ var el = e.target.closest && e
 document.addEventListener("input", function(e){
   var el = e.target;
   if (el.id === "q"){ state.q = el.value; if (state.route !== "catalog") go("catalog"); else render(); return; }
+  if (el.id === "rev-in"){ state.rev.text = el.value; return; }
+  if (el.dataset && (el.dataset.a || el.dataset.attr)){
+    if (el.dataset.attr) state.al.attrs[el.dataset.attr] = el.checked;
+    else state.al[el.dataset.a] = el.type === "checkbox" ? el.checked : el.value;
+    if (el.dataset.a === "category") { state.al.attrs = {}; render(); return; }
+    document.getElementById("audit-out").innerHTML = auditOut(); return;
+  }
   if (el.dataset && el.dataset.f){ PM[state.pid].st[el.dataset.f] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; rerenderCanvas(); }
 });
 document.addEventListener("change", function(e){
   if (e.target.id === "sort"){ state.sort = e.target.value; render(); }
   if (e.target.id === "pick"){ go("studio-"+e.target.value); }
+  if (e.target.id === "f-photo" && e.target.files && e.target.files[0]){
+    var file = e.target.files[0], pid = state.pid;
+    if (file.size > 8 * 1024 * 1024){ document.getElementById("photo-note").textContent = t("photoTooBig"); return; }
+    var fr = new FileReader();
+    fr.onload = function(){ state.photos[pid] = fr.result; delete state.renders[pid]; if (state.gen[pid]) state.gen[pid].phase = "idle"; render(); };
+    fr.readAsDataURL(file);
+  }
 });
 
+function renderSpec(p, i){
+  var st = p.st, k = KITS[st.kit];
+  return {kind:["cover","benefit","details","occasion"][i], image: photoOf(p) || symbolDataUrl(p), language: state.langMode, numerals: state.num === "ar" ? "arabic" : "western",
+    kit:{bg:k.bg, fg:k.fg, accent:k.ac}, brand:"LAYALI", headlineAr:st.headAr, headlineEn:st.headEn, bulletsAr:st.bAr, bulletsEn:st.bEn, occasionAr:st.oAr, occasionEn:st.oEn};
+}
+function runServerGen(pid){
+  var p = PM[pid], g = state.gen[pid] = {phase:"run", step:0, server:true}; render();
+  var tick = setInterval(function(){ if (g.step < 3){ g.step++; if (state.route === "studio" && state.pid === pid) render(); } }, 350);
+  Promise.all([0,1,2,3].map(function(i){
+    return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(renderSpec(p, i))})
+      .then(function(r){ return r.ok ? r.blob() : r.json().then(function(j){ throw new Error(j.error || r.status); }); });
+  })).then(function(blobs){
+    (state.renders[pid] || []).forEach(function(u){ URL.revokeObjectURL(u); });
+    state.renders[pid] = blobs.map(function(b){ return URL.createObjectURL(b); });
+    g.step = 4; g.phase = "done";
+  }).catch(function(err){ g.phase = "error"; g.error = err.message; })
+  .then(function(){ clearInterval(tick); if (state.route === "studio" && state.pid === pid) render(); });
+}
 function runGen(pid){
+  if (state.api && state.api.render) return runServerGen(pid);
   var g = state.gen[pid] = {phase:"run", step:0}; render();
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   (function next(){
@@ -702,6 +864,9 @@ function setLang(l){
 }
 
 addEventListener("hashchange", route);
+if (/^https?:$/.test(location.protocol)){
+  fetch("/api/health").then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.ok){ state.api = j; render(); } }).catch(function(){});
+}
 var saved = null; try { saved = localStorage.getItem("basira-lang"); } catch(e){}
 var initial = saved || ((navigator.language || "").toLowerCase().indexOf("ar") === 0 ? "ar" : "en");
 state.lang = initial; document.documentElement.lang = initial; document.documentElement.dir = initial === "ar" ? "rtl" : "ltr";

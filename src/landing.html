@@ -1041,8 +1041,9 @@ footer a:hover{color:var(--ink)}
     var ok = ["c-name","c-wa","c-store"].every(function(id){ return document.getElementById(id).value.trim(); });
     if (!ok){ note.style.color = "var(--bad)"; note.textContent = MSG[current].missing; return; }
     note.style.color = ""; note.textContent = MSG[current].sent;
-    if (window.BASIRA_LEAD_ENDPOINT){
-      fetch(window.BASIRA_LEAD_ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json"},
+    var endpoint = window.BASIRA_LEAD_ENDPOINT || (/^https?:$/.test(location.protocol) ? "/api/leads" : null);
+    if (endpoint){
+      fetch(endpoint, {method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({name:document.getElementById("c-name").value, whatsapp:document.getElementById("c-wa").value, store:document.getElementById("c-store").value, lang:current})}).catch(function(){});
     }
   });
