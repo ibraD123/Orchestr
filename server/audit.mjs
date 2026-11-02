@@ -97,6 +97,7 @@ export function auditListing(listing) {
   if (main) {
     if (rules.whiteMain && main.whiteBackground === false) add("mainRule", "med", "images", { channel });
     if (main.width && main.height && Math.min(main.width, main.height) < 1000) add("lowRes", "low", "images", { width: main.width, height: main.height });
+    if (typeof main.fill === "number" && main.fill < (rules.whiteMain ? 0.85 : 0.7)) add("productSmall", main.fill < 0.6 ? "med" : "low", "images", { fill: main.fill });
   }
 
   // Attributes

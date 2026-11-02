@@ -1,0 +1,22 @@
+# One-click deploy on Render (render.com): New → Blueprint → pick this repository.
+services:
+  - type: web
+    name: basira
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: basira-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SPAPI_CLIENT_ID
+        sync: false
+      - key: SPAPI_CLIENT_SECRET
+        sync: false
+      - key: SPAPI_REFRESH_TOKEN
+        sync: false
+      - key: SPAPI_SELLER_ID
+        sync: false

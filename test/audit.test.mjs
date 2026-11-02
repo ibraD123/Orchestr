@@ -65,3 +65,9 @@ test("keyword coverage normalises Arabic spelling variants", async () => {
   assert.ok(!by["saffron"].inAr && !by["saffron"].inEn);
   assert.equal(r.total, 12);
 });
+
+test("flags a main image where the product is too small", () => {
+  const base = { channel: "amazon", titleEn: "Bakhoor burner, hand hammered brass", titleAr: "مبخرة نحاسية" };
+  assert.ok(keys(auditListing({ ...base, images: [{ width: 2000, height: 2000, whiteBackground: true, fill: 0.5 }] })).includes("productSmall"));
+  assert.ok(!keys(auditListing({ ...base, images: [{ width: 2000, height: 2000, whiteBackground: true, fill: 0.9 }] })).includes("productSmall"));
+});

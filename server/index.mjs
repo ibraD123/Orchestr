@@ -9,11 +9,12 @@ import { analyseReviews, draftReply, aiConfigured, MODEL } from "./reviews.mjs";
 import { keywordCoverage } from "./keywords.mjs";
 import { safeFetch } from "./connectors/net.mjs";
 import { importLink, importCsv, connectorStatus } from "./importer.mjs";
+import { reviewPhotos } from "./photo.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);
-const MAX_BODY = 15 * 1024 * 1024;
+const MAX_BODY = 30 * 1024 * 1024;
 const STATIC = { "/": "index.html", "/index.html": "index.html", "/app": "app.html", "/app.html": "app.html" };
 const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json" };
 
@@ -47,6 +48,7 @@ const routes = {
     if (!/^image\/(png|jpeg|webp)$/.test(type)) { const e = new Error("That link isn't a PNG, JPEG or WebP image"); e.status = 400; throw e; }
     return { dataUrl: `data:${type};base64,${r.body.toString("base64")}` };
   },
+  "POST /api/photos/review": async (body) => reviewPhotos(body),
   "GET /api/connectors": async () => connectorStatus(),
   "POST /api/import": async (body) => importLink(String(body.url || ""), { limit: Math.min(Number(body.limit) || 60, 200) }),
   "POST /api/import/csv": async (body) => importCsv(String(body.csv || ""), { channel: body.channel, category: body.category, measure: Boolean(body.measure) }),

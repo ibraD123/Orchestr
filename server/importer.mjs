@@ -23,7 +23,7 @@ async function measureMainImages(items, { max = 40, concurrency = 4 } = {}) {
         const type = (r.headers.get("content-type") || "").split(";")[0];
         if (!IMAGE_TYPES.test(type)) continue;
         const m = await probeImage(`data:${type};base64,${r.body.toString("base64")}`);
-        main.width = m.width; main.height = m.height; main.whiteBackground = m.whiteShare >= 0.9; main.whiteShare = Math.round(m.whiteShare * 100) / 100;
+        main.width = m.width; main.height = m.height; main.whiteBackground = m.whiteShare >= 0.9 && !m.transparent; main.whiteShare = m.whiteShare; main.fill = m.fill;
         done++;
       } catch { /* keep going: one broken image shouldn't stop the import */ }
     }

@@ -4,6 +4,9 @@
 import { readFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { TEMPLATE_CSS, TEMPLATE_IDS, templateById, templateHTML } from "./templates.mjs";
+import { measurePixels, borderColour } from "./photo-metrics.mjs";
+// Source passed into the page, which can't import modules.
+const MEASURE_SRC = `(function(){ ${borderColour}\nreturn ${measurePixels}; })()`;
 
 const require = createRequire(import.meta.url);
 export const SLIDE_WIDTH = 1600;
@@ -135,27 +138,20 @@ export async function probeImage(dataUrl) {
   const page = await b.newPage();
   try {
     await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
-    return await page.evaluate(async (src) => {
+    return await page.evaluate(async ({ src, fn }) => {
+      const measure = new Function("return " + fn)();
       const img = new Image();
       img.src = src;
       await img.decode();
       const w = img.naturalWidth, h = img.naturalHeight;
-      const c = document.createElement("canvas");
       const scale = Math.min(1, 400 / Math.max(w, h));
+      const c = document.createElement("canvas");
       c.width = Math.max(1, Math.round(w * scale)); c.height = Math.max(1, Math.round(h * scale));
       const ctx = c.getContext("2d");
       ctx.drawImage(img, 0, 0, c.width, c.height);
-      const d = ctx.getImageData(0, 0, c.width, c.height).data;
-      let white = 0, total = 0;
-      const band = Math.max(1, Math.round(Math.min(c.width, c.height) * 0.03));
-      for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
-        if (x >= band && x < c.width - band && y >= band && y < c.height - band) continue;
-        const i = (y * c.width + x) * 4;
-        total++;
-        if (d[i + 3] > 200 && d[i] >= 243 && d[i + 1] >= 243 && d[i + 2] >= 243) white++;
-      }
-      return { width: w, height: h, whiteShare: total ? white / total : 0 };
-    }, dataUrl);
+      const m = measure(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+      return { width: w, height: h, whiteShare: m.whiteShare, fill: m.fill, transparent: m.transparent };
+    }, { src: dataUrl, fn: MEASURE_SRC });
   } finally { await page.close(); }
 }
 

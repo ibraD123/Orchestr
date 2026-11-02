@@ -1,6 +1,6 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { normaliseSpec, slideDocument, toNumerals, renderSlide, closeRenderer, rendererAvailable } from "../server/render.mjs";
+import { normaliseSpec, slideDocument, toNumerals, renderSlide, closeRenderer, rendererAvailable, probeImage } from "../server/render.mjs";
 
 const PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 after(() => closeRenderer());
@@ -37,4 +37,13 @@ test("every template builds in every language", async () => {
     assert.ok(html.includes('class="bz"'), tpl.id);
     assert.ok(!/undefined|NaN/.test(html.replace(/data:[^"]+/g, "")), `${tpl.id}/${language} leaks undefined`);
   }
+});
+
+test("measures a rendered main image", { timeout: 60000 }, async (t) => {
+  if (!(await rendererAvailable())) return t.skip("Chromium not available");
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200"><rect width="1200" height="1200" fill="#fff"/><rect x="300" y="150" width="600" height="900" fill="#4A230A"/></svg>';
+  const m = await probeImage("data:image/svg+xml;base64," + Buffer.from(svg).toString("base64"));
+  assert.equal(m.width, 1200);
+  assert.ok(m.whiteShare > 0.95, String(m.whiteShare));
+  assert.ok(Math.abs(m.fill - 0.75) < 0.02, String(m.fill));
 });

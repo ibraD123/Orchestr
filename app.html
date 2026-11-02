@@ -262,6 +262,38 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .field textarea{unicode-bidi:plaintext}
 .ini{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:600;font-family:var(--font-display);font-size:18px;color:var(--ink-3)}
 .pthumb img{width:100%;height:100%;object-fit:cover}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start}
+.pcard{display:grid;gap:12px}
+.pcard.is-win{border-color:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
+.pimg{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:repeating-conic-gradient(var(--surface-2) 0 25%,var(--surface) 0 50%) 0 0/20px 20px;display:grid;place-items:center}
+.pimg img{max-width:100%;max-height:100%;object-fit:contain}
+.pimg .tag{position:absolute;top:8px;inset-inline-start:8px}
+.checks-list{display:grid;gap:4px}
+.ck{display:grid;grid-template-columns:18px 1fr auto;gap:8px;font-size:13px;align-items:center}
+.ck.ok span:first-child{color:var(--good)}.ck.no span:first-child{color:var(--bad)}
+.ck .mono{color:var(--ink-3);font-size:12px}
+.scores{display:grid;gap:4px}
+.pactions{display:flex;flex-wrap:wrap;gap:6px}
+.win{border-color:var(--good)}
+.pf-grid{grid-template-columns:1fr 1fr}
+.pf-grid>*,.grid2>*{min-width:0}
+@media (max-width:1050px){.pf-grid{grid-template-columns:1fr}}
+.pf-cards{display:grid;gap:12px}
+.pf-card{display:grid;gap:6px}
+.pf-big{font-family:var(--font-display);font-size:30px;font-weight:700;color:var(--good);font-variant-numeric:tabular-nums}
+.pf-big.neg{color:var(--bad)}
+.stackbar{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;margin-block:8px}
+.stackbar i{display:block;min-width:2px}
+.pf-kv{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:4px 12px;font-size:13px}
+.pf-kv span{color:var(--ink-3)}.pf-kv b{font-variant-numeric:tabular-nums;font-weight:500}
+@media (max-width:480px){.pf-kv{grid-template-columns:auto 1fr}}
+.pf-lines{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin-top:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-3);margin-top:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.fees{min-width:520px}
+table.fees td,table.fees th{padding:6px 8px}
+table.fees input{width:72px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding-inline:8px;font-variant-numeric:tabular-nums}
 .panel{display:grid;gap:16px}
 .field{display:grid;gap:6px}
 .field label,.field .lbl{font-size:12.5px;color:var(--ink-2);font-weight:500}
@@ -428,6 +460,7 @@ function auditListing(listing) {
   if (main) {
     if (rules.whiteMain && main.whiteBackground === false) add("mainRule", "med", "images", { channel });
     if (main.width && main.height && Math.min(main.width, main.height) < 1000) add("lowRes", "low", "images", { width: main.width, height: main.height });
+    if (typeof main.fill === "number" && main.fill < (rules.whiteMain ? 0.85 : 0.7)) add("productSmall", main.fill < 0.6 ? "med" : "low", "images", { fill: main.fill });
   }
 
   // Attributes
@@ -860,6 +893,188 @@ function keywordCoverage(listing) {
 return { KEYWORDS, normaliseArabic, keywordCoverage };
 })();
 var KEYWORDS = __shared3.KEYWORDS, normaliseArabic = __shared3.normaliseArabic, keywordCoverage = __shared3.keywordCoverage;
+var __shared4 = (function(){
+// Unit economics per sales channel. Pure functions with no imports: inlined into the app by scripts/build.mjs.
+// Fee defaults are typical starting points, not quotes: every seller should enter the numbers from their own fee sheet.
+
+const COUNTRIES = {
+  SA: { currency: "SAR", vat: 0.15, name: ["Saudi Arabia", "السعودية"] },
+  AE: { currency: "AED", vat: 0.05, name: ["UAE", "الإمارات"] },
+  EG: { currency: "EGP", vat: 0.14, name: ["Egypt", "مصر"] }
+};
+
+// referral: share of the price incl. VAT; fixed: per order; fulfilment: pick, pack and ship per unit;
+// payment: card or wallet processing share; codFee: extra per cash-on-delivery order.
+const CHANNEL_DEFAULTS = {
+  amazon:  { referral: 0.10, fixed: 0, fulfilment: 12, payment: 0, codFee: 0 },
+  noon:    { referral: 0.10, fixed: 0, fulfilment: 10, payment: 0, codFee: 0 },
+  salla:   { referral: 0, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 },
+  zid:     { referral: 0, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 },
+  shopify: { referral: 0.02, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 }
+};
+
+const num = (v, d = 0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/**
+ * Profit per unit sold on one channel.
+ * @param {object} i price (incl. VAT), cost, inbound (shipping to warehouse per unit), vat,
+ *   referral, fixed, fulfilment, payment, codFee, codShare (share of orders paid on delivery),
+ *   ads (ad spend as share of price), returns (share of units returned), returnCost (per return)
+ */
+function unitEconomics(i) {
+  const price = Math.max(0, num(i.price));
+  const vat = Math.max(0, num(i.vat, 0.15));
+  const net = price / (1 + vat);
+  const lines = [
+    ["vat", price - net],
+    ["referral", price * num(i.referral)],
+    ["fixed", num(i.fixed)],
+    ["payment", price * num(i.payment) * (1 - num(i.codShare))],
+    ["cod", num(i.codFee) * num(i.codShare)],
+    ["fulfilment", num(i.fulfilment)],
+    ["inbound", num(i.inbound)],
+    ["ads", price * num(i.ads)],
+    ["returns", num(i.returns) * num(i.returnCost)],
+    ["cost", num(i.cost)]
+  ].map(([k, v]) => ({ key: k, amount: round2(v) }));
+  const costs = lines.reduce((s, l) => s + l.amount, 0);
+  const profit = round2(price - costs);
+  const adsAmount = lines.find((l) => l.key === "ads").amount;
+  return {
+    price: round2(price), net: round2(net), lines, profit,
+    margin: net > 0 ? round2(profit / net) : 0,
+    roi: num(i.cost) > 0 ? round2(profit / num(i.cost)) : null,
+    // Ad spend (as share of price) at which profit reaches zero.
+    breakEvenAds: price > 0 ? round2((profit + adsAmount) / price) : 0,
+    // Lowest price (incl. VAT) that still breaks even with these costs.
+    breakEvenPrice: breakEvenPrice(i)
+  };
+}
+
+function breakEvenPrice(i) {
+  const share = (1 - 1 / (1 + num(i.vat, 0.15))) + num(i.referral) + num(i.payment) * (1 - num(i.codShare)) + num(i.ads);
+  const fixedCosts = num(i.fixed) + num(i.codFee) * num(i.codShare) + num(i.fulfilment) + num(i.inbound) + num(i.returns) * num(i.returnCost) + num(i.cost);
+  const k = 1 - share;
+  return k > 0 ? round2(fixedCosts / k) : null;
+}
+
+/** Compare channels with the same product inputs. */
+function compareChannels(product, channels) {
+  return Object.keys(channels).map((ch) => ({ channel: ch, ...unitEconomics({ ...product, ...channels[ch] }) }))
+    .sort((a, b) => b.profit - a.profit);
+}
+
+return { COUNTRIES, CHANNEL_DEFAULTS, unitEconomics, compareChannels };
+})();
+var COUNTRIES = __shared4.COUNTRIES, CHANNEL_DEFAULTS = __shared4.CHANNEL_DEFAULTS, unitEconomics = __shared4.unitEconomics, compareChannels = __shared4.compareChannels;
+var __shared5 = (function(){
+// Pixel-level photo checks and background removal on raw RGBA data.
+// Pure functions with no imports: the server runs them inside Chromium on decoded images,
+// and scripts/build.mjs inlines them into the app so photos are checked in the browser.
+
+function borderColour(d, w, h) {
+  let r = 0, g = 0, b = 0, n = 0;
+  const band = Math.max(1, Math.round(Math.min(w, h) * 0.02));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (x >= band && x < w - band && y >= band && y < h - band) continue;
+    const i = (y * w + x) * 4;
+    if (d[i + 3] < 128) continue;
+    r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+  }
+  return n ? [r / n, g / n, b / n] : [255, 255, 255];
+}
+
+/**
+ * Measure a decoded image.
+ * whiteShare: share of border pixels that are white (Amazon and Noon main images need a white background).
+ * fill: how much of the frame the product's bounding box covers on its longer side (Amazon asks for 85%).
+ * transparent: whether the background is already transparent.
+ */
+function measurePixels(d, w, h) {
+  const band = Math.max(1, Math.round(Math.min(w, h) * 0.03));
+  let white = 0, total = 0, clear = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (x >= band && x < w - band && y >= band && y < h - band) continue;
+    const i = (y * w + x) * 4;
+    total++;
+    if (d[i + 3] < 30) clear++;
+    else if (d[i] >= 243 && d[i + 1] >= 243 && d[i + 2] >= 243) white++;
+  }
+  const bg = borderColour(d, w, h);
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    if (d[i + 3] < 30) continue;
+    const dist = Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]);
+    if (clear / total < 0.5 && dist < 45) continue;
+    if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+  }
+  const found = maxX >= 0;
+  const fill = found ? Math.max((maxX - minX + 1) / w, (maxY - minY + 1) / h) : 0;
+  return {
+    whiteShare: total ? Math.round((white / total) * 100) / 100 : 0,
+    transparent: total ? clear / total > 0.5 : false,
+    fill: Math.round(fill * 100) / 100,
+    box: found ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : null
+  };
+}
+
+/**
+ * Make the background transparent by flooding inward from the edges while colours stay close
+ * to the edge colour. Works on plain studio backgrounds, not on busy scenes.
+ * Mutates d (RGBA) in place and returns the share of pixels removed.
+ */
+function removeBackground(d, w, h, tolerance = 40) {
+  const bg = borderColour(d, w, h);
+  const seen = new Uint8Array(w * h);
+  const stack = [];
+  const near = (p) => { const i = p * 4; return Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]) <= tolerance * 3 || d[i + 3] < 30; };
+  for (let x = 0; x < w; x++) { stack.push(x, (h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { stack.push(y * w, y * w + w - 1); }
+  let removed = 0;
+  while (stack.length) {
+    const p = stack.pop();
+    if (seen[p]) continue;
+    seen[p] = 1;
+    if (!near(p)) continue;
+    d[p * 4 + 3] = 0; removed++;
+    const x = p % w, y = (p / w) | 0;
+    if (x > 0) stack.push(p - 1); if (x < w - 1) stack.push(p + 1);
+    if (y > 0) stack.push(p - w); if (y < h - 1) stack.push(p + w);
+  }
+  // Soften the cut: half-transparent edge pixels next to removed ones.
+  for (let p = 0; p < w * h; p++) {
+    if (d[p * 4 + 3] === 0) continue;
+    const x = p % w, y = (p / w) | 0;
+    const edge = (x > 0 && d[(p - 1) * 4 + 3] === 0) || (x < w - 1 && d[(p + 1) * 4 + 3] === 0) || (y > 0 && d[(p - w) * 4 + 3] === 0) || (y < h - 1 && d[(p + w) * 4 + 3] === 0);
+    if (edge) d[p * 4 + 3] = Math.min(d[p * 4 + 3], 150);
+  }
+  return removed / (w * h);
+}
+
+/** Where to draw a product box inside a square so its longer side covers `target` of the frame. */
+function fitBox(box, size, target = 0.85) {
+  const scale = (size * target) / Math.max(box.w, box.h);
+  const w = box.w * scale, h = box.h * scale;
+  return { scale, x: (size - w) / 2, y: (size - h) / 2, w, h };
+}
+
+/** Main-image rules per channel, applied to measured numbers. */
+function mainImageChecks(m, channel) {
+  const strict = channel === "amazon" || channel === "noon";
+  const out = [];
+  const short = Math.min(m.width || 0, m.height || 0);
+  out.push({ key: "size", ok: short >= 1000, value: (m.width || 0) + " × " + (m.height || 0), need: "≥ 1000 px" });
+  if (strict) out.push({ key: "white", ok: m.whiteShare >= 0.9 && !m.transparent, value: Math.round(m.whiteShare * 100) + "%", need: "≥ 90%" });
+  out.push({ key: "fill", ok: m.fill >= (strict ? 0.85 : 0.7), value: Math.round(m.fill * 100) + "%", need: strict ? "≥ 85%" : "≥ 70%" });
+  out.push({ key: "square", ok: m.width && m.height ? Math.abs(m.width / m.height - 1) < 0.05 : false, value: m.width && m.height ? (m.width / m.height).toFixed(2) : "?", need: "1 : 1" });
+  return out;
+}
+
+return { borderColour, measurePixels, removeBackground, fitBox, mainImageChecks };
+})();
+var borderColour = __shared5.borderColour, measurePixels = __shared5.measurePixels, removeBackground = __shared5.removeBackground, fitBox = __shared5.fitBox, mainImageChecks = __shared5.mainImageChecks;
 /* ---------- strings ---------- */
 var S = {
   overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
@@ -921,7 +1136,23 @@ var S = {
   openSource:["Open on marketplace","افتح في المنصة"], noReviewsYet:["Connect reviews to see what buyers say about this listing.","اربط التقييمات لترى ما يقوله المشترون عن هذا المنتج."],
   keywords:["Search terms","كلمات البحث"], kwSub:["Common Gulf searches for this category. A term counts when it appears in the title or bullets.","عمليات بحث شائعة في الخليج لهذه الفئة. تُحتسب الكلمة إذا ظهرت في العنوان أو النقاط."],
   reply:["Draft reply","اكتب رداً"], replying:["Writing…","جارٍ الكتابة…"], replyNeeds:["Replies are written by Claude on the Basira server.","يكتب Claude الردود على خادم بصيرة."],
-  copy:["Copy","نسخ"], copied:["Copied","تم النسخ"], needsPerson:["Needs a person:","يحتاج متابعة شخصية:"], dialectsT:["Dialects","اللهجات"], reviewsN:["reviews","تقييمات"]
+  copy:["Copy","نسخ"],
+  photos:["Photo check","فحص الصور"], photosSub:["Check main-image candidates against marketplace rules, fix the background in one click, and let Claude pick the photo most likely to be clicked.","افحص الصور المرشحة للصورة الرئيسية وفق قواعد المنصات، وأصلح الخلفية بنقرة، ودع Claude يختار الصورة الأكثر جذباً للنقر."],
+  addPhotos:["Add photos","أضف صوراً"], upTo4:["Up to 4 candidates · PNG, JPEG or WebP","حتى ٤ صور · PNG أو JPEG أو WebP"], trySample:["Try with sample photos","جرّب بصور تجريبية"],
+  ck_size:["Resolution","الدقة"], ck_white:["White background","خلفية بيضاء"], ck_fill:["Product fills the frame","المنتج يملأ الإطار"], ck_square:["Square","مربعة"],
+  removeBg:["Remove background","إزالة الخلفية"], makeMain:["Make main image","اجعلها صورة رئيسية"], useInStudio:["Use in Studio","استخدم في الاستوديو"], remove:["Remove","حذف"],
+  reviewAi:["Pick the best with Claude","اختر الأفضل مع Claude"], reviewing:["Reviewing…","جارٍ المراجعة…"], winner:["Most likely to be clicked","الأكثر جذباً للنقر"],
+  sc_clarity:["Clarity","الوضوح"], sc_lighting:["Lighting","الإضاءة"], sc_focus:["Focus","التركيز"], sc_thumbnail:["Small-screen read","الوضوح على الجوال"], sc_trust:["Trust","الثقة"],
+  arText_broken:["Arabic text is broken","النص العربي مكسور"], arText_correct:["Arabic text is correct","النص العربي صحيح"], aiNote:["Claude's judgement before launch, not measured clicks.","تقدير Claude قبل النشر، وليس نقرات مقاسة."],
+  photoNeeds:["Claude review runs on the Basira server with an Anthropic API key. Rule checks and background fixes work here.","مراجعة Claude تعمل على خادم بصيرة بمفتاح API. الفحوصات وإصلاح الخلفية تعمل هنا."],
+  processing:["Working…","جارٍ العمل…"], mainReady:["Main image ready","صورة رئيسية جاهزة"], usedInStudio:["Photo set for","تم تعيين الصورة لـ"], bgDone:["Background removed","أُزيلت الخلفية"],
+  profit:["Unit economics","اقتصاديات الوحدة"], profitSub:["Profit per unit on each channel after VAT, fees, delivery, ads and returns.","الربح لكل وحدة في كل قناة بعد الضريبة والعمولات والتوصيل والإعلانات والمرتجعات."],
+  country:["Country","الدولة"], priceL:["Price incl. VAT","السعر شامل الضريبة"], costL:["Product cost","تكلفة المنتج"], inboundL:["Inbound shipping per unit","شحن للمستودع لكل وحدة"],
+  adsL:["Ad spend, % of price","الإعلانات، ٪ من السعر"], returnsL:["Return rate, %","نسبة المرتجعات ٪"], returnCostL:["Cost per return","تكلفة كل مرتجع"], codL:["Paid on delivery, %","الدفع عند الاستلام ٪"],
+  feesT:["Channel fees","عمولات القنوات"], feesNote:["Typical starting values. Replace them with the numbers from your own fee sheet.","قيم أولية شائعة. استبدلها بأرقام جدول العمولات الخاص بك."],
+  f_referral:["Commission %","العمولة ٪"], f_fixed:["Per order","لكل طلب"], f_fulfilment:["Fulfilment","التنفيذ والشحن"], f_payment:["Payment %","الدفع ٪"], f_codFee:["COD fee","رسوم الاستلام"],
+  perUnit:["profit per unit","ربح لكل وحدة"], marginL:["Margin","الهامش"], roiL:["Return on cost","العائد على التكلفة"], beAds:["Break-even ad spend","الحد الأعلى للإعلانات"], bePrice:["Break-even price","سعر التعادل"],
+  l_vat:["VAT","الضريبة"], l_referral:["Commission","العمولة"], l_fixed:["Order fee","رسوم الطلب"], l_payment:["Payment","الدفع"], l_cod:["Cash on delivery","الدفع عند الاستلام"], l_fulfilment:["Fulfilment","التنفيذ"], l_inbound:["Inbound","الشحن الوارد"], l_ads:["Ads","الإعلانات"], l_returns:["Returns","المرتجعات"], l_cost:["Product cost","تكلفة المنتج"], l_profit:["Profit","الربح"], loss:["Loss","خسارة"], copied:["Copied","تم النسخ"], needsPerson:["Needs a person:","يحتاج متابعة شخصية:"], dialectsT:["Dialects","اللهجات"], reviewsN:["reviews","تقييمات"]
 };
 var THEMES = {
   longevity:["Longevity","الثبات"], sizeVsPhoto:["Size vs photo","الحجم مقارنة بالصورة"], packaging:["Packaging","التغليف"], size:["Runs small","المقاس صغير"],
@@ -951,6 +1182,7 @@ var ISSUES = {
   arabicTitleNotArabic:{sev:"high",slide:0,t:["Arabic title isn't in Arabic","العنوان العربي ليس بالعربية"],d:["The Arabic field holds Latin text.","حقل العنوان العربي يحتوي نصاً لاتينياً."]},
   noImages:{sev:"high",slide:0,t:["No images","لا توجد صور"],d:["Listings without images are hidden from search.","المنتجات بلا صور مخفية من البحث."]},
   fewImages:{sev:"low",slide:1,t:["Fewer images than top listings","صور أقل من أفضل المنتجات"],d:["Add slides that answer buyer questions.","أضف شرائح تجيب عن أسئلة المشترين."]},
+  productSmall:{sev:"med",slide:0,t:["Product is too small in the main image","المنتج صغير في الصورة الرئيسية"],d:["Amazon asks for the product to fill 85% of the frame.","تطلب أمازون أن يملأ المنتج ٨٥٪ من الإطار."]},
   reviewGap:{sev:"med",slide:1,t:["A frequent complaint isn't answered","شكوى متكررة بلا إجابة"],d:["No image or bullet addresses it.","لا توجد صورة أو نقطة تجيب عنها."]}
 };
 var CH = {noon:{n:"Noon",bg:"#FEEE00",fg:"#1A1A1A",m:"n"},amazon:{n:"Amazon.sa",bg:"#232F3E",fg:"#FF9900",m:"a"},salla:{n:"Salla",bg:"#004956",fg:"#BAF3E6",m:"S"},zid:{n:"Zid",bg:"#5B2BE0",fg:"#fff",m:"Z"},shopify:{n:"Shopify",bg:"#5E8E3E",fg:"#fff",m:"S"}};
@@ -1012,6 +1244,8 @@ var PM = {}; P.forEach(function(p){ PM[p.id] = p; });
 var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"score", dialect:"all", api:null, photos:{}, renders:{},
   al:{channel:"noon", category:"fragrance", titleEn:"Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume", titleAr:"", bulletsEn:"Long lasting\nBest gift for men and women", bulletsAr:"", images:1, res:800, white:false, sizeChart:false, attrs:{volume:true}},
   rev:{text:"الريحة حلوة بس ما تثبت، بعد ساعتين راحت\nالعطر حلو بس بيروح بسرعة خالص\nالتغليف فخم ومناسب للهدايا\nريحة العود قوية ومميزة، بس الثبات ضعيف\nوصل متأخر يومين\nSmells great but fades within two hours", busy:false, result:null, error:null},
+  pc:{channel:"noon", items:[], review:null, busy:false, error:null},
+  pf:{country:"SA", price:230, cost:60, inbound:3, ads:10, returns:5, returnCost:20, cod:40, fees: JSON.parse(JSON.stringify(CHANNEL_DEFAULTS))},
   slide:1, langMode:"both", num:"ar", gen:{}, sets:{}, kitBy:{}, tgroup:"all", src:"all", imp:{busy:false, error:null, note:null}, connectors:null, replies:{}, queue:[
     {id:"q1",pid:"abaya",by:"Omar",status:"pending",issue:"noSizeChart"},
     {id:"q2",pid:"dates",by:"Sara",status:"pending",issue:"noSeason"}
@@ -1056,12 +1290,14 @@ var ICONS = {
   studio:'<path d="M12 3l2.6 5.6L20 11l-5.4 2.4L12 19l-2.6-5.6L4 11l5.4-2.4z"/>',
   approvals:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
   audit:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/>',
+  photos:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  profit:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
   templates:'<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/>'
 };
 function navHTML(mobile){
   var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","audit","catalog","reviews","templates","studio","approvals"].map(function(k){
+  return ["overview","audit","catalog","photos","reviews","templates","studio","profit","approvals"].map(function(k){
     var href = k === "studio" ? "studio-"+state.pid : k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -1201,6 +1437,7 @@ function issueDetail(i){
   if (i.key === "titleTooLong") return d.length+" / "+d.max;
   if (i.key === "keywordStuffing" && d.word) return "«"+d.word+"»";
   if ((i.key === "fewImages" || i.key === "fewBullets") && d.min) return d.count+" / "+d.min;
+  if (i.key === "productSmall" && d.fill != null) return Math.round(d.fill * 100)+"% / 85%";
   return ISSUES[i.key] ? tr(ISSUES[i.key].d) : "";
 }
 function kwCard(listing){
@@ -1334,7 +1571,7 @@ function vStudio(){
       '<div class="stage-tools"><button type="button" class="btn btn-ghost btn-sm" data-move="-1"'+(i === 0 ? " disabled" : "")+'>↑ '+t("moveUp")+'</button><button type="button" class="btn btn-ghost btn-sm" data-move="1"'+(i === set.length - 1 ? " disabled" : "")+'>↓ '+t("moveDown")+'</button><button type="button" class="btn btn-ghost btn-sm" data-remove="'+i+'"'+(set.length < 2 ? " disabled" : "")+'>'+t("removeSlide")+'</button></div>'+
     '</div>'+
     '<div class="card panel">'+
-      '<div class="field"><label for="f-photo">'+t("photo")+'</label><div class="file"><input type="file" id="f-photo" accept="image/png,image/jpeg,image/webp"></div><span class="note" id="photo-note">'+t("photoNote")+'</span></div>'+
+      '<div class="field"><label for="f-photo">'+t("photo")+'</label><div class="file"><input type="file" id="f-photo" accept="image/png,image/jpeg,image/webp"></div><span class="note" id="photo-note">'+t("photoNote")+'</span>'+(photoOf(p) ? '<button type="button" class="btn btn-ghost btn-sm" id="st-bg" style="justify-self:start">'+t("removeBg")+'</button>' : "")+'</div>'+
       '<div class="field"><span class="lbl">'+t("language")+'</span><div class="seg" role="group">'+[["ar","العربية"],["en","English"],["both",t("both")]].map(function(x){ return '<button type="button" data-lm="'+x[0]+'" aria-pressed="'+(state.langMode === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div></div>'+
       '<div class="field"><span class="lbl">'+t("numerals")+'</span><div class="seg" role="group"><button type="button" data-num="ar" aria-pressed="'+(state.num === "ar")+'">'+t("numAr")+'</button><button type="button" data-num="en" aria-pressed="'+(state.num === "en")+'">'+t("numEn")+'</button></div></div>'+
       '<div class="tpl-name"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span></div>'+
@@ -1376,6 +1613,122 @@ function vApprovals(){
         '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)">'+chans(p)+'<span>'+t("by")+' '+it.by+'</span></div></div>'+
       '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approve")+'</button>' : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>')+'</div>'+
     '</div>'; }).join("")+'</div>' : '<div class="card empty">'+t("queueEmpty")+'</div>');
+}
+
+/* photo check */
+function loadImg(src){ return new Promise(function(res, rej){ var im = new Image(); im.onload = function(){ res(im); }; im.onerror = function(){ rej(new Error("Couldn't read that image")); }; im.src = src; }); }
+function canvasFor(im, max){ var sc = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)); var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(im.naturalWidth * sc)); c.height = Math.max(1, Math.round(im.naturalHeight * sc)); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); return c; }
+function analysePhoto(url){
+  return loadImg(url).then(function(im){
+    var c = canvasFor(im, 500), m = measurePixels(c.getContext("2d").getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+    return {width: im.naturalWidth, height: im.naturalHeight, whiteShare: m.whiteShare, fill: m.fill, transparent: m.transparent};
+  });
+}
+function cutout(url, tol){
+  return loadImg(url).then(function(im){
+    var c = canvasFor(im, 1600), ctx = c.getContext("2d"), data = ctx.getImageData(0, 0, c.width, c.height);
+    var m0 = measurePixels(data.data, c.width, c.height);
+    if (!m0.transparent) removeBackground(data.data, c.width, c.height, tol || 40);
+    ctx.putImageData(data, 0, 0);
+    return {canvas: c, box: measurePixels(data.data, c.width, c.height).box};
+  });
+}
+function mainImageFrom(url){
+  return cutout(url).then(function(r){
+    if (!r.box) throw new Error("Couldn't find the product in that photo");
+    var out = document.createElement("canvas"); out.width = out.height = 2000;
+    var ctx = out.getContext("2d"), f = fitBox(r.box, 2000, 0.85);
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, 2000, 2000);
+    ctx.drawImage(r.canvas, r.box.x, r.box.y, r.box.w, r.box.h, f.x, f.y, f.w, f.h);
+    return out.toDataURL("image/jpeg", 0.92);
+  });
+}
+var pcSeq = 0;
+function addPhoto(url, label){
+  var it = {id:"ph"+(++pcSeq), url:url, label:label || "", m:null, busy:true};
+  state.pc.items.push(it); state.pc.review = null;
+  return analysePhoto(url).then(function(m){ it.m = m; }).catch(function(e){ it.error = e.message; }).then(function(){ it.busy = false; if (state.route === "photos") render(); });
+}
+function samplePhotos(){
+  var p = PM[state.pid], src = symbolDataUrl(p);
+  return loadImg(src).then(function(im){
+    var make = function(bg, scale, size){ var c = document.createElement("canvas"); c.width = c.height = size; var ctx = c.getContext("2d"); ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size); var h = size * scale, w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, (size - w) / 2, (size - h) / 2 + size * 0.04, w, h); return c.toDataURL("image/jpeg", 0.9); };
+    state.pc.items = []; state.pc.review = null;
+    return Promise.all([addPhoto(make("#C9CCC8", 0.55, 900), "A"), addPhoto(make("#FFFFFF", 0.9, 2000), "B")]);
+  });
+}
+function shrinkForAi(url){ return loadImg(url).then(function(im){ var c = canvasFor(im, 1568), out = document.createElement("canvas"); out.width = c.width; out.height = c.height; var ctx = out.getContext("2d"); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(c, 0, 0); return out.toDataURL("image/jpeg", 0.88); }); }
+function runPhotoReview(){
+  var pc = state.pc; if (!pc.items.length) return;
+  pc.busy = true; pc.error = null; render();
+  Promise.all(pc.items.map(function(it){ return shrinkForAi(it.url); })).then(function(photos){
+    return fetch("/api/photos/review", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({photos:photos, product: tr(PM[state.pid].name), channel: pc.channel})});
+  }).then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
+    .then(function(j){ pc.review = j; }).catch(function(e){ pc.error = e.message; })
+    .then(function(){ pc.busy = false; if (state.route === "photos") render(); });
+}
+function vPhotos(){
+  var pc = state.pc, rv = pc.review, ok = state.api && state.api.ai;
+  var chOpts = ["amazon","noon","salla","zid","shopify"].map(function(c){ return '<option value="'+c+'"'+(pc.channel === c ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("");
+  return '<div class="head"><div><h1>'+t("photos")+'</h1><p>'+t("photosSub")+'</p></div><label class="tpl-for">'+t("channel")+' <select class="sel" id="pc-channel">'+chOpts+'</select></label></div>'+
+  '<div class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><label class="btn btn-primary" for="pc-file">'+t("addPhotos")+'</label><input type="file" id="pc-file" class="vh" accept="image/png,image/jpeg,image/webp" multiple><button type="button" class="btn btn-ghost" id="pc-sample">'+t("trySample")+'</button><span class="note">'+t("upTo4")+'</span>'+
+    '<span style="margin-inline-start:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(ok ? "" : '<span class="note">'+t("photoNeeds")+'</span>')+'<button type="button" class="btn btn-primary" id="pc-review"'+(ok && pc.items.length && !pc.busy ? "" : " disabled")+'>'+(pc.busy ? t("reviewing") : t("reviewAi"))+'</button></span></div>'+
+  (pc.error ? '<p class="err">'+esc(pc.error)+'</p>' : "")+
+  (rv ? '<div class="card win"><span class="tag good">'+t("winner")+': '+(pc.items[rv.winner] ? (pc.items[rv.winner].label || "#"+(rv.winner + 1)) : "")+'</span><p style="margin-top:8px">'+esc(tr([rv.why.en, rv.why.ar]))+'</p><p class="note">'+t("aiNote")+'</p></div>' : "")+
+  '<div class="pgrid">'+pc.items.map(function(it, n){
+    var checks = it.m ? mainImageChecks(it.m, pc.channel) : [];
+    var r = rv && rv.photos.filter(function(x){ return x.index === n; })[0];
+    return '<div class="card pcard'+(rv && rv.winner === n ? " is-win" : "")+'"><div class="pimg"><img src="'+it.url+'" alt="">'+(it.label ? '<span class="tag">'+esc(it.label)+'</span>' : "")+'</div>'+
+      (it.busy ? '<p class="note">'+t("processing")+'</p>' : "")+(it.error ? '<p class="err">'+esc(it.error)+'</p>' : "")+
+      '<div class="checks-list">'+checks.map(function(c){ return '<div class="ck '+(c.ok ? "ok" : "no")+'"><span>'+(c.ok ? "✓" : "✕")+'</span><span>'+t("ck_"+c.key)+'</span><span class="mono">'+esc(c.value)+'</span></div>'; }).join("")+'</div>'+
+      (r ? '<div class="scores">'+Object.keys(r.scores).map(function(k){ var v = r.scores[k]; return '<div class="hbar" style="grid-template-columns:120px 1fr 28px"><span>'+t("sc_"+k)+'</span><span class="tr"><i style="--w:'+(v*10)+'%;--c:'+scoreColor(v*10)+'"></i></span><span class="mono">'+v+'</span></div>'; }).join("")+
+        (r.arabicText !== "none" ? '<span class="tag '+(r.arabicText === "broken" ? "bad" : "good")+'">'+t("arText_"+r.arabicText)+'</span>' : "")+
+        r.problems.map(function(x){ return '<p class="note">✕ '+esc(tr([x.en, x.ar]))+'</p>'; }).join("")+r.strengths.map(function(x){ return '<p class="note" style="color:var(--good)">✓ '+esc(tr([x.en, x.ar]))+'</p>'; }).join("")+'</div>' : "")+
+      '<div class="pactions"><button type="button" class="btn btn-ghost btn-sm" data-pc-bg="'+it.id+'">'+t("removeBg")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-main="'+it.id+'">'+t("makeMain")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-use="'+it.id+'">'+t("useInStudio")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-del="'+it.id+'">'+t("remove")+'</button></div></div>';
+  }).join("")+'</div>';
+}
+function pcFind(id){ return state.pc.items.filter(function(x){ return x.id === id; })[0]; }
+function pcReplace(id, fn, label){
+  var it = pcFind(id); if (!it) return;
+  it.busy = true; render();
+  fn(it.url).then(function(url){ it.url = url; it.label = label; return analysePhoto(url).then(function(m){ it.m = m; }); })
+    .catch(function(e){ it.error = e.message; }).then(function(){ it.busy = false; state.pc.review = null; render(); });
+}
+
+/* unit economics */
+var PF_CH = ["noon","amazon","salla","zid","shopify"];
+function pfResults(){
+  var f = state.pf, ct = COUNTRIES[f.country], cur = ct.currency;
+  var product = {price:+f.price, cost:+f.cost, inbound:+f.inbound, vat:ct.vat, ads:f.ads/100, returns:f.returns/100, returnCost:+f.returnCost, codShare:f.cod/100};
+  var chs = {}; PF_CH.forEach(function(c){ var x = f.fees[c]; chs[c] = {referral:x.referral, fixed:x.fixed, fulfilment:x.fulfilment, payment:x.payment, codFee:x.codFee, codShare: c === "amazon" || c === "noon" ? 0 : f.cod/100}; });
+  var rows = compareChannels(product, chs);
+  var money = function(v){ return (v < 0 ? "−" : "")+Math.abs(v).toLocaleString("en", {minimumFractionDigits:2, maximumFractionDigits:2})+" "+cur; };
+  var pct = function(v){ return v == null ? "—" : Math.round(v * 100)+"%"; };
+  var SEG = {vat:"var(--ink-3)", referral:"var(--saffron)", fixed:"var(--saffron)", payment:"var(--saffron)", cod:"var(--saffron)", fulfilment:"#5B8DEF", inbound:"#5B8DEF", ads:"#C2569B", returns:"var(--bad)", cost:"var(--ink-2)"};
+  return '<div class="pf-cards">'+rows.map(function(r){
+    var segs = r.lines.filter(function(l){ return l.amount > 0; });
+    return '<div class="card pf-card"><div class="card-h"><h2 style="display:flex;gap:8px;align-items:center"><span class="chan-mk" style="background:'+CH[r.channel].bg+';color:'+CH[r.channel].fg+'">'+CH[r.channel].m+'</span>'+CH[r.channel].n+'</h2></div>'+
+      '<div class="pf-big '+(r.profit < 0 ? "neg" : "")+'">'+money(r.profit)+'</div><span class="note">'+(r.profit < 0 ? t("loss") : t("perUnit"))+'</span>'+
+      '<div class="stackbar" aria-hidden="true">'+segs.map(function(l){ return '<i title="'+t("l_"+l.key)+'" style="flex:'+l.amount+';background:'+SEG[l.key]+'"></i>'; }).join("")+(r.profit > 0 ? '<i style="flex:'+r.profit+';background:var(--good)"></i>' : "")+'</div>'+
+      '<div class="pf-kv"><span>'+t("marginL")+'</span><b>'+pct(r.margin)+'</b><span>'+t("roiL")+'</span><b>'+pct(r.roi)+'</b><span>'+t("beAds")+'</span><b>'+pct(r.breakEvenAds)+'</b><span>'+t("bePrice")+'</span><b>'+(r.breakEvenPrice == null ? "—" : money(r.breakEvenPrice))+'</b></div>'+
+      '<details><summary class="note">'+t("priceL")+' → '+t("l_profit")+'</summary><div class="pf-lines">'+r.lines.map(function(l){ return '<span>'+t("l_"+l.key)+'</span><span class="mono">−'+l.amount.toFixed(2)+'</span>'; }).join("")+'</div></details>'+
+    '</div>';
+  }).join("")+'</div>'+
+  '<div class="legend">'+[["vat","var(--ink-3)"],["referral","var(--saffron)"],["fulfilment","#5B8DEF"],["ads","#C2569B"],["returns","var(--bad)"],["cost","var(--ink-2)"],["profit","var(--good)"]].map(function(x){ return '<span><i style="background:'+x[1]+'"></i>'+t("l_"+x[0])+(x[0] === "referral" ? " · "+t("l_payment") : "")+'</span>'; }).join("")+'</div>';
+}
+function vProfit(){
+  var f = state.pf, cur = COUNTRIES[f.country].currency;
+  var num = function(key, label, step){ return '<div class="field"><label for="pf-'+key+'">'+label+'</label><input id="pf-'+key+'" type="number" min="0" step="'+(step || "any")+'" data-pf="'+key+'" value="'+f[key]+'"></div>'; };
+  return '<div class="head"><div><h1>'+t("profit")+'</h1><p>'+t("profitSub")+'</p></div></div>'+
+  '<div class="grid2 pf-grid">'+
+    '<div style="display:grid;gap:18px;align-content:start">'+
+      '<div class="card" style="display:grid;gap:12px"><div class="form-grid"><div class="field"><label for="pf-country">'+t("country")+'</label><select id="pf-country">'+Object.keys(COUNTRIES).map(function(k){ return '<option value="'+k+'"'+(k === f.country ? " selected" : "")+'>'+tr(COUNTRIES[k].name)+' · '+COUNTRIES[k].currency+' · VAT '+Math.round(COUNTRIES[k].vat * 100)+'%</option>'; }).join("")+'</select></div>'+num("price", t("priceL")+" ("+cur+")")+'</div>'+
+        '<div class="form-grid">'+num("cost", t("costL")+" ("+cur+")")+num("inbound", t("inboundL"))+num("ads", t("adsL"))+num("returns", t("returnsL"))+num("returnCost", t("returnCostL"))+num("cod", t("codL"))+'</div></div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("feesT")+'</h2></div><p class="note" style="margin-bottom:10px">'+t("feesNote")+'</p><div class="scroll-x"><table class="fees"><thead><tr><th></th>'+["referral","fixed","fulfilment","payment","codFee"].map(function(k){ return '<th>'+t("f_"+k)+'</th>'; }).join("")+'</tr></thead><tbody>'+
+        PF_CH.map(function(c){ return '<tr><td><b>'+CH[c].n+'</b></td>'+["referral","fixed","fulfilment","payment","codFee"].map(function(k){ var pc = k === "referral" || k === "payment"; var v = f.fees[c][k]; return '<td><input type="number" min="0" step="any" aria-label="'+CH[c].n+' '+t("f_"+k)+'" data-fee="'+c+'.'+k+'" value="'+(pc ? Math.round(v * 1000) / 10 : v)+'"></td>'; }).join("")+'</tr>'; }).join("")+'</tbody></table></div></div>'+
+    '</div>'+
+    '<div id="pf-out">'+pfResults()+'</div>'+
+  '</div>';
 }
 
 /* import */
@@ -1442,14 +1795,14 @@ function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","audit","catalog","reviews","approvals","templates"].indexOf(h) > -1) state.route = h;
+  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
 function render(scroll){
   renderSide();
   var r = state.route;
-  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : vOverview();
+  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : vOverview();
   hydrate(view);
   document.title = "Basira · " + t(r === "listing" ? "catalog" : r);
   if (scroll) window.scrollTo(0,0);
@@ -1473,6 +1826,13 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-remove]"))){ var sr = setOf(PM[state.pid]); if (sr.length > 1){ sr.splice(+el.dataset.remove, 1); state.slide = Math.max(0, state.slide - 1); } render(); return; }
   if ((el = e.target.closest("#imp-sample"))){ importCsvText(SAMPLE_CSV, "sample-noon-export.csv"); return; }
   if ((el = e.target.closest("[data-reply]"))){ runReply(el.dataset.reply); return; }
+  if ((el = e.target.closest("#pc-sample"))){ samplePhotos().then(render); return; }
+  if ((el = e.target.closest("#pc-review"))){ runPhotoReview(); return; }
+  if ((el = e.target.closest("[data-pc-bg]"))){ pcReplace(el.dataset.pcBg, function(u){ return cutout(u).then(function(r){ return r.canvas.toDataURL("image/png"); }); }, t("bgDone")); return; }
+  if ((el = e.target.closest("[data-pc-main]"))){ pcReplace(el.dataset.pcMain, mainImageFrom, t("mainReady")); return; }
+  if ((el = e.target.closest("[data-pc-use]"))){ var pu = pcFind(el.dataset.pcUse); if (pu){ cutout(pu.url).then(function(r){ state.photos[state.pid] = r.canvas.toDataURL("image/png"); delete state.renders[state.pid]; toast(t("usedInStudio")+" "+tr(PM[state.pid].name)); go("studio-"+state.pid); }); } return; }
+  if ((el = e.target.closest("[data-pc-del]"))){ state.pc.items = state.pc.items.filter(function(x){ return x.id !== el.dataset.pcDel; }); state.pc.review = null; render(); return; }
+  if ((el = e.target.closest("#st-bg"))){ var bp = state.pid; if (state.photos[bp]) cutout(state.photos[bp]).then(function(r){ state.photos[bp] = r.canvas.toDataURL("image/png"); delete state.renders[bp]; toast(t("bgDone")); render(); }); return; }
   if ((el = e.target.closest("[data-copy]"))){ var rp = state.replies[el.dataset.copy]; if (rp && navigator.clipboard) navigator.clipboard.writeText(rp.text).then(function(){ toast(t("copied")); }, function(){}); return; }
   if ((el = e.target.closest("#gen"))){ runGen(state.pid); return; }
   if ((el = e.target.closest("#send"))){ sendAppr(state.pid); return; }
@@ -1494,12 +1854,22 @@ document.addEventListener("input", function(e){
     document.getElementById("audit-out").innerHTML = auditOut(); return;
   }
   if (el.id === "imp-url"){ state.imp.url = el.value; return; }
+  if (el.dataset && el.dataset.pf){ state.pf[el.dataset.pf] = el.value === "" ? 0 : +el.value; document.getElementById("pf-out").innerHTML = pfResults(); return; }
+  if (el.dataset && el.dataset.fee){ var fk = el.dataset.fee.split("."), fv = el.value === "" ? 0 : +el.value; state.pf.fees[fk[0]][fk[1]] = fk[1] === "referral" || fk[1] === "payment" ? fv / 100 : fv; document.getElementById("pf-out").innerHTML = pfResults(); return; }
   if (el.dataset && el.dataset.sf){ var sp = PM[state.pid], ss = setOf(sp)[state.slide]; ss.fields[el.dataset.sf] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; repaint(sp.id, state.slide); }
 });
 document.addEventListener("change", function(e){
   if (e.target.id === "sort"){ state.sort = e.target.value; render(); }
   if (e.target.id === "pick"){ go("studio-"+e.target.value); }
   if (e.target.id === "pick-t"){ state.pid = e.target.value; render(); }
+  if (e.target.id === "pc-channel"){ state.pc.channel = e.target.value; render(); }
+  if (e.target.id === "pf-country"){ state.pf.country = e.target.value; render(); }
+  if (e.target.id === "pc-file" && e.target.files){
+    Array.prototype.slice.call(e.target.files, 0, Math.max(0, 4 - state.pc.items.length)).forEach(function(file){
+      if (file.size > 15 * 1024 * 1024) return;
+      var r2 = new FileReader(); r2.onload = function(){ addPhoto(String(r2.result), file.name.slice(0, 24)).then(render); }; r2.readAsDataURL(file);
+    });
+  }
   if (e.target.id === "imp-file" && e.target.files && e.target.files[0]){
     var cf = e.target.files[0];
     if (cf.size > 10 * 1024 * 1024){ state.imp.error = "The file is larger than 10 MB"; render(); return; }

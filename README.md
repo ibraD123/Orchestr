@@ -19,6 +19,9 @@ This repository holds the marketing site, the product app and the server that po
 | `server/importer.mjs` | Imports a catalog from a link or CSV, measures main images and audits every listing |
 | `server/catalog-csv.mjs` | Catalog export parser (Noon Seller Lab, Amazon, Salla, Zid), shared with the app |
 | `server/keywords.mjs` | Search-term coverage with Arabic spelling normalisation, shared with the app |
+| `server/economics.mjs` | Unit economics per channel (VAT, commission, fulfilment, COD, ads, returns), shared with the app |
+| `server/photo-metrics.mjs` | Photo checks (white background, product fill) and background removal on raw pixels, shared with the app |
+| `server/photo.mjs` | Claude reviews main-image candidates and picks the one most likely to be clicked |
 | `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |
@@ -58,9 +61,24 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/reviews/reply` | `{ review, product, brand }` | `{ language, reply, replyEn, needsPerson, reason }` |
 | `POST /api/keywords` | `{ listing }` | `{ category, items[{ ar, en, inAr, inEn }], covered, total }` |
 | `POST /api/fetch-image` | `{ url }` | `{ dataUrl }` for a public PNG, JPEG or WebP |
+| `POST /api/photos/review` | `{ photos: [data URL] (1-4), product, channel }` | `{ photos[{ index, scores, arabicText, strengths, problems }], winner, why }` |
 | `POST /api/leads` | `{ name, whatsapp, store, lang }` | `{ ok }`, appended to `data/leads.jsonl` |
 
 Review analysis uses `claude-opus-5-5` (override with `BASIRA_MODEL`) at low effort, with structured output validated by Zod, and server-side fallback (`fallbacks: "default"`) if a request is declined.
+
+## Deploy
+
+The `Dockerfile` builds on the Playwright image, which already includes Chromium.
+
+```bash
+docker build -t basira .
+```
+
+```bash
+docker run -p 8787:8787 -e ANTHROPIC_API_KEY=sk-ant-... -v basira-data:/data basira
+```
+
+On Render, create a Blueprint from this repository: `render.yaml` sets up the service, a disk for leads and the secret variables to fill in. Any host that runs a Docker image (Fly.io, Railway, a VPS) works the same way.
 
 ## Environment
 
@@ -122,5 +140,7 @@ What is real:
 - **Templates** has 17 slide templates in four groups; add any of them to a product's slide set in **Studio**.
 - **Search terms** in Audit and on each listing show which common Gulf searches the copy covers.
 - **Reviews → Draft reply** writes a reply in the buyer's own dialect with Claude, and flags reviews that need a person.
+- **Photo check** measures main-image candidates against Amazon and Noon rules, removes plain backgrounds, rebuilds a compliant 2000 × 2000 main image, and (with the server) asks Claude which photo is most likely to be clicked.
+- **Unit economics** compares profit per unit across Noon, Amazon, Salla, Zid and Shopify after VAT, fees, delivery, cash on delivery, ads and returns. Fee defaults are starting values to replace with your own.
 
 Still simulated: the fidelity check, sample catalog data, approvals and publishing back to marketplaces, and background removal (upload a PNG with a transparent background).
