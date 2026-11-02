@@ -1,8 +1,10 @@
-// Wraps src/landing.html (a page fragment) into a full HTML document at index.html.
+// Wraps each page fragment in src/ into a full HTML document at the repo root.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const body = readFileSync(new URL("../src/landing.html", import.meta.url), "utf8");
-const page = `<!doctype html>
+const pages = { "landing.html": "index.html", "app.html": "app.html" };
+for (const [src, out] of Object.entries(pages)) {
+  const body = readFileSync(new URL(`../src/${src}`, import.meta.url), "utf8");
+  writeFileSync(new URL(`../${out}`, import.meta.url), `<!doctype html>
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
@@ -13,6 +15,6 @@ const page = `<!doctype html>
 ${body}
 </body>
 </html>
-`;
-writeFileSync(new URL("../index.html", import.meta.url), page);
-console.log("Built index.html");
+`);
+  console.log(`Built ${out}`);
+}

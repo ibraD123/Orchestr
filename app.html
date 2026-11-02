@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Basira App</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app shell with a quiet sidebar and one working canvas; same oasis palette as the site,
+   state carried by chips and score bars so problems read at a glance. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --surface-2:#E9EEEB; --line:#D6DFDA;
+  --ink:#0C1A17; --ink-2:#4A5A55; --ink-3:#7A8A85;
+  --brand:#0B5D52; --brand-soft:#DAEBE6; --on-brand:#FFFFFF;
+  --saffron:#C8771E; --saffron-ink:#94540F; --saffron-soft:#F6E7D3;
+  --bad:#B93A26; --bad-soft:#F6E1DC; --good:#1D7A4C; --good-soft:#DBEFE3;
+  --side:#0C1A17; --side-ink:#C9D6D1; --side-ink-2:#7F918B; --side-hi:#1A2B27;
+  --shadow:0 1px 2px rgba(12,26,23,.06),0 10px 30px -12px rgba(12,26,23,.16);
+  --font-display:"Bricolage Grotesque","Readex Pro",ui-sans-serif,system-ui,sans-serif;
+  --font-body:"Readex Pro",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1210; --surface:#101B18; --surface-2:#16231F; --line:#22322D;
+  --ink:#E7EFEC; --ink-2:#A2B2AC; --ink-3:#71827C;
+  --brand:#52C4AE; --brand-soft:#123129; --on-brand:#04120F;
+  --saffron:#EBA24C; --saffron-ink:#F2B86B; --saffron-soft:#33230F;
+  --bad:#F08A73; --bad-soft:#3A1B15; --good:#62D293; --good-soft:#11301F;
+  --side:#060C0B; --side-ink:#C9D6D1; --side-ink-2:#6F817B; --side-hi:#13211D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 36px -14px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1210; --surface:#101B18; --surface-2:#16231F; --line:#22322D;
+  --ink:#E7EFEC; --ink-2:#A2B2AC; --ink-3:#71827C;
+  --brand:#52C4AE; --brand-soft:#123129; --on-brand:#04120F;
+  --saffron:#EBA24C; --saffron-ink:#F2B86B; --saffron-soft:#33230F;
+  --bad:#F08A73; --bad-soft:#3A1B15; --good:#62D293; --good-soft:#11301F;
+  --side:#060C0B; --side-ink:#C9D6D1; --side-ink-2:#6F817B; --side-hi:#13211D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 36px -14px rgba(0,0,0,.6);
+  color-scheme:dark}
+html[lang="ar"]{--font-display:"Reem Kufi","Readex Pro",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--side)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+h1,h2,h3{margin:0;font-family:var(--font-display);letter-spacing:-.015em;line-height:1.15;text-wrap:balance}
+html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{letter-spacing:0;line-height:1.35}
+p{margin:0}
+.tnum,.mono{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--font-mono)}
+.flip{transition:transform .2s}[dir="rtl"] .flip{transform:scaleX(-1)}
+
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100%}
+.side{background:var(--side);color:var(--side-ink);padding:20px 14px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;height:100dvh;padding-left:max(14px,env(safe-area-inset-left,0px))}
+[dir="rtl"] .side{padding-left:14px;padding-right:max(14px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:19px;color:#fff;text-decoration:none}
+.brand svg{width:28px;height:28px}
+.brand small{font-family:"Readex Pro",sans-serif;font-weight:400;font-size:13px;color:var(--side-ink-2)}
+.ws{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--side-hi)}
+.ws i{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#7A3E9D,#C0508A);flex:none}
+.ws b{display:block;color:#fff;font-weight:500;font-size:14px}
+.ws small{color:var(--side-ink-2);font-size:12px}
+.navl{display:grid;gap:2px}
+.navl a{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:9px;text-decoration:none;color:var(--side-ink);font-size:14.5px}
+.navl a svg{width:18px;height:18px;opacity:.8;flex:none}
+.navl a:hover{background:var(--side-hi)}
+.navl a[aria-current="page"]{background:var(--side-hi);color:#fff}
+.navl a[aria-current="page"] svg{opacity:1;color:var(--saffron)}
+.navl .cnt{margin-inline-start:auto;font-size:11.5px;background:var(--saffron);color:#1b1004;border-radius:999px;padding:1px 8px;font-weight:500}
+.side-foot{margin-top:auto;display:grid;gap:10px;font-size:12.5px;color:var(--side-ink-2)}
+.credits{background:var(--side-hi);border-radius:12px;padding:12px;display:grid;gap:8px}
+.credits .tr{height:6px;border-radius:6px;background:#22332E;overflow:hidden}
+.credits .tr i{display:block;height:100%;width:62%;background:var(--saffron)}
+.credits b{color:#fff;font-weight:500}
+.side-foot a{color:var(--side-ink-2)}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:12px;padding:12px 28px;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.search{flex:1;max-width:440px;display:flex;align-items:center;gap:8px;height:38px;padding-inline:12px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.search svg{width:16px;height:16px;color:var(--ink-3);flex:none}
+.search input{border:0;background:transparent;outline:none;flex:1;min-width:0}
+.top-end{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.lang button{border:0;background:transparent;height:28px;min-width:38px;padding-inline:8px;border-radius:999px;cursor:pointer;font-size:13px;color:var(--ink-2)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--saffron-soft);color:var(--saffron-ink);display:grid;place-items:center;font-weight:600;font-size:13px}
+.view{padding:28px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));display:grid;gap:22px;max-width:1320px;width:100%}
+.mobile-nav{display:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .side{display:none}
+  .mobile-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--bg);scrollbar-width:none}
+  .mobile-nav a{flex:none;text-decoration:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13.5px;color:var(--ink-2)}
+  .mobile-nav a[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .top{padding:10px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .view{padding:20px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .avatar{display:none}
+}
+
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.head h1{font-size:clamp(24px,2.6vw,32px);font-weight:700}
+.head p{color:var(--ink-2);margin-top:4px}
+.crumb{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3);text-decoration:none;font-size:13px;margin-bottom:6px}
+.crumb svg{width:14px;height:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card-h h2{font-size:16px;font-family:var(--font-body);font-weight:600;letter-spacing:0}
+.card-h small{color:var(--ink-3);font-size:12.5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding-inline:16px;border-radius:10px;border:1px solid transparent;font-weight:500;font-size:14px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:filter .15s,background .15s}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--brand);color:var(--on-brand)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn-ghost{background:var(--surface);border-color:var(--line)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-sm{height:32px;padding-inline:12px;font-size:13px;border-radius:8px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap;line-height:1.6}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.good{background:var(--good-soft);color:var(--good)}.tag.warn{background:var(--saffron-soft);color:var(--saffron-ink)}.tag.brand{background:var(--brand-soft);color:var(--brand)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:4px}
+.kpi small{color:var(--ink-3);font-size:12.5px}
+.kpi b{font-family:var(--font-display);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi span{font-size:12.5px;color:var(--ink-2)}
+.kpi .up{color:var(--good)}
+@media (max-width:1000px){.kpis{grid-template-columns:1fr 1fr}}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+.grid2.even{grid-template-columns:1fr 1fr}
+@media (max-width:1050px){.grid2,.grid2.even{grid-template-columns:1fr}}
+
+.pthumb{width:40px;height:48px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;flex:none;overflow:hidden}
+.pthumb svg{width:64%;height:auto}
+.pcell{display:flex;align-items:center;gap:12px;min-width:0}
+.pcell b{display:block;font-weight:500;line-height:1.3}
+.pcell small{color:var(--ink-3);font-size:12px;font-family:var(--font-mono)}
+.sbar{display:inline-flex;align-items:center;gap:10px;font-variant-numeric:tabular-nums;font-weight:500}
+.sbar i{display:block;width:80px;height:6px;border-radius:6px;background:var(--surface-2);position:relative;overflow:hidden}
+.sbar i::after{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--w);background:var(--c);border-radius:6px;transition:width .8s}
+.list{display:grid}
+.row-link{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:12px 4px;border-top:1px solid var(--line);text-decoration:none}
+.row-link:first-child{border-top:0}
+.row-link:hover{background:color-mix(in srgb,var(--surface-2) 50%,transparent)}
+.hbar{display:grid;grid-template-columns:130px 1fr 44px;gap:12px;align-items:center;padding-block:7px;font-size:13.5px}
+.hbar .tr{height:9px;border-radius:9px;background:var(--surface-2);overflow:hidden}
+.hbar .tr i{display:block;height:100%;width:var(--w);background:var(--c);border-radius:9px}
+.chan-mk{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;font-weight:700;font-family:"Bricolage Grotesque",sans-serif;font-size:11px}
+.chans{display:inline-flex;gap:4px}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;height:32px;padding-inline:12px;font-size:13px;cursor:pointer;color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+select.sel{height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding-inline:10px;font-size:13px}
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+table{width:100%;border-collapse:collapse;min-width:780px}
+th{font-weight:500;font-size:12px;color:var(--ink-3);text-align:start;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+.empty{padding:40px;text-align:center;color:var(--ink-3)}
+
+/* listing */
+.lhead{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.ring{width:84px;height:84px;position:relative;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.ring .track{stroke:var(--surface-2)}
+.ring .val{stroke:var(--c);stroke-linecap:round;stroke-dasharray:213.6;transition:stroke-dashoffset 1s}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-display);font-size:26px;font-weight:700}
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gimg{aspect-ratio:4/5;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);position:relative;overflow:hidden}
+.gimg svg{width:56%}
+.gimg.missing{border:1.5px dashed var(--line);background:transparent;color:var(--ink-3);font-size:12px;text-align:center;padding:8px}
+.gimg .flag{position:absolute;top:6px;inset-inline-start:6px}
+.issue{display:grid;grid-template-columns:4px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.issue:first-child{border-top:0}
+.issue .sev{align-self:stretch;border-radius:4px;background:var(--c)}
+.issue b{font-weight:500;display:block}
+.issue p{color:var(--ink-2);font-size:13px;margin-top:2px}
+.quote{padding:12px 14px;border-radius:12px;background:var(--surface-2);display:grid;gap:6px}
+.quote q{quotes:none;direction:rtl;text-align:right;font-size:15px}
+.quote q.en{direction:ltr;text-align:left}
+.quote .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink-3)}
+
+/* studio */
+.studio{display:grid;grid-template-columns:200px minmax(0,1fr) 330px;gap:18px;align-items:start}
+@media (max-width:1180px){.studio{grid-template-columns:minmax(0,1fr) 320px}.slist{grid-column:1/-1;grid-template-columns:repeat(4,1fr)!important}}
+@media (max-width:760px){.studio{grid-template-columns:1fr}}
+.slist{display:grid;gap:10px}
+.sitem{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;text-align:start}
+.sitem[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.sitem .mini{width:52px;aspect-ratio:4/5;border-radius:7px;overflow:hidden}
+.sitem b{display:block;font-size:13px;font-weight:500}
+.sitem small{font-size:11.5px;color:var(--ink-3)}
+@media (max-width:560px){.sitem{grid-template-columns:1fr}.sitem .mini{width:100%}.sitem small{display:none}}
+.stage{background:var(--surface-2);border-radius:18px;padding:28px;display:grid;place-items:center;gap:14px;border:1px solid var(--line)}
+.canvas{width:min(100%,400px);aspect-ratio:4/5;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 20px 50px -20px rgba(0,0,0,.45);container-type:inline-size}
+.canvas .prod{position:absolute;inset:0;display:grid;place-items:center}
+.canvas .prod svg{width:46%;filter:drop-shadow(0 12px 14px rgba(0,0,0,.25))}
+.canvas .txt{position:absolute;inset-inline:7%;display:grid;gap:2cqw}
+.canvas .hd{font-family:"Reem Kufi","Readex Pro",sans-serif;font-size:10.5cqw;line-height:1.15;font-weight:600}
+.canvas .hd.en{font-family:"Bricolage Grotesque",sans-serif;font-size:8.5cqw;letter-spacing:-.02em;line-height:1.05;font-weight:700}
+.canvas .sub{font-size:4.2cqw;opacity:.85}
+.canvas ul{list-style:none;margin:0;padding:0;display:grid;gap:2.4cqw;font-size:4.6cqw}
+.canvas ul li{display:flex;gap:2.5cqw;align-items:center}
+.canvas ul li::before{content:"";width:2cqw;height:2cqw;transform:rotate(45deg);background:currentColor;flex:none}
+.canvas .logo{position:absolute;top:5%;inset-inline-end:6%;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:3.6cqw;letter-spacing:.2em;opacity:.8}
+.canvas .scan{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(82,196,174,.0) 40%,rgba(82,196,174,.35) 50%,transparent 60%);background-size:100% 220%;animation:scan 1.2s linear infinite;pointer-events:none}
+@keyframes scan{from{background-position:0 120%}to{background-position:0 -120%}}
+.stage-meta{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.panel{display:grid;gap:16px}
+.field{display:grid;gap:6px}
+.field label,.field .lbl{font-size:12.5px;color:var(--ink-2);font-weight:500}
+.field input,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;outline:none;width:100%;min-width:0;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:var(--brand)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;border:1px solid var(--line);width:100%}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;height:30px;font-size:12.5px;cursor:pointer;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:38px;height:38px;border-radius:10px;border:2px solid transparent;cursor:pointer;padding:0;overflow:hidden;display:grid;grid-template-columns:1fr 1fr}
+.sw button[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.sw button i{display:block}
+.steps{display:grid;gap:8px;font-size:13px}
+.steps div{display:flex;gap:10px;align-items:center;color:var(--ink-3)}
+.steps div.done{color:var(--ink)}
+.steps div i{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;display:grid;place-items:center}
+.steps div.done i{background:var(--good);border-color:var(--good)}
+.steps div.done i::after{content:"";width:6px;height:3px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.steps div.run i{border-color:var(--brand);border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* approvals */
+.appr{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+.ba{display:flex;align-items:center;gap:8px}
+.ba .m{width:58px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;position:relative}
+.ba svg.arrow{width:16px;height:16px;color:var(--ink-3)}
+.appr-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:760px){.appr{grid-template-columns:1fr}.appr-actions{justify-content:flex-start}}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));inset-inline-end:calc(20px + env(safe-area-inset-right,0px));background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;display:flex;gap:10px;align-items:center;z-index:80;transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;max-width:calc(100vw - 32px)}
+.toast.on{transform:none;opacity:1}
+.toast .dot{color:var(--good)}
+.demo-banner{font-size:12.5px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8A4B14"/><stop offset=".55" stop-color="#4A230A"/><stop offset="1" stop-color="#26110A"/></linearGradient>
+    <linearGradient id="gold" x1="0" x2="1"><stop offset="0" stop-color="#9C7330"/><stop offset=".45" stop-color="#F3D58C"/><stop offset="1" stop-color="#A27A32"/></linearGradient>
+    <linearGradient id="clear" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#F3EEE6"/><stop offset="1" stop-color="#CFC4B2"/></linearGradient>
+    <symbol id="bottle" viewBox="0 0 120 170"><rect x="42" y="4" width="36" height="30" rx="5" fill="url(#gold)"/><rect x="48" y="32" width="24" height="14" fill="#7B5A22"/><rect x="12" y="44" width="96" height="120" rx="16" fill="url(#glass)"/><rect x="22" y="52" width="10" height="100" rx="5" fill="#fff" fill-opacity=".18"/><rect x="30" y="86" width="60" height="44" rx="4" fill="#F3E3C3" stroke="#B48A3C" stroke-width="1.5"/><text x="60" y="104" text-anchor="middle" font-family="Reem Kufi, sans-serif" font-size="12" fill="#3A1C08">عود الليل</text><text x="60" y="120" text-anchor="middle" font-family="Readex Pro, sans-serif" font-size="6.5" letter-spacing="1.2" fill="#6B4416">OUD AL LAYL</text></symbol>
+    <symbol id="musk" viewBox="0 0 120 170"><circle cx="60" cy="22" r="16" fill="url(#gold)"/><rect x="50" y="34" width="20" height="14" fill="#B8A77E"/><path d="M60 48c34 0 48 30 48 62s-20 54-48 54-48-22-48-54 14-62 48-62z" fill="url(#clear)"/><path d="M30 80c-6 14-6 34 0 50" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".6"/><text x="60" y="118" text-anchor="middle" font-family="Reem Kufi, sans-serif" font-size="13" fill="#6B5A3A">مسك</text></symbol>
+    <symbol id="abaya" viewBox="0 0 120 170"><path d="M45 8Q60 18 75 8L100 30 112 84 98 88 92 58 98 164H22L28 58 22 88 8 84 20 30Z" fill="currentColor"/><path d="M60 16V164" stroke="rgba(0,0,0,.14)" stroke-width="2"/><path d="M45 8Q60 22 75 8" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="2"/></symbol>
+    <symbol id="box" viewBox="0 0 120 170"><rect x="10" y="60" width="100" height="80" rx="6" fill="currentColor"/><rect x="6" y="48" width="108" height="24" rx="5" fill="currentColor" style="filter:brightness(1.15)"/><rect x="52" y="48" width="16" height="92" fill="#D9B45A"/><path d="M60 48c-14-22-34-16-26-4 4 6 16 6 26 4zm0 0c14-22 34-16 26-4-4 6-16 6-26 4z" fill="#D9B45A"/></symbol>
+    <symbol id="jar" viewBox="0 0 120 170"><rect x="26" y="24" width="68" height="20" rx="5" fill="#2F2A26"/><path d="M22 44h76l-4 110a10 10 0 0 1-10 10H36a10 10 0 0 1-10-10z" fill="currentColor"/><rect x="34" y="82" width="52" height="44" rx="4" fill="#F4EBDD"/><circle cx="60" cy="104" r="11" fill="none" stroke="#8B5E3C" stroke-width="2.5"/></symbol>
+    <symbol id="burner" viewBox="0 0 120 170"><path d="M60 8c8 14-6 18 0 34" stroke="#bbb" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/><path d="M24 60h72l-10 40H34z" fill="currentColor"/><rect x="48" y="100" width="24" height="30" fill="currentColor" style="filter:brightness(.85)"/><path d="M30 130h60l6 30H24z" fill="currentColor"/><path d="M34 74h52M38 86h44" stroke="#D9B45A" stroke-width="3"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <div class="main">
+    <header class="top">
+      <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" autocomplete="off"></label>
+      <div class="top-end">
+        <div class="lang" role="group" aria-label="Language"><button type="button" id="lang-en" data-lang="en" aria-pressed="true">EN</button><button type="button" id="lang-ar" data-lang="ar" aria-pressed="false">ع</button></div>
+        <span class="avatar" aria-hidden="true">SA</span>
+      </div>
+    </header>
+    <nav class="mobile-nav" id="mnav" aria-label="Sections"></nav>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="dot"></span><span id="toast-t"></span></div>
+
+<script>
+(function(){
+/* ---------- strings ---------- */
+var S = {
+  overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
+  search:["Search products, SKUs…","ابحث عن منتج أو SKU…"], credits:["Credits this month","رصيد هذا الشهر"], creditsOf:["248 of 400 fixes left","متبقٍ ٢٤٨ من ٤٠٠ تعديل"], site:["← Back to site","→ العودة للموقع"],
+  wsSub:["Agency workspace","مساحة الوكالة"], demo:["Demo workspace with sample data","مساحة تجريبية ببيانات افتراضية"],
+  hello:["Good morning, Sara","صباح الخير يا سارة"], ovSub:["Layali Fragrances · 8 listings on 5 channels","ليالي للعطور · ٨ منتجات على ٥ قنوات"],
+  avgScore:["Average content score","متوسط تقييم المحتوى"], needFix:["Listings below 60","منتجات أقل من ٦٠"], pending:["Waiting for approval","بانتظار الموافقة"], analyzed:["Reviews analysed","تقييمات تم تحليلها"],
+  vsLast:["vs last month","مقارنة بالشهر الماضي"], fixFirst:["Fix first","أصلح أولاً"], fixFirstSub:["Lowest score, most traffic","أقل تقييم وأكثر زيارات"],
+  themes:["What buyers complain about","مما يشتكي العملاء"], themesSub:["Share of negative mentions, all products","نسبة الإشارات السلبية في كل المنتجات"],
+  chanHealth:["Channel health","صحة القنوات"], open:["Open","فتح"], all:["All","الكل"],
+  sortScore:["Lowest score first","الأقل تقييماً أولاً"], sortReviews:["Most reviews first","الأكثر تقييمات أولاً"], sortName:["Name","الاسم"],
+  thProduct:["Product","المنتج"], thChannels:["Channels","القنوات"], thScore:["Score","التقييم"], thTop:["Top issue","أهم مشكلة"], thRating:["Rating","التقييم العام"], thIssues:["Issues","المشكلات"],
+  noResults:["No products match your search.","لا توجد منتجات مطابقة لبحثك."], healthy:["Healthy","سليم"],
+  back:["Catalog","الكتالوج"], images:["Images","الصور"], title:["Title and copy","العنوان والنص"], arabic:["Arabic","العربية"], attrs:["Attributes","الخصائص"], reviewFit:["Review fit","تطابق التقييمات"],
+  breakdown:["Score breakdown","تفصيل التقييم"], gallery:["Current images","الصور الحالية"], missingImg:["Missing slide","شريحة ناقصة"],
+  issuesT:["Issues","المشكلات"], fixInStudio:["Fix in Studio","أصلح في الاستوديو"], genFix:["Generate fix","ولّد التعديل"],
+  insight:["Review insight","تحليل التقييمات"], fromReviews:["reviews","تقييماً"], noIssues:["No open issues on this listing.","لا توجد مشكلات مفتوحة في هذا المنتج."],
+  stSub:["Every slide answers one buyer question. Edit the text and the preview updates live.","كل شريحة تجيب عن سؤال واحد للمشتري. عدّل النص وتتحدث المعاينة مباشرة."],
+  slCover:["Main image","الصورة الرئيسية"], slCoverQ:["Clean, rule-safe","نظيفة ومطابقة للقواعد"], slBenefit:["Key benefit","الميزة الأهم"], slBenefitQ:["Answers the top doubt","تجيب عن أكبر شك"],
+  slDetails:["Details","التفاصيل"], slDetailsQ:["What it is made of","مِمّ صُنع"], slOccasion:["Occasion","المناسبة"], slOccasionQ:["When to buy it","متى يشتريه"],
+  language:["Text language","لغة النص"], both:["Both","الاثنتان"], numerals:["Numerals","الأرقام"], numAr:["Arabic ١٢","عربية ١٢"], numEn:["Western 12","لاتينية 12"],
+  headAr:["Headline (Arabic)","العنوان (عربي)"], headEn:["Headline (English)","العنوان (إنجليزي)"], bullets:["Details, one per line","التفاصيل، سطر لكل نقطة"], occ:["Occasion line","سطر المناسبة"],
+  brandKit:["Brand kit","هوية العلامة"], product:["Product","المنتج"], generate:["Generate 4 slides","ولّد ٤ شرائح"], regenerate:["Generate again","ولّد مجدداً"], sendAppr:["Send for approval","أرسل للموافقة"],
+  st1:["Cut out product from your photo","فصل المنتج عن الخلفية"], st2:["Apply brand kit","تطبيق هوية العلامة"], st3:["Set Arabic and English type","صفّ النص العربي والإنجليزي"], st4:["Check fidelity against original","فحص المطابقة مع الأصل"],
+  fidelity:["Fidelity","المطابقة"], rules:["Noon and Amazon rules passed","مطابق لقواعد نون وأمازون"], fromIssue:["Built from","مبني على"], notGen:["Not generated yet","لم يُولَّد بعد"],
+  sent:["Sent for approval","أُرسل للموافقة"], apprSub:["Nothing goes live until someone approves it.","لا يُنشر شيء قبل موافقة أحد."],
+  approve:["Approve and publish","وافق وانشر"], changes:["Request changes","اطلب تعديلات"], publishing:["Publishing…","جارٍ النشر…"], live:["Live","منشور"], changesReq:["Changes requested","طُلبت تعديلات"],
+  queueEmpty:["The queue is empty. Generate a fix in Studio to send one here.","الطابور فارغ. ولّد تعديلاً في الاستوديو ليظهر هنا."],
+  published:["Published to","نُشر على"], requested:["Request sent to the designer","أُرسل الطلب للمصمم"], by:["Requested by","طلبها"],
+  newTitle:["New title","عنوان جديد"], slidesN:["slides","شرائح"], scoreAfter:["Score after","التقييم بعد"],
+  dialect:["Dialect","اللهجة"], dialects5:["In 4 Arabic dialects and English","بأربع لهجات عربية والإنجليزية"], gulf:["Gulf","خليجي"], egy:["Egyptian","مصري"], lev:["Levantine","شامي"], msa:["MSA","فصحى"], eng:["English","إنجليزي"],
+  revSub:["Reviews, questions and return reasons from all channels, grouped by what buyers care about.","التقييمات والأسئلة وأسباب الإرجاع من كل القنوات، مجمّعة حسب ما يهم العملاء."],
+  quotes:["What buyers wrote","ما كتبه العملاء"], linkedTo:["Linked fix","التعديل المرتبط"], sev_high:["High","عالية"], sev_med:["Medium","متوسطة"], sev_low:["Low","منخفضة"],
+  stars:["avg rating","متوسط التقييم"], positive:["positive","إيجابي"], negative:["negative","سلبي"]
+};
+var THEMES = {
+  longevity:["Longevity","الثبات"], sizeVsPhoto:["Size vs photo","الحجم مقارنة بالصورة"], packaging:["Packaging","التغليف"], size:["Runs small","المقاس صغير"],
+  fabric:["Fabric","القماش"], colour:["Colour accuracy","دقة اللون"], freshness:["Freshness","الطزاجة"], delivery:["Delivery","التوصيل"], taste:["Taste","الطعم"], roast:["Roast level","درجة التحميص"], scent:["Scent strength","قوة الرائحة"]
+};
+var ISSUES = {
+  arabicBroken:{sev:"high",slide:1,t:["Arabic text in the image is broken","النص العربي في الصورة مكسور"],d:["Letters are disconnected and reversed on the main image overlay.","الحروف منفصلة ومعكوسة على الصورة الرئيسية."]},
+  noArabicTitle:{sev:"high",slide:0,t:["No Arabic title","لا يوجد عنوان عربي"],d:["The listing doesn't show up for Arabic searches like «عطر عود».","المنتج لا يظهر في البحث العربي مثل «عطر عود»."]},
+  longevityQ:{sev:"med",slide:1,t:["Buyers keep asking how long it lasts","العملاء يسألون باستمرار عن الثبات"],d:["62% of negative reviews mention longevity. No image answers it.","٦٢٪ من التقييمات السلبية تذكر الثبات، ولا توجد صورة تجيب عنه."]},
+  mainRule:{sev:"med",slide:0,t:["Main image breaks marketplace rules","الصورة الرئيسية تخالف قواعد المنصة"],d:["Background isn't white and the product fills less than 85% of the frame.","الخلفية ليست بيضاء والمنتج يشغل أقل من ٨٥٪ من الإطار."]},
+  noSizeChart:{sev:"high",slide:2,t:["No size chart","لا يوجد جدول مقاسات"],d:["Size is the top return reason in this category.","المقاس هو أول سبب للإرجاع في هذه الفئة."]},
+  runsSmall:{sev:"high",slide:2,t:["Reviews say it runs small","التقييمات تقول إن المقاس صغير"],d:["48% of negative reviews. Add fit advice to the size slide.","٤٨٪ من التقييمات السلبية. أضف نصيحة المقاس لشريحة المقاسات."]},
+  onePhoto:{sev:"med",slide:1,t:["Only one photo","صورة واحدة فقط"],d:["Top listings in this category have 6 or more images.","أفضل المنتجات في هذه الفئة لديها ٦ صور أو أكثر."]},
+  enBullets:{sev:"med",slide:2,t:["Bullet points in English only","النقاط بالإنجليزية فقط"],d:["Arabic-speaking buyers see no product details.","المشتري العربي لا يرى أي تفاصيل للمنتج."]},
+  attrs:{sev:"low",slide:2,t:["Missing attributes","خصائص ناقصة"],d:["Material and care fields are empty, so filters hide the product.","حقلا الخامة والعناية فارغان، فتخفيه الفلاتر."]},
+  enTitle:{sev:"med",slide:0,t:["English-only title","عنوان إنجليزي فقط"],d:["Misses Arabic searches like «تمر هدية».","يفوّت عمليات البحث العربية مثل «تمر هدية»."]},
+  noSeason:{sev:"low",slide:3,t:["No Ramadan imagery","لا توجد صور رمضانية"],d:["Gift boxes sell most in Ramadan. Season starts in 4 months.","علب الهدايا تُباع أكثر في رمضان، والموسم بعد ٤ أشهر."]},
+  claim:{sev:"high",slide:2,t:["Health claim needs SFDA approval","ادعاء صحي يحتاج موافقة الهيئة"],d:["«Boosts immunity» in the bullets can get the listing removed.","عبارة «يقوي المناعة» قد تؤدي لحذف المنتج."]},
+  mt:{sev:"med",slide:0,t:["Arabic looks machine-translated","العربية تبدو ترجمة آلية"],d:["Literal phrasing that Gulf buyers find odd.","صياغة حرفية يستغربها المشتري الخليجي."]},
+  lowRes:{sev:"low",slide:0,t:["Low-resolution main image","صورة رئيسية بدقة منخفضة"],d:["Zoom is disabled below 1000 px.","التكبير معطل تحت ١٠٠٠ بكسل."]}
+};
+var CH = {noon:{n:"Noon",bg:"#FEEE00",fg:"#1A1A1A",m:"n"},amazon:{n:"Amazon.sa",bg:"#232F3E",fg:"#FF9900",m:"a"},salla:{n:"Salla",bg:"#004956",fg:"#BAF3E6",m:"S"},zid:{n:"Zid",bg:"#5B2BE0",fg:"#fff",m:"Z"},shopify:{n:"Shopify",bg:"#5E8E3E",fg:"#fff",m:"S"}};
+var KITS = [{id:"night",bg:"#2A1A0E",fg:"#F2C88A",ac:"#F4E9D8"},{id:"sand",bg:"#EFE6DA",fg:"#3B2A1A",ac:"#8B5E3C"},{id:"emerald",bg:"#0F3B33",fg:"#E8D9B0",ac:"#CFE6DF"},{id:"rose",bg:"#5C1E1E",fg:"#F3D58C",ac:"#F4E2D8"}];
+
+/* ---------- sample data ---------- */
+var P = [
+  {id:"oud",sku:"LF-OUD-100",sym:"bottle",color:"#4A230A",name:["Oud Al Layl EDP 100ml","عطر عود الليل ١٠٠ مل"],ch:["noon","amazon"],score:47,target:91,imgs:1,rating:3.9,rev:212,
+   br:{images:30,title:45,arabic:20,attrs:70,reviewFit:40},issues:["arabicBroken","noArabicTitle","longevityQ","mainRule"],
+   themes:[["longevity",62,0],["sizeVsPhoto",24,0],["packaging",14,1]],
+   quotes:[["الريحة حلوة بس ما تثبت، بعد ساعتين راحت","gulf","longevity"],["الحجم أصغر من اللي في الصورة خالص","egy","sizeVsPhoto"],["التغليف فخم ومناسب للهدايا","msa","packaging"]],
+   st:{headAr:"ثبات حتى 12 ساعة",headEn:"Lasts up to 12 hours",bAr:"عود كمبودي\nزعفران\nعنبر",bEn:"Cambodian oud\nSaffron\nAmber",oAr:"هدية العيد",oEn:"The Eid gift",kit:0},
+   newTitle:"Oud Al Layl Eau de Parfum 100ml · Smoked Oud & Saffron"},
+  {id:"abaya",sku:"LF-ABY-SND",sym:"abaya",color:"#CDB894",name:["Linen Abaya · Sand","عباية كتان · رملي"],ch:["noon"],score:38,target:86,imgs:1,rating:3.6,rev:148,
+   br:{images:35,title:60,arabic:55,attrs:30,reviewFit:20},issues:["noSizeChart","runsSmall","onePhoto","enBullets"],
+   themes:[["size",48,0],["colour",22,0],["fabric",30,1]],
+   quotes:[["المقاس صغير، اطلبوا مقاس أكبر","gulf","size"],["اللون مش متل الصورة أبداً","lev","colour"],["القماش خفيف ومريح للصيف","msa","fabric"]],
+   st:{headAr:"اطلبي مقاساً أكبر",headEn:"Size up for a relaxed fit",bAr:"كتان 100%\nطول 140 سم\nجيوب جانبية",bEn:"100% linen\n140 cm length\nSide pockets",oAr:"إطلالة الصيف",oEn:"Your summer abaya",kit:1},
+   newTitle:"Linen Abaya, Sand · Relaxed Fit, 140 cm, Side Pockets"},
+  {id:"coffee",sku:"LF-COF-500",sym:"jar",color:"#8B4A2B",name:["Saudi Coffee with Cardamom 500g","قهوة سعودية بالهيل ٥٠٠ جم"],ch:["amazon","noon"],score:52,target:88,imgs:3,rating:4.2,rev:96,
+   br:{images:60,title:55,arabic:40,attrs:65,reviewFit:45},issues:["claim","mt"],
+   themes:[["roast",30,0],["taste",50,1],["delivery",12,0]],
+   quotes:[["طعمها أصيل بس التحميص فاتح زيادة","gulf","roast"],["القهوة ممتازة ووصلت بسرعة","msa","taste"]],
+   st:{headAr:"هيل أكثر، تحميص شقراء",headEn:"Extra cardamom, light roast",bAr:"بن خولاني\nهيل 20%\nطحن ناعم",bEn:"Khawlani beans\n20% cardamom\nFine grind",oAr:"قهوة الضيافة",oEn:"For your guests",kit:3},
+   newTitle:"Saudi Coffee with Cardamom 500g · Light Roast, Khawlani Beans"},
+  {id:"thobe",sku:"LF-THB-KID",sym:"abaya",color:"#E4E6E1",name:["Kids Thobe · White","ثوب أطفال · أبيض"],ch:["salla"],score:56,target:84,imgs:2,rating:4.0,rev:41,
+   br:{images:45,title:70,arabic:75,attrs:40,reviewFit:50},issues:["onePhoto","attrs"],
+   themes:[["size",35,0],["fabric",40,1]],
+   quotes:[["القماش ناعم بس المقاس كبير شوي","gulf","size"]],
+   st:{headAr:"قماش ناعم لا يتجعد",headEn:"Soft, wrinkle-free cotton",bAr:"قطن 100%\nمن 2 إلى 12 سنة\nغسيل آلي",bEn:"100% cotton\nAges 2 to 12\nMachine wash",oAr:"جاهز للعيد",oEn:"Ready for Eid",kit:2},
+   newTitle:"Kids Thobe, White · Wrinkle-Free Cotton, Ages 2 to 12"},
+  {id:"dates",sku:"LF-DAT-1KG",sym:"box",color:"#6B3A1E",name:["Sukkari Dates Gift Box 1kg","علبة تمر سكري هدية ١ كجم"],ch:["zid","salla"],score:64,target:90,imgs:4,rating:4.5,rev:133,
+   br:{images:70,title:50,arabic:45,attrs:80,reviewFit:70},issues:["enTitle","noSeason"],
+   themes:[["freshness",55,1],["packaging",30,1],["delivery",15,0]],
+   quotes:[["التمر طازج والعلبة شكلها فخم","gulf","freshness"],["التوصيل تأخر يومين","egy","delivery"]],
+   st:{headAr:"سكري القصيم الفاخر",headEn:"Premium Qassim Sukkari",bAr:"قطاف هذا الموسم\n1 كجم\nعلبة هدية",bEn:"This season's harvest\n1 kg\nGift box",oAr:"هدية رمضان",oEn:"The Ramadan gift",kit:0},
+   newTitle:"Sukkari Dates Gift Box 1kg · Qassim, This Season's Harvest"},
+  {id:"thobem",sku:"LF-THB-MEN",sym:"abaya",color:"#DCD6C8",name:["Men's Linen Thobe · Ivory","ثوب رجالي كتان · عاجي"],ch:["noon","amazon"],score:61,target:87,imgs:3,rating:4.1,rev:77,
+   br:{images:55,title:65,arabic:70,attrs:45,reviewFit:60},issues:["attrs","onePhoto"],
+   themes:[["fabric",44,1],["size",20,0]],
+   quotes:[["الكتان بارد ومريح بالصيف","gulf","fabric"]],
+   st:{headAr:"كتان بارد للصيف",headEn:"Cool linen for summer",bAr:"كتان 100%\nياقة سعودية\nأطوال 52 إلى 62",bEn:"100% linen\nSaudi collar\nLengths 52 to 62",oAr:"إطلالة الجمعة",oEn:"Friday ready",kit:1},
+   newTitle:"Men's Linen Thobe, Ivory · Saudi Collar, Lengths 52 to 62"},
+  {id:"musk",sku:"LF-MSK-050",sym:"musk",color:"#B8A77E",name:["Musk Tahara 50ml","مسك الطهارة ٥٠ مل"],ch:["noon","shopify"],score:71,target:92,imgs:5,rating:4.4,rev:304,
+   br:{images:80,title:75,arabic:65,attrs:70,reviewFit:65},issues:["mt"],
+   themes:[["scent",28,0],["packaging",18,1]],
+   quotes:[["ريحته ناعمة بس خفيفة شوي","gulf","scent"]],
+   st:{headAr:"نعومة تدوم",headEn:"Soft and lasting",bAr:"مسك أبيض\nبدون كحول\n50 مل",bEn:"White musk\nAlcohol-free\n50 ml",oAr:"لكل يوم",oEn:"For every day",kit:1},
+   newTitle:"Musk Tahara 50ml · White Musk, Alcohol-Free"},
+  {id:"burner",sku:"LF-BKH-BRN",sym:"burner",color:"#8C6A3F",name:["Bakhoor Burner · Brass","مبخرة نحاسية"],ch:["shopify"],score:88,target:94,imgs:6,rating:4.7,rev:58,
+   br:{images:90,title:85,arabic:90,attrs:85,reviewFit:88},issues:["lowRes"],
+   themes:[["packaging",10,1]],
+   quotes:[["المبخرة ثقيلة وشغلها نظيف","gulf","packaging"]],
+   st:{headAr:"نحاس مطروق يدوياً",headEn:"Hand-hammered brass",bAr:"نحاس خالص\nكهربائية\nضمان سنتين",bEn:"Solid brass\nElectric\n2-year warranty",oAr:"ضيافة المجلس",oEn:"For the majlis",kit:2},
+   newTitle:"Bakhoor Burner · Hand-Hammered Brass, Electric"}
+];
+var PM = {}; P.forEach(function(p){ PM[p.id] = p; });
+
+var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"score", dialect:"all",
+  slide:1, langMode:"both", num:"ar", gen:{}, queue:[
+    {id:"q1",pid:"abaya",by:"Omar",status:"pending",issue:"noSizeChart"},
+    {id:"q2",pid:"dates",by:"Sara",status:"pending",issue:"noSeason"}
+  ]};
+
+/* ---------- helpers ---------- */
+var view = document.getElementById("view");
+function t(k){ var v = S[k]; return v ? v[state.lang === "ar" ? 1 : 0] : k; }
+function tr(a){ return a[state.lang === "ar" ? 1 : 0]; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+var AD = "٠١٢٣٤٥٦٧٨٩";
+function digits(s){ return state.num === "ar" ? String(s).replace(/\d/g, function(d){ return AD[d]; }) : String(s).replace(/[٠-٩]/g, function(d){ return AD.indexOf(d); }); }
+function scoreColor(s){ return s < 50 ? "var(--bad)" : s < 70 ? "var(--saffron)" : "var(--good)"; }
+function sbar(s){ return '<span class="sbar"><i style="--w:'+s+'%;--c:'+scoreColor(s)+'"></i>'+s+'</span>'; }
+function sym(p, cls, extra){ return '<svg class="'+(cls||"")+'" viewBox="0 0 120 170" style="color:'+p.color+';'+(extra||"")+'" aria-hidden="true"><use href="#'+p.sym+'"/></svg>'; }
+function chans(p){ return '<span class="chans">'+p.ch.map(function(c){ var x = CH[c]; return '<span class="chan-mk" title="'+x.n+'" style="background:'+x.bg+';color:'+x.fg+'">'+x.m+'</span>'; }).join("")+'</span>'; }
+function sevC(s){ return s === "high" ? "var(--bad)" : s === "med" ? "var(--saffron)" : "var(--ink-3)"; }
+function sevTag(s){ return '<span class="tag '+(s === "high" ? "bad" : s === "med" ? "warn" : "")+'">'+t("sev_"+s)+'</span>'; }
+function openIssues(p){ return p.fixed ? [] : p.issues; }
+function arrow(){ return '<svg class="flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'; }
+function backArrow(){ return '<svg class="flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>'; }
+var toastTimer;
+function toast(msg){ var el = document.getElementById("toast"); document.getElementById("toast-t").textContent = msg; el.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.classList.remove("on"); }, 2600); }
+function go(hash){ if (location.hash === "#"+hash) route(); else location.hash = hash; }
+
+/* ---------- nav ---------- */
+var ICONS = {
+  overview:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z"/>',
+  catalog:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  reviews:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  studio:'<path d="M12 3l2.6 5.6L20 11l-5.4 2.4L12 19l-2.6-5.6L4 11l5.4-2.4z"/>',
+  approvals:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>'
+};
+function navHTML(mobile){
+  var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
+  var base = state.route === "listing" ? "catalog" : state.route;
+  return ["overview","catalog","reviews","studio","approvals"].map(function(k){
+    var href = k === "studio" ? "studio-"+state.pid : k;
+    var cur = base === k ? ' aria-current="page"' : "";
+    if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
+    return '<a href="#'+href+'"'+cur+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg>'+t(k)+(k === "approvals" && pend ? '<span class="cnt">'+pend+'</span>' : "")+'</a>';
+  }).join("");
+}
+function renderSide(){
+  document.getElementById("side").innerHTML =
+    '<a class="brand" href="#overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#52C4AE"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#04120F"/><circle cx="16" cy="16" r="3" fill="#52C4AE"/></svg>Basira <small>بصيرة</small></a>'+
+    '<div class="ws"><i></i><div><b>Layali Fragrances</b><small>'+t("wsSub")+'</small></div></div>'+
+    '<nav class="navl" aria-label="Sections">'+navHTML(false)+'</nav>'+
+    '<div class="side-foot"><div class="credits"><span>'+t("credits")+'</span><span class="tr"><i></i></span><b>'+t("creditsOf")+'</b></div><a href="./">'+t("site")+'</a></div>';
+  document.getElementById("mnav").innerHTML = navHTML(true);
+}
+
+/* ---------- views ---------- */
+function vOverview(){
+  var avg = Math.round(P.reduce(function(a,p){ return a+p.score; },0)/P.length);
+  var low = P.filter(function(p){ return p.score < 60; }).length;
+  var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
+  var revs = P.reduce(function(a,p){ return a+p.rev; },0);
+  var agg = {}; P.forEach(function(p){ p.themes.forEach(function(th){ if (!th[2]) agg[th[0]] = (agg[th[0]]||0) + th[1]*p.rev; }); });
+  var tot = Object.keys(agg).reduce(function(a,k){ return a+agg[k]; },0);
+  var top = Object.keys(agg).map(function(k){ return [k, Math.round(agg[k]/tot*100)]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
+  var maxT = top.length ? top[0][1] : 1;
+  var first = P.slice().sort(function(a,b){ return a.score-b.score; }).slice(0,4);
+  var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length), ps.length]; });
+  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+t("ovSub")+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+'</span></div>'+
+  '<div class="kpis">'+
+    '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span><span class="up">+9</span> '+t("vsLast")+'</span></div>'+
+    '<div class="kpi"><small>'+t("needFix")+'</small><b>'+low+'</b><span>/ '+P.length+'</span></div>'+
+    '<div class="kpi"><small>'+t("pending")+'</small><b>'+pend+'</b><span><a href="#approvals">'+t("approvals")+'</a></span></div>'+
+    '<div class="kpi"><small>'+t("analyzed")+'</small><b>'+revs.toLocaleString("en")+'</b><span>'+t("dialects5")+'</span></div>'+
+  '</div>'+
+  '<div class="grid2">'+
+    '<div class="card"><div class="card-h"><h2>'+t("fixFirst")+'</h2><small>'+t("fixFirstSub")+'</small></div><div class="list">'+
+      first.map(function(p){ var is = openIssues(p); return '<a class="row-link" href="#listing-'+p.id+'"><span class="pcell"><span class="pthumb">'+sym(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b>'+(is.length ? '<span class="tag '+(ISSUES[is[0]].sev === "high" ? "bad" : "warn")+'">'+tr(ISSUES[is[0]].t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span></span>'+sbar(p.score)+arrow()+'</a>'; }).join("")+
+    '</div></div>'+
+    '<div style="display:grid;gap:18px">'+
+      '<div class="card"><div class="card-h"><h2>'+t("themes")+'</h2><small>'+t("themesSub")+'</small></div>'+
+        top.map(function(x){ return '<div class="hbar"><span>'+tr(THEMES[x[0]])+'</span><span class="tr"><i style="--w:'+Math.round(x[1]/maxT*100)+'%;--c:var(--bad)"></i></span><span class="mono">'+x[1]+'%</span></div>'; }).join("")+
+      '</div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("chanHealth")+'</h2></div>'+
+        chs.map(function(c){ var x = CH[c[0]]; return '<div class="hbar" style="grid-template-columns:150px 1fr 44px"><span style="display:flex;gap:8px;align-items:center"><span class="chan-mk" style="background:'+x.bg+';color:'+x.fg+'">'+x.m+'</span>'+x.n+'</span><span class="tr"><i style="--w:'+c[1]+'%;--c:'+scoreColor(c[1])+'"></i></span><span class="mono">'+c[1]+'</span></div>'; }).join("")+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function vCatalog(){
+  var q = state.q.trim().toLowerCase();
+  var rows = P.filter(function(p){
+    if (state.chan !== "all" && p.ch.indexOf(state.chan) < 0) return false;
+    if (q && (p.name[0]+" "+p.name[1]+" "+p.sku).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  }).sort(function(a,b){ return state.sort === "score" ? a.score-b.score : state.sort === "reviews" ? b.rev-a.rev : tr(a.name).localeCompare(tr(b.name)); });
+  return '<div class="head"><div><h1>'+t("catalog")+'</h1><p>'+P.length+' · Noon, Amazon.sa, Salla, Zid, Shopify</p></div></div>'+
+  '<div class="toolbar"><div class="chips" role="group">'+
+    ["all"].concat(Object.keys(CH)).map(function(c){ return '<button type="button" class="chip" data-chan="'+c+'" aria-pressed="'+(state.chan === c)+'">'+(c === "all" ? t("all") : CH[c].n)+'</button>'; }).join("")+
+  '</div><select class="sel" id="sort" aria-label="Sort" style="margin-inline-start:auto"><option value="score"'+(state.sort === "score" ? " selected" : "")+'>'+t("sortScore")+'</option><option value="reviews"'+(state.sort === "reviews" ? " selected" : "")+'>'+t("sortReviews")+'</option><option value="name"'+(state.sort === "name" ? " selected" : "")+'>'+t("sortName")+'</option></select></div>'+
+  '<div class="tbl-wrap"><table><thead><tr><th>'+t("thProduct")+'</th><th>'+t("thChannels")+'</th><th>'+t("thScore")+'</th><th>'+t("thTop")+'</th><th>'+t("thIssues")+'</th><th>'+t("thRating")+'</th><th></th></tr></thead><tbody>'+
+  (rows.length ? rows.map(function(p){ var is = openIssues(p); var top = is[0] ? ISSUES[is[0]] : null;
+    return '<tr data-href="listing-'+p.id+'" tabindex="0"><td><span class="pcell"><span class="pthumb">'+sym(p)+'</span><span><b>'+esc(tr(p.name))+'</b><small>'+p.sku+'</small></span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span></td><td>'+arrow()+'</td></tr>'; }).join("")
+  : '<tr><td colspan="7" class="empty">'+t("noResults")+'</td></tr>')+
+  '</tbody></table></div>';
+}
+
+function ring(s){ var off = 213.6*(1-s/100); return '<div class="ring" style="--c:'+scoreColor(s)+'"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" cx="40" cy="40" r="34" style="stroke-dashoffset:'+off+'"/></svg><b>'+s+'</b></div>'; }
+function vListing(){
+  var p = PM[state.pid], is = openIssues(p);
+  var slots = []; for (var i = 0; i < 4; i++) slots.push(i < Math.min(p.imgs,4) || p.fixed ? '<div class="gimg">'+(i === 0 && is.indexOf("arabicBroken") > -1 ? '<span class="flag tag bad">'+t("arabic")+'</span>' : "")+sym(p)+'</div>' : '<div class="gimg missing">'+t("missingImg")+'</div>');
+  var br = p.fixed ? {images:p.target,title:p.target,arabic:p.target,attrs:p.target,reviewFit:p.target} : p.br;
+  return '<div><a class="crumb" href="#catalog">'+backArrow()+t("back")+'</a>'+
+  '<div class="head"><div class="lhead">'+ring(p.score)+'<div><h1>'+esc(tr(p.name))+'</h1><p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="mono" style="font-size:12.5px">'+p.sku+'</span>'+chans(p)+'<span class="tnum">★ '+p.rating.toFixed(1)+' · '+p.rev+' '+t("fromReviews")+'</span></p></div></div>'+
+  '<a class="btn btn-primary" href="#studio-'+p.id+'">'+t("genFix")+arrow()+'</a></div></div>'+
+  '<div class="grid2">'+
+    '<div style="display:grid;gap:18px">'+
+      '<div class="card"><div class="card-h"><h2>'+t("gallery")+'</h2><small>'+(p.fixed ? 4 : p.imgs)+' / 7</small></div><div class="gallery">'+slots.join("")+'</div></div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+is.length+'</small></div>'+
+        (is.length ? is.map(function(k){ var x = ISSUES[k]; return '<div class="issue" style="--c:'+sevC(x.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b><p>'+tr(x.d)+'</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(x.sev)+'<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'" data-slide="'+x.slide+'">'+t("fixInStudio")+'</a></div></div>'; }).join("") : '<p class="empty">'+t("noIssues")+'</p>')+
+      '</div>'+
+    '</div>'+
+    '<div style="display:grid;gap:18px">'+
+      '<div class="card"><div class="card-h"><h2>'+t("breakdown")+'</h2></div>'+
+        [["images",br.images],["title",br.title],["arabic",br.arabic],["attrs",br.attrs],["reviewFit",br.reviewFit]].map(function(b){ return '<div class="hbar"><span>'+t(b[0])+'</span><span class="tr"><i style="--w:'+b[1]+'%;--c:'+scoreColor(b[1])+'"></i></span><span class="mono">'+b[1]+'</span></div>'; }).join("")+
+      '</div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("insight")+'</h2><small>'+p.rev+' '+t("fromReviews")+'</small></div>'+
+        p.themes.map(function(th){ return '<div class="hbar"><span>'+tr(THEMES[th[0]])+'</span><span class="tr"><i style="--w:'+th[1]+'%;--c:'+(th[2] ? "var(--good)" : "var(--bad)")+'"></i></span><span class="mono">'+th[1]+'%</span></div>'; }).join("")+
+        '<div style="display:grid;gap:8px;margin-top:12px">'+p.quotes.map(function(q){ return quoteHTML(q, p, false); }).join("")+'</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+function quoteHTML(q, p, link){
+  var th = THEMES[q[2]]; var pos = false;
+  if (p && p.themes) p.themes.forEach(function(x){ if (x[0] === q[2]) pos = !!x[2]; });
+  return '<div class="quote"><q dir="rtl">'+esc(q[0])+'</q><span class="meta"><span>'+t(q[1])+'</span>·<span class="tag'+(p ? (pos ? " good" : " bad") : "")+'">'+tr(th)+'</span>'+(p && link !== false ? '<a href="#listing-'+p.id+'" style="margin-inline-start:auto">'+esc(tr(p.name))+'</a>' : "")+'</span></div>';
+}
+
+function vReviews(){
+  var all = []; P.forEach(function(p){ p.quotes.forEach(function(q){ all.push([q,p]); }); });
+  var list = all.filter(function(x){ return state.dialect === "all" || x[0][1] === state.dialect; });
+  var agg = {}; P.forEach(function(p){ p.themes.forEach(function(th){ var a = agg[th[0]] || (agg[th[0]] = {neg:0,pos:0}); a[th[2] ? "pos" : "neg"] += Math.round(th[1]*p.rev/100); }); });
+  var keys = Object.keys(agg).sort(function(a,b){ return (agg[b].neg+agg[b].pos)-(agg[a].neg+agg[a].pos); });
+  var max = Math.max.apply(null, keys.map(function(k){ return agg[k].neg+agg[k].pos; }));
+  return '<div class="head"><div><h1>'+t("reviews")+'</h1><p>'+t("revSub")+'</p></div></div>'+
+  '<div class="grid2 even">'+
+    '<div class="card"><div class="card-h"><h2>'+t("themes")+'</h2><small><span style="color:var(--bad)">■</span> '+t("negative")+' &nbsp; <span style="color:var(--good)">■</span> '+t("positive")+'</small></div>'+
+      keys.map(function(k){ var a = agg[k]; return '<div class="hbar" style="grid-template-columns:140px 1fr 50px"><span>'+tr(THEMES[k])+'</span><span class="tr" style="display:flex;gap:2px;background:transparent"><i style="width:'+(a.neg/max*100)+'%;background:var(--bad);border-radius:9px"></i><i style="width:'+(a.pos/max*100)+'%;background:var(--good);border-radius:9px"></i></span><span class="mono">'+(a.neg+a.pos)+'</span></div>'; }).join("")+
+    '</div>'+
+    '<div class="card"><div class="card-h"><h2>'+t("quotes")+'</h2></div>'+
+      '<div class="chips" role="group" aria-label="'+t("dialect")+'" style="margin-bottom:12px">'+["all","gulf","egy","lev","msa"].map(function(d){ return '<button type="button" class="chip" data-dialect="'+d+'" aria-pressed="'+(state.dialect === d)+'">'+t(d)+'</button>'; }).join("")+'</div>'+
+      '<div style="display:grid;gap:8px">'+(list.length ? list.map(function(x){ return quoteHTML(x[0], x[1]); }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>'+
+    '</div>'+
+  '</div>';
+}
+
+/* studio */
+var SLIDES = [["slCover","slCoverQ"],["slBenefit","slBenefitQ"],["slDetails","slDetailsQ"],["slOccasion","slOccasionQ"]];
+function slideHTML(p, i, small){
+  var st = p.st, k = KITS[st.kit], m = state.langMode;
+  var ar = m !== "en", en = m !== "ar";
+  var bg = i === 0 ? "radial-gradient(120% 90% at 50% 20%,#FFFFFF 0%,#F6F5F2 60%,#ECE9E3 100%)" : k.bg;
+  var fg = i === 0 ? "#222" : k.fg;
+  var h = '<div class="canvas" style="background:'+bg+';color:'+fg+(small ? ';box-shadow:none;border-radius:0;width:100%' : "")+'">';
+  if (i === 0){ h += '<div class="prod">'+sym(p)+'</div>'; }
+  if (i === 1){
+    h += '<div class="prod" style="inset:30% 0 0 0">'+sym(p)+'</div><div class="txt" style="top:8%;text-align:center;justify-items:center">'+
+      (ar ? '<div class="hd" dir="rtl">'+esc(digits(st.headAr))+'</div>' : "")+(en ? '<div class="'+(ar ? "sub" : "hd en")+'" dir="ltr">'+esc(st.headEn)+'</div>' : "")+'</div>';
+  }
+  if (i === 2){
+    var bl = ar ? st.bAr : st.bEn, lines = bl.split("\n").filter(Boolean).slice(0,5);
+    var rtl = ar;
+    h += '<div class="prod" style="inset:0 '+(rtl ? "48% 0 0" : "0 0 48%")+'">'+sym(p)+'</div><div class="txt" style="top:22%;'+(rtl ? "inset-inline:auto;right:6%;left:auto" : "left:6%;right:auto")+';width:46%" dir="'+(rtl ? "rtl" : "ltr")+'">'+
+      '<div class="hd'+(rtl ? "" : " en")+'" style="font-size:'+(rtl ? "8.5cqw" : "7cqw")+';color:'+k.fg+'">'+(rtl ? "المكوّنات" : "What's inside")+'</div><ul style="color:'+k.ac+'">'+lines.map(function(l){ return '<li>'+esc(rtl ? digits(l) : l)+'</li>'; }).join("")+'</ul>'+
+      (ar && en ? '<div class="sub" dir="ltr" style="color:'+k.ac+'">'+esc(st.bEn.split("\n").filter(Boolean).join(" · "))+'</div>' : "")+'</div>';
+  }
+  if (i === 3){
+    h += '<div class="prod" style="inset:0 0 18% 0">'+sym(p)+'</div><div class="txt" style="bottom:8%;text-align:center;justify-items:center">'+
+      (ar ? '<div class="hd" dir="rtl">'+esc(digits(st.oAr))+'</div>' : "")+(en ? '<div class="'+(ar ? "sub" : "hd en")+'" dir="ltr">'+esc(st.oEn)+'</div>' : "")+'</div>';
+  }
+  if (i > 0) h += '<span class="logo" style="color:'+k.ac+'">LAYALI</span>';
+  return h+'</div>';
+}
+function vStudio(){
+  var p = PM[state.pid], g = state.gen[p.id] || {phase:"idle"}, st = p.st;
+  var linked = openIssues(p).filter(function(k){ return ISSUES[k].slide === state.slide; });
+  var stepNames = ["st1","st2","st3","st4"];
+  return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
+    '<select class="sel" id="pick" aria-label="'+t("product")+'">'+P.map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
+  '<div class="studio">'+
+    '<div class="slist" style="grid-template-columns:1fr">'+SLIDES.map(function(s,i){ return '<button type="button" class="sitem" data-slide="'+i+'" aria-pressed="'+(state.slide === i)+'"><span class="mini">'+slideHTML(p,i,true)+'</span><span><b>'+t(s[0])+'</b><small>'+t(s[1])+'</small></span></button>'; }).join("")+'</div>'+
+    '<div class="stage"><div style="position:relative;width:min(100%,400px)" id="canvas-wrap">'+slideHTML(p,state.slide,false)+(g.phase === "run" ? '<div class="scan"></div>' : "")+'</div>'+
+      '<div class="stage-meta">'+
+        (g.phase === "done" || g.phase === "sent" ? '<span class="tag good">'+t("fidelity")+' 98.6%</span><span class="tag good">'+t("rules")+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
+        (linked.length ? '<span class="tag warn">'+t("fromIssue")+': '+tr(ISSUES[linked[0]].t)+'</span>' : "")+
+      '</div></div>'+
+    '<div class="card panel">'+
+      '<div class="field"><span class="lbl">'+t("language")+'</span><div class="seg" role="group">'+[["ar","العربية"],["en","English"],["both",t("both")]].map(function(x){ return '<button type="button" data-lm="'+x[0]+'" aria-pressed="'+(state.langMode === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div></div>'+
+      '<div class="field"><span class="lbl">'+t("numerals")+'</span><div class="seg" role="group"><button type="button" data-num="ar" aria-pressed="'+(state.num === "ar")+'">'+t("numAr")+'</button><button type="button" data-num="en" aria-pressed="'+(state.num === "en")+'">'+t("numEn")+'</button></div></div>'+
+      (state.slide === 1 ? '<div class="field"><label for="f-har">'+t("headAr")+'</label><input id="f-har" dir="rtl" data-f="headAr" value="'+esc(st.headAr)+'"></div><div class="field"><label for="f-hen">'+t("headEn")+'</label><input id="f-hen" dir="ltr" data-f="headEn" value="'+esc(st.headEn)+'"></div>' : "")+
+      (state.slide === 2 ? '<div class="field"><label for="f-bar">'+t("bullets")+' · AR</label><textarea id="f-bar" rows="3" dir="rtl" data-f="bAr">'+esc(st.bAr)+'</textarea></div><div class="field"><label for="f-ben">'+t("bullets")+' · EN</label><textarea id="f-ben" rows="3" dir="ltr" data-f="bEn">'+esc(st.bEn)+'</textarea></div>' : "")+
+      (state.slide === 3 ? '<div class="field"><label for="f-oar">'+t("occ")+' · AR</label><input id="f-oar" dir="rtl" data-f="oAr" value="'+esc(st.oAr)+'"></div><div class="field"><label for="f-oen">'+t("occ")+' · EN</label><input id="f-oen" dir="ltr" data-f="oEn" value="'+esc(st.oEn)+'"></div>' : "")+
+      '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+KITS.map(function(k,i){ return '<button type="button" data-kit="'+i+'" aria-pressed="'+(st.kit === i)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div></div>'+
+      (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(s,i){ var c = i < g.step ? "done" : i === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(s)+(i === 3 && c === "done" ? ' · 98.6%' : "")+'</div>'; }).join("")+'</div>' : "")+
+      '<div style="display:grid;gap:8px">'+
+        '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? t("generate") : t("regenerate"))+'</button>'+
+        '<button type="button" class="btn btn-ghost" id="send"'+(g.phase === "done" ? "" : " disabled")+'>'+(g.phase === "sent" ? t("sent")+" ✓" : t("sendAppr"))+'</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function vApprovals(){
+  var q = state.queue;
+  return '<div class="head"><div><h1>'+t("approvals")+'</h1><p>'+t("apprSub")+'</p></div></div>'+
+  (q.length ? '<div style="display:grid;gap:12px">'+q.map(function(it){ var p = PM[it.pid], iss = ISSUES[it.issue];
+    var stTag = it.status === "pending" ? '<span class="tag warn">'+t("pending")+'</span>' : it.status === "publishing" ? '<span class="tag brand">'+t("publishing")+'</span>' : it.status === "live" ? '<span class="tag good"><span class="dot"></span>'+t("live")+'</span>' : '<span class="tag">'+t("changesReq")+'</span>';
+    return '<div class="card appr">'+
+      '<div class="ba"><span class="m" style="background:linear-gradient(160deg,#B9BDB9,#8E948F);display:grid;place-items:center;filter:grayscale(.5)">'+sym(p,"","width:60%")+'</span><svg class="arrow flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="m">'+slideHTML(p,1,true)+'</span></div>'+
+      '<div style="min-width:0;display:grid;gap:6px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(tr(p.name))+'</b>'+stTag+'</div>'+
+        '<div style="font-size:13px;color:var(--ink-2)">'+tr(iss.t)+' · 4 '+t("slidesN")+' · '+t("newTitle")+' · '+t("scoreAfter")+' <b class="tnum" style="color:var(--good)">'+p.target+'</b></div>'+
+        '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)">'+chans(p)+'<span>'+t("by")+' '+it.by+'</span></div></div>'+
+      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approve")+'</button>' : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>')+'</div>'+
+    '</div>'; }).join("")+'</div>' : '<div class="card empty">'+t("queueEmpty")+'</div>');
+}
+
+/* ---------- router ---------- */
+function route(){
+  var h = (location.hash || "#overview").slice(1), m;
+  if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
+  else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
+  else if (["overview","catalog","reviews","approvals"].indexOf(h) > -1) state.route = h;
+  else state.route = "overview";
+  render(true);
+}
+function render(scroll){
+  renderSide();
+  var r = state.route;
+  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : vOverview();
+  document.title = "Basira · " + t(r === "listing" ? "catalog" : r);
+  if (scroll) window.scrollTo(0,0);
+}
+function rerenderCanvas(){
+  var p = PM[state.pid];
+  var wrap = document.getElementById("canvas-wrap"); if (wrap) wrap.firstElementChild.outerHTML = slideHTML(p, state.slide, false);
+  document.querySelectorAll(".sitem").forEach(function(b, i){ b.querySelector(".mini").innerHTML = slideHTML(p, i, true); });
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", function(e){
+  var el;
+  if ((el = e.target.closest("[data-lang]"))){ setLang(el.dataset.lang); return; }
+  if ((el = e.target.closest("tr[data-href]"))){ go(el.dataset.href); return; }
+  if ((el = e.target.closest("[data-chan]"))){ state.chan = el.dataset.chan; render(); return; }
+  if ((el = e.target.closest("[data-dialect]"))){ state.dialect = el.dataset.dialect; render(); return; }
+  if ((el = e.target.closest("a[data-slide]"))){ state.slide = +el.dataset.slide; return; }
+  if ((el = e.target.closest(".sitem"))){ state.slide = +el.dataset.slide; render(); return; }
+  if ((el = e.target.closest("[data-lm]"))){ state.langMode = el.dataset.lm; render(); return; }
+  if ((el = e.target.closest("[data-num]"))){ state.num = el.dataset.num; render(); return; }
+  if ((el = e.target.closest("[data-kit]"))){ PM[state.pid].st.kit = +el.dataset.kit; render(); return; }
+  if ((el = e.target.closest("#gen"))){ runGen(state.pid); return; }
+  if ((el = e.target.closest("#send"))){ sendAppr(state.pid); return; }
+  if ((el = e.target.closest("[data-approve]"))){ approve(el.dataset.approve); return; }
+  if ((el = e.target.closest("[data-changes]"))){ var it = findQ(el.dataset.changes); it.status = "changes"; render(); toast(t("requested")); return; }
+});
+document.addEventListener("keydown", function(e){ var el = e.target.closest && e.target.closest("tr[data-href]"); if (el && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); go(el.dataset.href); } });
+document.addEventListener("input", function(e){
+  var el = e.target;
+  if (el.id === "q"){ state.q = el.value; if (state.route !== "catalog") go("catalog"); else render(); return; }
+  if (el.dataset && el.dataset.f){ PM[state.pid].st[el.dataset.f] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; rerenderCanvas(); }
+});
+document.addEventListener("change", function(e){
+  if (e.target.id === "sort"){ state.sort = e.target.value; render(); }
+  if (e.target.id === "pick"){ go("studio-"+e.target.value); }
+});
+
+function runGen(pid){
+  var g = state.gen[pid] = {phase:"run", step:0}; render();
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  (function next(){
+    setTimeout(function(){
+      g.step++;
+      if (g.step >= 4){ g.phase = "done"; }
+      if (state.route === "studio" && state.pid === pid) render();
+      if (g.phase === "run") next();
+    }, reduce ? 50 : 650);
+  })();
+}
+function sendAppr(pid){
+  var g = state.gen[pid]; if (!g || g.phase !== "done") return;
+  g.phase = "sent";
+  var p = PM[pid], iss = openIssues(p)[0] || p.issues[0];
+  state.queue.unshift({id:"q"+Date.now(), pid:pid, by:"Sara", status:"pending", issue:iss});
+  render(); toast(t("sent"));
+}
+function findQ(id){ return state.queue.filter(function(q){ return q.id === id; })[0]; }
+function approve(id){
+  var it = findQ(id); it.status = "publishing"; render();
+  setTimeout(function(){
+    it.status = "live"; var p = PM[it.pid]; p.score = p.target; p.fixed = true; p.imgs = Math.max(p.imgs, 4);
+    if (state.route === "approvals") render(); else renderSide();
+    toast(t("published")+" "+p.ch.map(function(c){ return CH[c].n; }).join(", "));
+  }, 1300);
+}
+
+function setLang(l){
+  state.lang = l; document.documentElement.lang = l; document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
+  document.getElementById("q").placeholder = t("search");
+  try { localStorage.setItem("basira-lang", l); } catch(e){}
+  render();
+}
+
+addEventListener("hashchange", route);
+var saved = null; try { saved = localStorage.getItem("basira-lang"); } catch(e){}
+var initial = saved || ((navigator.language || "").toLowerCase().indexOf("ar") === 0 ? "ar" : "en");
+state.lang = initial; document.documentElement.lang = initial; document.documentElement.dir = initial === "ar" ? "rtl" : "ltr";
+document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === initial)); });
+document.getElementById("q").placeholder = t("search");
+route();
+})();
+</script>
+
+</body>
+</html>

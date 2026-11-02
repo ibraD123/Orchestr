@@ -4,14 +4,16 @@
 
 Basira finds what is costing a listing sales, learns from what buyers write in reviews (Gulf, Egyptian, Levantine Arabic, MSA and English), fixes the content on brand in Arabic and English, publishes the fix to Amazon, Noon, Salla, Zid and Shopify, and measures the result.
 
-This repository currently holds the marketing site.
+This repository holds the marketing site and a clickable product prototype.
 
 ## Structure
 
 | Path | What it is |
 | --- | --- |
 | `src/landing.html` | The landing page source (styles, markup, Arabic translations and scripts in one file) |
-| `scripts/build.mjs` | Wraps the source into a full HTML document |
+| `src/app.html` | Product prototype: overview, catalog audit, listing diagnosis, reviews by dialect, slide studio, approvals |
+| `app.html` | Built prototype |
+| `scripts/build.mjs` | Wraps each source page into a full HTML document |
 | `index.html` | Built page, ready for any static host (GitHub Pages, Vercel, Netlify) |
 
 ## Build and preview
@@ -43,3 +45,11 @@ The final form then POSTs `{ name, whatsapp, store, lang }` as JSON.
 - Prices (399 / 1,490 SAR) and plan limits
 - All figures in the demo, catalog table, chart and agency report are labelled as sample or example data
 - "Layali Fragrances" and "Oud Al Layl" are fictional
+
+## Product prototype
+
+`app.html` runs entirely in the browser on sample data (a fictional client, Layali Fragrances, with 8 listings). Views are routed by hash: `#overview`, `#catalog`, `#listing-<id>`, `#studio-<id>`, `#reviews`, `#approvals`.
+
+The flow to demo: open the catalog, pick a listing, press **Generate fix**, edit the Arabic headline and watch the slide update, generate, send for approval, then approve it in **Approvals**. The listing's score and gallery update once it is live.
+
+Generation, fidelity checks and publishing are simulated with timers. Nothing calls an AI model or a marketplace yet.

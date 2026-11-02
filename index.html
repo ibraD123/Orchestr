@@ -94,6 +94,7 @@ html[lang="ar"] .eyebrow{font-family:var(--font-body);letter-spacing:0;font-size
 .lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .nav .btn{height:40px;padding-inline:18px}
 @media (max-width:920px){.nav-links{display:none}}
+@media (max-width:700px){.nav .btn-ghost{display:none}}
 @media (max-width:520px){.nav .btn-primary{display:none}.logo small{display:none}}
 
 /* hero */
@@ -428,12 +429,14 @@ footer a:hover{color:var(--ink)}
       <a href="#studio" data-i18n="nav.studio">Studio</a>
       <a href="#agencies" data-i18n="nav.agencies">For agencies</a>
       <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+      <a href="app.html" data-i18n="nav.demo">Live demo</a>
     </nav>
     <div class="nav-end">
       <div class="lang" role="group" aria-label="Language">
         <button type="button" id="lang-en" aria-pressed="true" data-lang="en">EN</button>
         <button type="button" id="lang-ar" aria-pressed="false" data-lang="ar">ع</button>
       </div>
+      <a class="btn btn-ghost" href="app.html" data-i18n="nav.app">Open app</a>
       <a class="btn btn-primary" href="#start" data-i18n="nav.cta">Free audit</a>
     </div>
   </div>
@@ -895,7 +898,7 @@ footer a:hover{color:var(--ink)}
 <script>
 (function(){
   var AR = {
-    "nav.how":"كيف تعمل","nav.arabic":"العربية أولاً","nav.studio":"الاستوديو","nav.agencies":"للوكالات","nav.pricing":"الأسعار","nav.cta":"تدقيق مجاني",
+    "nav.how":"كيف تعمل","nav.arabic":"العربية أولاً","nav.studio":"الاستوديو","nav.agencies":"للوكالات","nav.pricing":"الأسعار","nav.cta":"تدقيق مجاني","nav.demo":"عرض حي","nav.app":"افتح التطبيق",
     "hero.pill.b":"جديد","hero.pill":"خط عربي أصيل في كل صورة",
     "hero.h1":"شاهد كل منتج كما <em>يراه عميلك</em>.",
     "hero.sub":"بصيرة منصة ذكاء اصطناعي لمحتوى المنتجات، للعلامات التجارية والوكالات التي تبيع على أمازون ونون وسلة وزد وشوبيفاي. تكتشف ما يُفقدك المبيعات، وتتعلّم مما يكتبه العملاء في التقييمات، وتصلح المحتوى بالعربية والإنجليزية، ثم تنشر التعديل.",
