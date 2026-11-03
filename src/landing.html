@@ -359,9 +359,10 @@ html[lang="ar"] .tpl .why{font-family:var(--font-body)}
 /* faq */
 .faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px}
 .faq details{border-bottom:1px solid var(--line);padding-block:20px}
-.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font-size:18px;font-weight:500}
+.faq>*{min-width:0}
+.faq summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;font-size:18px;font-weight:500;overflow-wrap:anywhere}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";font-family:var(--font-mono);font-size:22px;line-height:1;color:var(--ink-3);transition:transform .2s}
+.faq summary::after{content:"+";display:grid;place-items:center;width:24px;height:24px;overflow:hidden;font-family:var(--font-mono);font-size:22px;line-height:1;color:var(--ink-3);transition:transform .2s}
 .faq details[open] summary::after{transform:rotate(45deg)}
 .faq details p{margin-top:12px;color:var(--ink-2);max-width:62ch}
 @media (max-width:860px){.faq{grid-template-columns:1fr;gap:24px}}
@@ -421,7 +422,6 @@ footer a:hover{color:var(--ink)}
       <a href="#studio" data-i18n="nav.studio">Studio</a>
       <a href="#agencies" data-i18n="nav.agencies">For agencies</a>
       <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
-      <a href="app.html" data-i18n="nav.demo">Live demo</a>
     </nav>
     <div class="nav-end">
       <div class="lang" role="group" aria-label="Language">

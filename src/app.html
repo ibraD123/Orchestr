@@ -177,6 +177,7 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .gimg.missing{border:1.5px dashed var(--line);background:transparent;color:var(--ink-3);font-size:12px;text-align:center;padding:8px}
 .gimg .flag{position:absolute;top:6px;inset-inline-start:6px}
 .issue{display:grid;grid-template-columns:4px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+@media (max-width:560px){.issue{grid-template-columns:4px 1fr;gap:6px 12px}.issue>:last-child{grid-column:2;justify-content:flex-start!important}.issue>.tag{justify-self:start}}
 .issue:first-child{border-top:0}
 .issue .sev{align-self:stretch;border-radius:4px;background:var(--c)}
 .issue b{font-weight:500;display:block}
@@ -250,10 +251,29 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .imp .imp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
 .imp .imp-row input[type=text]{flex:1;min-width:0;width:200px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding-inline:12px;outline:none}
 .imp .imp-row input[type=text]:focus{border-color:var(--brand)}
-.vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.vh{position:absolute!important;width:1px!important;height:1px!important;min-width:0!important;padding:0!important;border:0!important;opacity:0;overflow:hidden;clip-path:inset(50%);pointer-events:none}
 .field textarea{unicode-bidi:plaintext}
 .ini{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:600;font-family:var(--font-display);font-size:18px;color:var(--ink-3)}
 .pthumb img{width:100%;height:100%;object-fit:cover}
+.mcards{display:none}
+@media (max-width:700px){.tbl-wrap{display:none}.mcards{display:grid;gap:10px}}
+.mcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-decoration:none;padding:14px}
+.mc-main{display:grid;gap:5px;min-width:0;justify-items:start}
+.mc-main b{font-weight:500;line-height:1.3}
+.mc-meta{display:flex;gap:8px;align-items:center}
+.mc-meta small{color:var(--ink-3);font-size:11.5px}
+.mcard .sbar i{width:44px}
+.ph-thumb{width:44px;height:44px;border-radius:8px;overflow:hidden;background:repeating-conic-gradient(var(--surface-2) 0 25%,var(--surface) 0 50%) 0 0/12px 12px;flex:none}
+.ph-thumb img{width:100%;height:100%;object-fit:contain}
+.empty-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.empty-steps>div{display:grid;gap:10px;align-content:start}
+.empty-steps p{color:var(--ink-2);font-size:14px}
+.num-s{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);font-weight:600;font-size:14px}
+@media (max-width:700px){.empty-steps{grid-template-columns:1fr}}
+.view.enter>*{animation:rise .28s cubic-bezier(.2,.8,.2,1) both}
+.view.enter>*:nth-child(2){animation-delay:.03s}.view.enter>*:nth-child(3){animation-delay:.06s}.view.enter>*:nth-child(4){animation-delay:.09s}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+.mobile-nav{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 20px),transparent)}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start}
 .pcard{display:grid;gap:12px}
 .pcard.is-win{border-color:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
@@ -424,6 +444,10 @@ var S = {
   arText_broken:["Arabic text is broken","النص العربي مكسور"], arText_correct:["Arabic text is correct","النص العربي صحيح"], aiNote:["Claude's judgement before launch, not measured clicks.","تقدير Claude قبل النشر، وليس نقرات مقاسة."],
   photoNeeds:["Claude review runs on the Basira server with an Anthropic API key. Rule checks and background fixes work here.","مراجعة Claude تعمل على خادم بصيرة بمفتاح API. الفحوصات وإصلاح الخلفية تعمل هنا."],
   processing:["Working…","جارٍ العمل…"], mainReady:["Main image ready","صورة رئيسية جاهزة"], usedInStudio:["Photo set for","تم تعيين الصورة لـ"], bgDone:["Background removed","أُزيلت الخلفية"],
+  uploadPhoto:["Upload photo","ارفع صورة"], changePhoto:["Change photo","غيّر الصورة"], add:["Add","أضف"], mostProfit:["Most profitable","الأعلى ربحاً"],
+  pcStep1:["Add up to 4 photos you're considering for the main image.","أضف حتى ٤ صور تفكر في استخدامها كصورة رئيسية."],
+  pcStep2:["Each is checked against the channel's rules: size, white background, how much of the frame the product fills.","تُفحص كل صورة وفق قواعد القناة: المقاس، والخلفية البيضاء، ومساحة المنتج في الإطار."],
+  pcStep3:["Fix a failing photo in one click, then send the best one to Studio.","أصلح الصورة المخالفة بنقرة، ثم أرسل الأفضل إلى الاستوديو."],
   profit:["Unit economics","اقتصاديات الوحدة"], profitSub:["Profit per unit on each channel after VAT, fees, delivery, ads and returns.","الربح لكل وحدة في كل قناة بعد الضريبة والعمولات والتوصيل والإعلانات والمرتجعات."],
   country:["Country","الدولة"], priceL:["Price incl. VAT","السعر شامل الضريبة"], costL:["Product cost","تكلفة المنتج"], inboundL:["Inbound shipping per unit","شحن للمستودع لكل وحدة"],
   adsL:["Ad spend, % of price","الإعلانات، ٪ من السعر"], returnsL:["Return rate, %","نسبة المرتجعات ٪"], returnCostL:["Cost per return","تكلفة كل مرتجع"], codL:["Paid on delivery, %","الدفع عند الاستلام ٪"],
@@ -644,7 +668,9 @@ function vCatalog(){
   (rows.length ? rows.map(function(p){ var is = openIssues(p); var top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
     return '<tr data-href="listing-'+p.id+'" tabindex="0"><td><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b><small>'+esc(p.sku)+'</small>'+(p.imported ? ' <span class="tag brand">'+t("importedTag")+'</span>' : "")+'</span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span>' : '<span style="color:var(--ink-3)">—</span>')+'</td><td>'+arrow()+'</td></tr>'; }).join("")
   : '<tr><td colspan="7" class="empty">'+t("noResults")+'</td></tr>')+
-  '</tbody></table></div>';
+  '</tbody></table></div>'+
+  '<div class="mcards">'+(rows.length ? rows.map(function(p){ var is = openIssues(p), top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
+    return '<a class="card mcard" href="#listing-'+p.id+'"><span class="pthumb">'+thumb(p)+'</span><span class="mc-main"><b>'+esc(tr(p.name))+'</b><span class="mc-meta">'+chans(p)+'<small class="mono">'+esc(p.sku)+'</small></span>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span>'+sbar(p.score)+'</a>'; }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>';
 }
 
 function ring(s){ var off = 213.6*(1-s/100); return '<div class="ring" style="--c:'+scoreColor(s)+'"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" cx="40" cy="40" r="34" style="stroke-dashoffset:'+off+'"/></svg><b>'+s+'</b></div>'; }
@@ -694,7 +720,7 @@ function vReviews(){
     '<div class="card"><div class="card-h"><h2>'+t("themes")+'</h2><small><span style="color:var(--bad)">■</span> '+t("negative")+' &nbsp; <span style="color:var(--good)">■</span> '+t("positive")+'</small></div>'+
       keys.map(function(k){ var a = agg[k]; return '<div class="hbar" style="grid-template-columns:140px 1fr 50px"><span>'+tr(THEMES[k])+'</span><span class="tr" style="display:flex;gap:2px;background:transparent"><i style="width:'+(a.neg/max*100)+'%;background:var(--bad);border-radius:9px"></i><i style="width:'+(a.pos/max*100)+'%;background:var(--good);border-radius:9px"></i></span><span class="mono">'+(a.neg+a.pos)+'</span></div>'; }).join("")+
     '</div>'+
-    '<div class="card"><div class="card-h"><h2>'+t("quotes")+'</h2></div>'+
+    '<div class="card"><div class="card-h"><h2>'+t("quotes")+'</h2></div>'+(state.api && state.api.ai ? "" : '<p class="note" style="margin:-6px 0 12px">'+t("replyNeeds")+'</p>')+
       '<div class="chips" role="group" aria-label="'+t("dialect")+'" style="margin-bottom:12px">'+["all","gulf","egy","lev","msa"].map(function(d){ return '<button type="button" class="chip" data-dialect="'+d+'" aria-pressed="'+(state.dialect === d)+'">'+t(d)+'</button>'; }).join("")+'</div>'+
       '<div style="display:grid;gap:8px">'+(list.length ? list.map(function(x){ var key = x[1].id+"|"+x[1].quotes.indexOf(x[0]); return quoteHTML(x[0], x[1])+replyBlock(key); }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>'+
     '</div>'+
@@ -768,7 +794,7 @@ function replyBlock(key){
   var r = state.replies[key] || {}, ok = state.api && state.api.ai;
   return '<div class="reply" style="margin:-2px 0 6px">'+
     (r.text ? '<div class="fix"><span class="ar" dir="auto">'+esc(r.text)+'</span><span class="note">'+esc(r.en || "")+'</span>'+(r.needsPerson ? '<span class="tag bad" style="justify-self:start">'+t("needsPerson")+' '+esc(r.reason)+'</span>' : "")+'<button type="button" class="btn btn-ghost btn-sm" style="justify-self:start" data-copy="'+esc(key)+'">'+t("copy")+'</button></div>'
-      : '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-ghost btn-sm" data-reply="'+esc(key)+'"'+(ok && !r.busy ? "" : " disabled")+'>'+(r.busy ? t("replying") : t("reply"))+'</button>'+(ok ? "" : '<span class="note">'+t("replyNeeds")+'</span>')+(r.error ? '<span class="err">'+esc(r.error)+'</span>' : "")+'</div>')+
+      : '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-ghost btn-sm" data-reply="'+esc(key)+'"'+(ok && !r.busy ? "" : " disabled")+'>'+(r.busy ? t("replying") : t("reply"))+'</button>'+(r.error ? '<span class="err">'+esc(r.error)+'</span>' : "")+'</div>')+
   '</div>';
 }
 function runReply(key){
@@ -849,7 +875,7 @@ function vStudio(){
       '<div class="stage-tools"><button type="button" class="btn btn-ghost btn-sm" data-move="-1"'+(i === 0 ? " disabled" : "")+'>↑ '+t("moveUp")+'</button><button type="button" class="btn btn-ghost btn-sm" data-move="1"'+(i === set.length - 1 ? " disabled" : "")+'>↓ '+t("moveDown")+'</button><button type="button" class="btn btn-ghost btn-sm" data-remove="'+i+'"'+(set.length < 2 ? " disabled" : "")+'>'+t("removeSlide")+'</button></div>'+
     '</div>'+
     '<div class="card panel">'+
-      '<div class="field"><label for="f-photo">'+t("photo")+'</label><div class="file"><input type="file" id="f-photo" accept="image/png,image/jpeg,image/webp"></div><span class="note" id="photo-note">'+t("photoNote")+'</span>'+(photoOf(p) ? '<button type="button" class="btn btn-ghost btn-sm" id="st-bg" style="justify-self:start">'+t("removeBg")+'</button>' : "")+'</div>'+
+      '<div class="field"><span class="lbl">'+t("photo")+'</span><div class="file">'+(photoOf(p) ? '<span class="ph-thumb"><img src="'+photoOf(p)+'" alt=""></span>' : "")+'<label class="btn btn-ghost btn-sm" for="f-photo">'+(photoOf(p) ? t("changePhoto") : t("uploadPhoto"))+'</label><input type="file" id="f-photo" class="vh" accept="image/png,image/jpeg,image/webp">'+(photoOf(p) ? '<button type="button" class="btn btn-ghost btn-sm" id="st-bg">'+t("removeBg")+'</button>' : "")+'</div><span class="note" id="photo-note">'+t("photoNote")+'</span></div>'+
       '<div class="field"><span class="lbl">'+t("language")+'</span><div class="seg" role="group">'+[["ar","العربية"],["en","English"],["both",t("both")]].map(function(x){ return '<button type="button" data-lm="'+x[0]+'" aria-pressed="'+(state.langMode === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div></div>'+
       '<div class="field"><span class="lbl">'+t("numerals")+'</span><div class="seg" role="group"><button type="button" data-num="ar" aria-pressed="'+(state.num === "ar")+'">'+t("numAr")+'</button><button type="button" data-num="en" aria-pressed="'+(state.num === "en")+'">'+t("numEn")+'</button></div></div>'+
       '<div class="tpl-name"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span></div>'+
@@ -875,7 +901,7 @@ function vTemplates(){
     var fit = !tp.categories || tp.categories.indexOf(cat) > -1;
     return '<div class="tcard'+(fit ? "" : " dim")+'">'+pv('data-tpl="'+tp.id+'"')+'<div class="tmeta"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span>'+
       (tp.categories ? '<span class="tag'+(fit ? " good" : "")+'">'+t("forCat")+' '+tp.categories.map(function(c){ return t("cat_"+c); }).join(", ")+'</span>' : "")+
-      '<button type="button" class="btn btn-ghost btn-sm" data-add="'+tp.id+'">+ '+t("addTo")+' '+esc(tr(p.name).slice(0, 28))+'</button></div></div>';
+      '<button type="button" class="btn btn-ghost btn-sm" data-add="'+tp.id+'" aria-label="'+t("addTo")+' '+esc(tr(p.name))+'">+ '+t("add")+'</button></div></div>';
   }).join("")+'</div>';
 }
 
@@ -953,6 +979,7 @@ function vPhotos(){
     '<span style="margin-inline-start:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(ok ? "" : '<span class="note">'+t("photoNeeds")+'</span>')+'<button type="button" class="btn btn-primary" id="pc-review"'+(ok && pc.items.length && !pc.busy ? "" : " disabled")+'>'+(pc.busy ? t("reviewing") : t("reviewAi"))+'</button></span></div>'+
   (pc.error ? '<p class="err">'+esc(pc.error)+'</p>' : "")+
   (rv ? '<div class="card win"><span class="tag good">'+t("winner")+': '+(pc.items[rv.winner] ? (pc.items[rv.winner].label || "#"+(rv.winner + 1)) : "")+'</span><p style="margin-top:8px">'+esc(tr([rv.why.en, rv.why.ar]))+'</p><p class="note">'+t("aiNote")+'</p></div>' : "")+
+  (pc.items.length ? "" : '<div class="card empty-steps">'+["pcStep1","pcStep2","pcStep3"].map(function(k, i){ return '<div><span class="num-s">'+(i+1)+'</span><p>'+t(k)+'</p></div>'; }).join("")+'</div>')+
   '<div class="pgrid">'+pc.items.map(function(it, n){
     var checks = it.m ? mainImageChecks(it.m, pc.channel) : [];
     var r = rv && rv.photos.filter(function(x){ return x.index === n; })[0];
@@ -983,9 +1010,9 @@ function pfResults(){
   var money = function(v){ return (v < 0 ? "−" : "")+Math.abs(v).toLocaleString("en", {minimumFractionDigits:2, maximumFractionDigits:2})+" "+cur; };
   var pct = function(v){ return v == null ? "—" : Math.round(v * 100)+"%"; };
   var SEG = {vat:"var(--ink-3)", referral:"var(--saffron)", fixed:"var(--saffron)", payment:"var(--saffron)", cod:"var(--saffron)", fulfilment:"#5B8DEF", inbound:"#5B8DEF", ads:"#C2569B", returns:"var(--bad)", cost:"var(--ink-2)"};
-  return '<div class="pf-cards">'+rows.map(function(r){
+  return '<div class="pf-cards">'+rows.map(function(r, ri){
     var segs = r.lines.filter(function(l){ return l.amount > 0; });
-    return '<div class="card pf-card"><div class="card-h"><h2 style="display:flex;gap:8px;align-items:center"><span class="chan-mk" style="background:'+CH[r.channel].bg+';color:'+CH[r.channel].fg+'">'+CH[r.channel].m+'</span>'+CH[r.channel].n+'</h2></div>'+
+    return '<div class="card pf-card"><div class="card-h"><h2 style="display:flex;gap:8px;align-items:center"><span class="chan-mk" style="background:'+CH[r.channel].bg+';color:'+CH[r.channel].fg+'">'+CH[r.channel].m+'</span>'+CH[r.channel].n+'</h2>'+(ri === 0 && r.profit > 0 ? '<span class="tag good">'+t("mostProfit")+'</span>' : "")+'</div>'+
       '<div class="pf-big '+(r.profit < 0 ? "neg" : "")+'">'+money(r.profit)+'</div><span class="note">'+(r.profit < 0 ? t("loss") : t("perUnit"))+'</span>'+
       '<div class="stackbar" aria-hidden="true">'+segs.map(function(l){ return '<i title="'+t("l_"+l.key)+'" style="flex:'+l.amount+';background:'+SEG[l.key]+'"></i>'; }).join("")+(r.profit > 0 ? '<i style="flex:'+r.profit+';background:var(--good)"></i>' : "")+'</div>'+
       '<div class="pf-kv"><span>'+t("marginL")+'</span><b>'+pct(r.margin)+'</b><span>'+t("roiL")+'</span><b>'+pct(r.roi)+'</b><span>'+t("beAds")+'</span><b>'+pct(r.breakEvenAds)+'</b><span>'+t("bePrice")+'</span><b>'+(r.breakEvenPrice == null ? "—" : money(r.breakEvenPrice))+'</b></div>'+
@@ -1083,7 +1110,15 @@ function render(scroll){
   view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : vOverview();
   hydrate(view);
   document.title = "Basira · " + t(r === "listing" ? "catalog" : r);
-  if (scroll) window.scrollTo(0,0);
+  if (scroll){
+    window.scrollTo(0,0);
+    view.classList.remove("enter"); void view.offsetWidth; view.classList.add("enter");
+  }
+  var cur = document.querySelector('.mobile-nav a[aria-current="page"]');
+  if (cur && cur.parentNode.scrollWidth > cur.parentNode.clientWidth){
+    var nav = cur.parentNode, rn = nav.getBoundingClientRect(), rc = cur.getBoundingClientRect();
+    nav.scrollLeft += (rc.left + rc.width / 2) - (rn.left + rn.width / 2);
+  }
 }
 /* ---------- events ---------- */
 document.addEventListener("click", function(e){
