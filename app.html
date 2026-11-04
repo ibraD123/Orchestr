@@ -3655,7 +3655,7 @@ Object.assign(S, {
   changedL:["Products that got fixes (SKU or ASIN, one per line)","المنتجات المعدلة (SKU أو ASIN، كل واحد في سطر)"], changedHint:["Filled from approvals in this client. Edit it if the report uses ASINs.","مأخوذة من الموافقات لهذا العميل. عدّلها إن كان التقرير يستخدم ASIN."],
   upliftT:["Conversion uplift vs control","تحسن التحويل مقابل المقارنة"], noControl:["No untouched products in the report, so there's no control group: this is the raw change.","لا توجد منتجات بدون تعديل في التقرير، فلا مجموعة مقارنة: هذا تغير خام."],
   convChanged:["Conversion, changed","التحويل، المعدلة"], unitsChanged:["Units, changed","الوحدات، المعدلة"], convControl:["Conversion, control","التحويل، المقارنة"],
-  reportPreview:["Report for the client","تقرير العميل"], pdf:["Download PDF","نزّل PDF"], print:["Print or save as PDF","اطبع أو احفظ PDF"], pdfBusy:["Making PDF…","جارٍ إنشاء PDF…"],
+  reportPreview:["Report for the client","تقرير العميل"], pdf:["Download PDF","نزّل PDF"], reportHtml:["Save report (HTML)","احفظ التقرير (HTML)"], print:["Print or save as PDF","اطبع أو احفظ PDF"], pdfBusy:["Making PDF…","جارٍ إنشاء PDF…"],
   periodL:["Period","الفترة"], reportLang:["Report language","لغة التقرير"], agencyBrandHint:["The report carries your agency's name, logo and colour from Settings.","يحمل التقرير اسم وكالتك وشعارها ولونها من الإعدادات."],
   needBoth:["Upload both reports to compare.","ارفع التقريرين للمقارنة."], rowsRead:["{n} rows","{n} صفاً"], pts:["pts","نقطة"],
   setSub:["Agency profile, plan and usage, and each client's data.","ملف الوكالة والخطة والاستخدام وبيانات كل عميل."],
@@ -3693,7 +3693,12 @@ Object.assign(state, {sel:{}, shown:[], account:null, agency:null, extra:{},
 try { state.agency = JSON.parse(localStorage.getItem("basira-agency") || "null"); } catch(e){}
 
 function post(url, body){ return apiJson(url, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)}); }
-function download(blob, name){ var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+// Inside a published artifact, files go through the viewer's save prompt; elsewhere a plain download link works.
+var saver = null;
+if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(function(d){ saver = d; if (state.route === "results") render(); }).catch(function(){});
+function download(blob, name){
+  if (saver) return saver.save({filename:name, data:blob}).catch(function(e){ if (e && e.code !== "declined") toast(e.message || String(e.code)); });
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
 function readFileAs(file, how){ return new Promise(function(res, rej){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.onerror = function(){ rej(new Error("Couldn't read that file")); }; r[how](file); }); }
 function thisMonth(at){ return String(at || "").slice(0, 7) === new Date().toISOString().slice(0, 7); }
 
@@ -3927,7 +3932,7 @@ function vResults(){
   out += '<div class="card"><div class="card-h"><h2>'+t("reportPreview")+'</h2><small>'+t("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
     '<div class="exp-row"><div class="field" style="margin:0"><label for="x-period">'+t("periodL")+'</label><input id="x-period" value="'+esc(r.period || "")+'"></div>'+
       '<div class="field" style="margin:0"><span class="lbl">'+t("reportLang")+'</span><div class="seg" role="group"><button type="button" data-xrl="en" aria-pressed="'+(lang === "en")+'">English</button><button type="button" data-xrl="ar" aria-pressed="'+(lang === "ar")+'">العربية</button></div></div>'+
-      '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button></div>'+
+      '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button>'+(saver ? '<button type="button" class="btn btn-ghost" id="x-rep-html">'+t("reportHtml")+'</button>' : "")+'</div>'+
     '<iframe id="x-rep-frame" class="rep-frame" title="'+t("reportPreview")+'"></iframe></div>';
   return out;
 }
@@ -4105,6 +4110,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("#x-rep-sample"))){ sampleReports(); render(); return; }
   if ((el = e.target.closest("[data-xrl]"))){ state.res.lang = el.dataset.xrl; render(); return; }
   if ((el = e.target.closest("#x-pdf"))){ runPdf(); return; }
+  if ((el = e.target.closest("#x-rep-html"))){ var rr = resResult(); if (rr) download(new Blob([reportHTML(reportInput(rr))], {type:"text/html"}), "results-"+state.ws+".html"); return; }
   if ((el = e.target.closest("#x-print"))){ var fr = document.getElementById("x-rep-frame"); try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch(err){ var wnd = window.open("", "_blank"); if (wnd){ wnd.document.write(lastReport); wnd.document.close(); wnd.print(); } } return; }
   if ((el = e.target.closest("#x-ag-save"))){ saveAgency(); return; }
   if ((el = e.target.closest("[data-xplan]"))){ runCheckout(el.dataset.xplan); return; }
