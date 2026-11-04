@@ -1,6 +1,6 @@
 <title>Basira</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Basira is AI product content intelligence for brands and agencies selling on Amazon, Noon, Salla, Zid and Shopify.">
+<meta name="description" content="Basira helps e-commerce agencies improve hundreds of Amazon, Noon, Salla and Shopify listings in Arabic and English without growing their content team.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -98,11 +98,12 @@ html[lang="ar"] .eyebrow{font-family:var(--font-body);letter-spacing:0;font-size
 .hero-copy{display:grid;gap:26px;min-width:0}
 .pill{display:inline-flex;align-items:center;gap:10px;width:max-content;max-width:100%;padding:6px 14px 6px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;color:var(--ink-2)}
 [dir="rtl"] .pill{padding:6px 6px 6px 14px}
+@media (max-width:520px){.pill{flex-wrap:wrap;border-radius:16px;width:auto}}
 .pill b{background:var(--saffron-soft);color:var(--saffron-ink);font-weight:500;border-radius:999px;padding:2px 10px;font-size:12.5px}
-.h1{font-size:clamp(44px,6.4vw,84px);font-weight:750;letter-spacing:-.035em;line-height:.98}
+.h1{font-size:clamp(40px,5.2vw,68px);font-weight:750;letter-spacing:-.03em;line-height:1.02}
 .h1 em{font-style:normal;color:var(--brand);position:relative;white-space:nowrap}
 .h1 em::after{content:"";position:absolute;inset-inline:0;bottom:.04em;height:.12em;background:var(--saffron);opacity:.55;border-radius:4px;z-index:-1}
-html[lang="ar"] .h1{font-size:clamp(40px,5.6vw,74px);line-height:1.2;font-weight:700}
+html[lang="ar"] .h1{font-size:clamp(36px,4.8vw,62px);line-height:1.25;font-weight:700}
 .hero-sub{font-size:clamp(17px,1.5vw,19.5px);color:var(--ink-2);max-width:56ch}
 .audit-form{display:flex;gap:8px;padding:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);max-width:560px}
 .audit-form input{flex:1;min-width:0;border:0;background:transparent;padding-inline:16px;font-size:15.5px;outline:none}
@@ -438,17 +439,17 @@ footer a:hover{color:var(--ink)}
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="pill"><b data-i18n="hero.pill.b">New</b><span data-i18n="hero.pill">Native Arabic typography in every image</span></span>
-      <h1 class="h1" data-i18n="hero.h1">See every listing the way your <em>buyers</em> do.</h1>
-      <p class="hero-sub" data-i18n="hero.sub">Basira is product content intelligence for brands and agencies selling on Amazon, Noon, Salla, Zid and Shopify. It finds what is costing you sales, learns from what buyers write in reviews, fixes the content in Arabic and English, and publishes the fix.</p>
+      <span class="pill"><b data-i18n="hero.pill.b">For e-commerce agencies</b><span data-i18n="hero.pill">Amazon · Noon · Salla · Shopify</span></span>
+      <h1 class="h1" data-i18n="hero.h1">Improve <em>hundreds</em> of listings without growing your content team.</h1>
+      <p class="hero-sub" data-i18n="hero.sub">Find what's costing your clients sales, fix it in Arabic and English on brand, and publish faster across Amazon, Noon, Salla and Shopify.</p>
       <form class="audit-form" id="audit-form" novalidate>
         <label for="audit-url" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" data-i18n="hero.label">Store or product link</label>
         <input id="audit-url" type="text" inputmode="url" autocomplete="url" placeholder="noon.com/saudi-en/your-store" data-i18n-ph="hero.ph">
-        <button class="btn btn-primary" type="submit"><span data-i18n="hero.btn">Audit my store</span><svg class="flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="btn btn-primary" type="submit"><span data-i18n="hero.btn">Audit a client store</span><svg class="flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </form>
       <p class="form-note" id="audit-note" aria-live="polite"></p>
       <div class="hero-meta">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m1">Free audit of 20 products</span></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m1">Free audit of a client's top 20 products</span></span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m2">Report in Arabic and English</span></span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="hero.m3">Nothing goes live without your approval</span></span>
       </div>
@@ -891,11 +892,11 @@ footer a:hover{color:var(--ink)}
 (function(){
   var AR = {
     "nav.how":"كيف تعمل","nav.arabic":"العربية أولاً","nav.studio":"الاستوديو","nav.agencies":"للوكالات","nav.pricing":"الأسعار","nav.cta":"تدقيق مجاني","nav.demo":"عرض حي","nav.app":"افتح التطبيق",
-    "hero.pill.b":"جديد","hero.pill":"خط عربي أصيل في كل صورة",
-    "hero.h1":"شاهد كل منتج كما <em>يراه عميلك</em>.",
-    "hero.sub":"بصيرة منصة ذكاء اصطناعي لمحتوى المنتجات، للعلامات التجارية والوكالات التي تبيع على أمازون ونون وسلة وزد وشوبيفاي. تكتشف ما يُفقدك المبيعات، وتتعلّم مما يكتبه العملاء في التقييمات، وتصلح المحتوى بالعربية والإنجليزية، ثم تنشر التعديل.",
-    "hero.label":"رابط المتجر أو المنتج","hero.ph":"رابط متجرك على نون أو سلة","hero.btn":"دقّق متجري",
-    "hero.m1":"تدقيق مجاني لـ ٢٠ منتجاً","hero.m2":"تقرير بالعربية والإنجليزية","hero.m3":"لا يُنشر شيء دون موافقتك",
+    "hero.pill.b":"لوكالات التجارة الإلكترونية","hero.pill":"أمازون · نون · سلة · شوبيفاي",
+    "hero.h1":"حسّن <em>مئات</em> المنتجات دون توسيع فريق المحتوى.",
+    "hero.sub":"اكتشف ما يُفقد عملاءك المبيعات، وأصلحه بالعربية والإنجليزية بهوية علاماتهم، وانشر أسرع على أمازون ونون وسلة وشوبيفاي.",
+    "hero.label":"رابط المتجر أو المنتج","hero.ph":"رابط متجرك على نون أو سلة","hero.btn":"دقّق متجر عميل",
+    "hero.m1":"تدقيق مجاني لأهم ٢٠ منتجاً لدى عميلك","hero.m2":"تقرير بالعربية والإنجليزية","hero.m3":"لا يُنشر شيء دون موافقتك",
     "demo.tagA":"٤ مشكلات في هذا المنتج","demo.tagA2":"نُشر على نون · قبل دقيقتين","demo.tagB":"١٨ تقييماً تسأل عن الثبات",
     "demo.before":"قبل","demo.after":"بعد بصيرة","demo.score":"تقييم المحتوى","demo.scoreB":"أقل من متوسط الفئة (٧٢)","demo.scoreA":"ضمن أفضل ١٠٪ في العطور · السعودية",
     "demo.i1":"النص العربي في الصورة مكسور","demo.i1a":"خط عربي صحيح من اليمين لليسار",
