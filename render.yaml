@@ -20,3 +20,12 @@ services:
         sync: false
       - key: SPAPI_SELLER_ID
         sync: false
+      # The service's public https address (e.g. https://basira.onrender.com): export image links use it.
+      - key: PUBLIC_URL
+        sync: false
+      - key: MOYASAR_SECRET_KEY
+        sync: false
+      - key: IMAGE_API_URL
+        sync: false
+      - key: IMAGE_API_KEY
+        sync: false

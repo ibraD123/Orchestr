@@ -100,3 +100,67 @@ export function mainImageChecks(m, channel) {
   out.push({ key: "square", ok: m.width && m.height ? Math.abs(m.width / m.height - 1) < 0.05 : false, value: m.width && m.height ? (m.width / m.height).toFixed(2) : "?", need: "1 : 1" });
   return out;
 }
+
+// Colour fidelity: does a generated photo (on-model, lifestyle) keep the product's colours?
+// Perceptual-ish RGB distance ("redmean"), 0 for equal colours, about 765 for black vs white.
+export function colourDiff(a, b) {
+  const rm = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+  return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db);
+}
+
+/**
+ * Main colours of an image. With product: true, pixels close to the border colour (the studio
+ * background) and transparent pixels are left out, so only the product counts.
+ * @returns {Array<{ rgb:number[], share:number }>} largest first
+ */
+export function dominantColours(d, w, h, { product = false, max = 4, minShare = 0.06 } = {}) {
+  const bg = product ? borderColour(d, w, h) : null;
+  const step = Math.max(1, Math.floor(Math.sqrt((w * h) / 60000)));
+  const bins = new Map();
+  let total = 0;
+  for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
+    const i = (y * w + x) * 4;
+    if (d[i + 3] < 128) continue;
+    const c = [d[i], d[i + 1], d[i + 2]];
+    if (bg && colourDiff(c, bg) < 60) continue;
+    const k = ((c[0] >> 5) << 6) | ((c[1] >> 5) << 3) | (c[2] >> 5);
+    const b = bins.get(k) || { n: 0, r: 0, g: 0, b: 0 };
+    b.n++; b.r += c[0]; b.g += c[1]; b.b += c[2];
+    bins.set(k, b); total++;
+  }
+  if (!total) return [];
+  const sorted = [...bins.values()].sort((p, q) => q.n - p.n).map((b) => ({ rgb: [b.r / b.n, b.g / b.n, b.b / b.n], n: b.n }));
+  const out = [];
+  for (const s of sorted) {
+    const near = out.find((o) => colourDiff(o.rgb, s.rgb) < 70);
+    if (near) {
+      const n = near.n + s.n;
+      near.rgb = near.rgb.map((v, j) => (v * near.n + s.rgb[j] * s.n) / n);
+      near.n = n;
+    } else out.push({ rgb: s.rgb, n: s.n });
+  }
+  return out.map((o) => ({ rgb: o.rgb.map(Math.round), share: Math.round((o.n / total) * 1000) / 1000 }))
+    .filter((o) => o.share >= minShare).sort((p, q) => q.share - p.share).slice(0, max);
+}
+
+/**
+ * Compare the product's colours in the original photo with a generated photo.
+ * Each main product colour must appear in the new photo (at least 1% of it) close to the original.
+ * @returns {{ score:number, ok:boolean, colours:Array<{ rgb, share, nearest, distance, ok }> }}
+ */
+export function colourFidelity(orig, gen, { tolerance = 45 } = {}) {
+  const want = dominantColours(orig.data, orig.width, orig.height, { product: true });
+  const have = dominantColours(gen.data, gen.width, gen.height, { max: 24, minShare: 0.01 });
+  if (!want.length || !have.length) return { score: 0, ok: false, colours: [] };
+  let weighted = 0, shares = 0;
+  const colours = want.map((c) => {
+    let best = null, dist = Infinity;
+    for (const hc of have) { const dd = colourDiff(c.rgb, hc.rgb); if (dd < dist) { dist = dd; best = hc.rgb; } }
+    const okc = dist <= tolerance;
+    weighted += c.share * Math.max(0, Math.min(1, 1 - (dist - tolerance / 2) / (tolerance * 2)));
+    shares += c.share;
+    return { rgb: c.rgb, share: c.share, nearest: best, distance: Math.round(dist), ok: okc };
+  });
+  const score = Math.round((weighted / shares) * 100) / 100;
+  return { score, ok: score >= 0.8 && colours.every((c) => c.ok || c.share < 0.2), colours };
+}

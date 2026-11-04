@@ -99,3 +99,55 @@ export async function amazonStore(sellerId, marketplace, { limit = 60 } = {}, c 
   } while (pageToken && items.length < limit);
   return items.slice(0, limit);
 }
+
+/* ---------- publishing approved content (Listings Items API, PATCH) ---------- */
+
+/** JSON Patch for one listing: title and bullets in both languages, plus image links when hosted. */
+export function listingPatches({ copy, images }, marketplace) {
+  const c = copy || {};
+  const [enTag, arTag] = marketplace.locales;
+  const mk = (value, tag) => ({ value, language_tag: tag, marketplace_id: marketplace.id });
+  const patches = [];
+  const names = [c.titleEn && mk(c.titleEn, enTag), c.titleAr && mk(c.titleAr, arTag)].filter(Boolean);
+  if (names.length) patches.push({ op: "replace", path: "/attributes/item_name", value: names });
+  const bullets = (c.bulletsEn || []).slice(0, 5).map((b) => mk(b, enTag)).concat((c.bulletsAr || []).slice(0, 5).map((b) => mk(b, arTag))).filter((b) => b.value);
+  if (bullets.length) patches.push({ op: "replace", path: "/attributes/bullet_point", value: bullets });
+  const hosted = (images || []).filter((u) => /^https:\/\//.test(u)).slice(0, 9);
+  hosted.forEach((u, i) => patches.push({
+    op: "replace", path: "/attributes/" + (i === 0 ? "main_product_image_locator" : "other_product_image_locator_" + i),
+    value: [{ media_location: u, marketplace_id: marketplace.id }]
+  }));
+  return patches;
+}
+
+async function spapiSend(c, method, path, params, body) {
+  const token = await accessToken(c);
+  const r = await safeFetch(`${c.endpoint}${path}?${new URLSearchParams(params)}`, {
+    method, body: body ? JSON.stringify(body) : undefined, timeoutMs: 20_000, allowStatus: [400, 404],
+    headers: { "x-amz-access-token": token, "Content-Type": "application/json", Accept: "application/json" }
+  });
+  let j = {};
+  try { j = JSON.parse(r.body.toString("utf8") || "{}"); } catch { /* keep empty */ }
+  return { status: r.status, body: j };
+}
+
+/**
+ * Update one of the connected seller's listings. The product type is read from the live listing,
+ * so the patch is validated against the right schema. Amazon answers ACCEPTED (queued) or INVALID with issues.
+ * @returns {{ sku, status, submissionId?, issues: Array<{ code, message, severity }> }}
+ */
+export async function amazonPublish(item, marketplace, c = amazonConfig()) {
+  if (!amazonConfigured(c) || !c.sellerId) throw new ConnectorError("Publishing to Amazon needs a connected seller account (SPAPI_CLIENT_ID, SPAPI_CLIENT_SECRET, SPAPI_REFRESH_TOKEN and SPAPI_SELLER_ID).", 503);
+  const sku = String(item.sku || "").trim();
+  if (!sku) throw new ConnectorError("Each product needs its seller SKU to publish to Amazon");
+  const base = `/listings/2021-08-01/items/${encodeURIComponent(c.sellerId)}/${encodeURIComponent(sku)}`;
+  const cur = await spapiSend(c, "GET", base, { marketplaceIds: marketplace.id, includedData: "summaries" });
+  if (cur.status === 404) return { sku, status: "NOT_FOUND", issues: [{ code: "NOT_FOUND", message: "This SKU isn't in the connected seller account for this marketplace", severity: "ERROR" }] };
+  const productType = cur.body.summaries && cur.body.summaries[0] && cur.body.summaries[0].productType;
+  if (!productType) return { sku, status: "NOT_FOUND", issues: [{ code: "NO_PRODUCT_TYPE", message: "Amazon didn't return the product type for this SKU", severity: "ERROR" }] };
+  const patches = listingPatches(item, marketplace);
+  if (!patches.length) return { sku, status: "SKIPPED", issues: [] };
+  const r = await spapiSend(c, "PATCH", base, { marketplaceIds: marketplace.id, issueLocale: "en_US" }, { productType, patches });
+  const issues = (r.body.issues || (r.body.errors || []).map((e) => ({ code: e.code, message: e.message, severity: "ERROR" }))).map((i) => ({ code: i.code, message: i.message, severity: i.severity }));
+  return { sku, status: r.body.status || (r.status >= 400 ? "INVALID" : "ACCEPTED"), submissionId: r.body.submissionId, issues };
+}

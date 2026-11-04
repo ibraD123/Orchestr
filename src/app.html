@@ -342,6 +342,7 @@ pre.brief{white-space:pre-wrap;font-family:var(--font-mono);font-size:12px;line-
 
 .mcards{display:none}
 @media (max-width:700px){.tbl-wrap{display:none}.mcards{display:grid;gap:10px}}
+.mc-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px;align-items:center}.mc-ck{display:grid;place-items:center;width:32px;height:44px;cursor:pointer}.mc-ck input{width:18px;height:18px;accent-color:var(--brand)}
 .mcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-decoration:none;padding:14px}
 .mc-main{display:grid;gap:5px;min-width:0;justify-items:start}
 .mc-main b{font-weight:500;line-height:1.3}
@@ -423,6 +424,45 @@ table.fees input{width:72px;height:32px;border:1px solid var(--line);border-radi
 .toast.on{transform:none;opacity:1}
 .toast .dot{color:var(--good)}
 .demo-banner{font-size:12.5px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+/* usage meter, bulk fixes, export, results, settings, on-model */
+a.credits{text-decoration:none;color:inherit}a.credits:hover{filter:brightness(1.1)}.credits small{color:#9DB3AC;font-size:11.5px}
+.selbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
+th.ck-cell,td.ck-cell{width:44px;padding-inline-end:0}.ck-cell label{display:grid;place-items:center;width:28px;height:28px;cursor:pointer}.ck-cell input{width:16px;height:16px;accent-color:var(--brand);cursor:pointer}
+.bitems{display:grid;gap:12px;margin-block:14px}
+.bitem{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:16px;align-items:start}
+.bitem.is-approved{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}.bitem.is-skipped{opacity:.62}
+.bhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.bhead small{color:var(--ink-3);font-size:12px}
+.bchg{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.bchg .tag{white-space:normal}
+.bdiff{display:grid;grid-template-columns:26px minmax(0,1fr);gap:6px 8px;margin-top:10px;font-size:13.5px}
+.bdiff .lbl{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);padding-top:2px}
+.bdiff>span:not(.lbl){justify-self:start}.bdiff del{display:block;color:var(--ink-3);text-decoration-color:var(--bad)}.bdiff ins{display:block;text-decoration:none}
+.bslides{display:flex;gap:6px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.bslides .pv{width:52px;aspect-ratio:4/5;border-radius:6px;overflow:hidden;position:relative;border:1px solid var(--line);flex:none}
+.bact{display:grid;gap:6px;min-width:110px}
+@media (max-width:760px){.bitem{grid-template-columns:40px minmax(0,1fr)}.bact{grid-column:1/-1;display:flex;flex-wrap:wrap}}
+.exp-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.exp-row .field{min-width:160px}
+.exp-done{margin-top:12px;display:grid;gap:6px;justify-items:start}
+.pub{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:8px}
+.publist{display:grid;gap:6px}.publist>div{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.upl{display:grid;grid-template-columns:1fr 1fr;gap:12px}.upl>div{border:1px dashed var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;justify-items:start;align-content:start}
+@media (max-width:640px){.upl{grid-template-columns:1fr}}
+.rep-frame{display:block;width:100%;aspect-ratio:210/297;border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:14px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.stack{display:grid;gap:14px}
+.plan{border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:6px;align-content:start;justify-items:start;font-size:13px}
+.plan.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}.plan .price{font-family:var(--font-display);font-size:22px;line-height:1.1}.plan .price small{font-size:12px;font-weight:400;color:var(--ink-3)}
+.meter{height:8px;border-radius:8px;background:var(--surface-2);overflow:hidden}.meter i{display:block;height:100%;background:var(--brand);border-radius:8px}
+.wsrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+@media (max-width:640px){.wsrow{grid-template-columns:1fr}.wsrow .exp-row{justify-content:flex-start!important}}
+.toggle{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13.5px}.toggle input{width:18px;height:18px;accent-color:var(--brand);margin-top:2px;flex:none}
+.confirm{grid-column:1/-1;background:var(--bad-soft);border-radius:10px;padding:12px;display:grid;gap:10px;font-size:13.5px}
+.btn-danger{background:var(--bad);color:#fff}
+.agp{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.agp img{max-height:40px;max-width:160px}
+.field input[type=color]{height:38px;padding:3px;width:64px}
+.om-grid{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:16px}.om-grid .field{margin-bottom:10px}.om-grid .seg{flex-wrap:wrap}.om-grid .seg button{flex:1 0 auto;padding-inline:8px}
+.om-ref{width:100%;aspect-ratio:4/5;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);overflow:hidden;margin-top:6px}.om-ref img{width:100%;height:100%;object-fit:contain}
+@media (max-width:640px){.om-grid{grid-template-columns:1fr}.om-ref{max-width:180px}}
+.omgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.omgrid figure{margin:0;display:grid;gap:6px;justify-items:start}.omgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.omgrid .tag{white-space:normal}
+label.is-off{opacity:.45;pointer-events:none}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -719,7 +759,7 @@ var ICONS = {
 function navHTML(mobile){
   var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","brand","audit","catalog","photos","reviews","templates","studio","profit","approvals"].map(function(k){
+  return ["overview","brand","audit","catalog","batch","photos","reviews","templates","studio","approvals","results","profit","settings"].map(function(k){
     var href = k === "studio" ? (state.pid ? "studio-"+state.pid : "catalog") : k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -731,7 +771,7 @@ function renderSide(){
     '<a class="brand" href="#overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#52C4AE"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#04120F"/><circle cx="16" cy="16" r="3" fill="#52C4AE"/></svg>Basira <small>بصيرة</small></a>'+
     wsBlock()+
     '<nav class="navl" aria-label="Sections">'+navHTML(false)+'</nav>'+
-    '<div class="side-foot"><div class="credits"><span>'+t("credits")+'</span><span class="tr"><i></i></span><b>'+t("creditsOf")+'</b></div><a href="./">'+t("site")+'</a></div>';
+    '<div class="side-foot">'+usageMeter()+'<a href="./">'+t("site")+'</a></div>';
   document.getElementById("mnav").innerHTML = wsSelect() + navHTML(true);
 }
 
@@ -751,7 +791,7 @@ function vOverview(){
   var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, ps.length ? Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length) : 0, ps.length]; }).filter(function(c){ return c[2]; });
   return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+esc(tf("ovSub2", {name: tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), n: P.length}))+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span></div>'+
   '<div class="kpis">'+
-    '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span><span class="up">+9</span> '+t("vsLast")+'</span></div>'+
+    '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span>'+tf("fixedThisMonth", {n:approvedThisMonth()})+'</span></div>'+
     '<div class="kpi"><small>'+t("needFix")+'</small><b>'+low+'</b><span>/ '+P.length+'</span></div>'+
     '<div class="kpi"><small>'+t("pending")+'</small><b>'+pend+'</b><span><a href="#approvals">'+t("approvals")+'</a></span></div>'+
     '<div class="kpi"><small>'+t("analyzed")+'</small><b>'+revs.toLocaleString("en")+'</b><span>'+t("dialects5")+'</span></div>'+
@@ -782,18 +822,20 @@ function vCatalog(){
     if (q && (p.name[0]+" "+p.name[1]+" "+p.sku).toLowerCase().indexOf(q) < 0) return false;
     return true;
   }).sort(function(a,b){ return state.sort === "score" ? a.score-b.score : state.sort === "reviews" ? b.rev-a.rev : tr(a.name).localeCompare(tr(b.name)); });
+  state.shown = rows.map(function(p){ return p.id; });
+  var allOn = rows.length && rows.every(function(p){ return state.sel[p.id]; });
   return '<div class="head"><div><h1>'+t("catalog")+'</h1><p>'+P.length+' · Noon, Amazon, Salla, Zid, Shopify</p></div></div>'+
   importCard()+
   '<div class="toolbar">'+(nImp ? '<div class="chips" role="group">'+["all","imported","sample"].map(function(k){ return '<button type="button" class="chip" data-src="'+k+'" aria-pressed="'+(state.src === k)+'">'+t("src_"+k)+(k === "imported" ? " · "+nImp : "")+'</button>'; }).join("")+'</div>' : "")+'<div class="chips" role="group">'+
     ["all"].concat(Object.keys(CH)).map(function(c){ return '<button type="button" class="chip" data-chan="'+c+'" aria-pressed="'+(state.chan === c)+'">'+(c === "all" ? t("all") : CH[c].n)+'</button>'; }).join("")+
-  '</div><select class="sel" id="sort" aria-label="Sort" style="margin-inline-start:auto"><option value="score"'+(state.sort === "score" ? " selected" : "")+'>'+t("sortScore")+'</option><option value="reviews"'+(state.sort === "reviews" ? " selected" : "")+'>'+t("sortReviews")+'</option><option value="name"'+(state.sort === "name" ? " selected" : "")+'>'+t("sortName")+'</option></select></div>'+
-  '<div class="tbl-wrap"><table><thead><tr><th>'+t("thProduct")+'</th><th>'+t("thChannels")+'</th><th>'+t("thScore")+'</th><th>'+t("thTop")+'</th><th>'+t("thIssues")+'</th><th>'+t("thRating")+'</th><th></th></tr></thead><tbody>'+
+  '</div><select class="sel" id="sort" aria-label="Sort" style="margin-inline-start:auto"><option value="score"'+(state.sort === "score" ? " selected" : "")+'>'+t("sortScore")+'</option><option value="reviews"'+(state.sort === "reviews" ? " selected" : "")+'>'+t("sortReviews")+'</option><option value="name"'+(state.sort === "name" ? " selected" : "")+'>'+t("sortName")+'</option></select></div>'+selBar()+
+  '<div class="tbl-wrap"><table><thead><tr><th class="ck-cell"><label><input type="checkbox" id="x-sel-all" aria-label="'+t("selectAll")+'"'+(allOn ? " checked" : "")+'></label></th><th>'+t("thProduct")+'</th><th>'+t("thChannels")+'</th><th>'+t("thScore")+'</th><th>'+t("thTop")+'</th><th>'+t("thIssues")+'</th><th>'+t("thRating")+'</th><th></th></tr></thead><tbody>'+
   (rows.length ? rows.map(function(p){ var is = openIssues(p); var top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
-    return '<tr data-href="listing-'+p.id+'" tabindex="0"><td><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b><small>'+esc(p.sku)+'</small>'+(p.imported ? ' <span class="tag brand">'+t("importedTag")+'</span>' : "")+'</span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span>' : '<span style="color:var(--ink-3)">—</span>')+'</td><td>'+arrow()+'</td></tr>'; }).join("")
-  : '<tr><td colspan="7" class="empty">'+t("noResults")+'</td></tr>')+
+    return '<tr data-href="listing-'+p.id+'" tabindex="0"><td class="ck-cell"><label><input type="checkbox" data-xsel="'+p.id+'" aria-label="'+t("selectRow")+' '+esc(tr(p.name))+'"'+(state.sel[p.id] ? " checked" : "")+'></label></td><td><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b><small>'+esc(p.sku)+'</small>'+(p.imported ? ' <span class="tag brand">'+t("importedTag")+'</span>' : "")+'</span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span>' : '<span style="color:var(--ink-3)">—</span>')+'</td><td>'+arrow()+'</td></tr>'; }).join("")
+  : '<tr><td colspan="8" class="empty">'+t("noResults")+'</td></tr>')+
   '</tbody></table></div>'+
   '<div class="mcards">'+(rows.length ? rows.map(function(p){ var is = openIssues(p), top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
-    return '<a class="card mcard" href="#listing-'+p.id+'"><span class="pthumb">'+thumb(p)+'</span><span class="mc-main"><b>'+esc(tr(p.name))+'</b><span class="mc-meta">'+chans(p)+'<small class="mono">'+esc(p.sku)+'</small></span>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span>'+sbar(p.score)+'</a>'; }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>';
+    return '<div class="mc-wrap"><label class="mc-ck"><input type="checkbox" data-xsel="'+p.id+'" aria-label="'+t("selectRow")+' '+esc(tr(p.name))+'"'+(state.sel[p.id] ? " checked" : "")+'></label><a class="card mcard" href="#listing-'+p.id+'"><span class="pthumb">'+thumb(p)+'</span><span class="mc-main"><b>'+esc(tr(p.name))+'</b><span class="mc-meta">'+chans(p)+'<small class="mono">'+esc(p.sku)+'</small></span>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span>'+sbar(p.score)+'</a></div>'; }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>';
 }
 
 function ring(s){ var off = 213.6*(1-s/100); return '<div class="ring" style="--c:'+scoreColor(s)+'"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" cx="40" cy="40" r="34" style="stroke-dashoffset:'+off+'"/></svg><b>'+s+'</b></div>'; }
@@ -996,7 +1038,7 @@ function vStudio(){
   if (state.slide < 0) state.slide = 0;
   var i = state.slide, sl = set[i], tp = templateById(sl.tpl);
   var g = state.gen[p.id] || {phase:"idle"}, server = state.api && state.api.render;
-  var stepNames = ["st1","st2","st3", server ? "st4r" : "st4"], outs = state.renders[p.id], kitIdx = kitIndex(p), bk = brandKit();
+  var stepNames = ["st1","st2","st3", server ? "st4r" : "st4p"], outs = state.renders[p.id], kitIdx = kitIndex(p), bk = brandKit();
   return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
     '<select class="sel" id="pick" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
   '<div class="studio">'+
@@ -1004,7 +1046,7 @@ function vStudio(){
       '<a class="btn btn-ghost" href="#templates">+ '+t("addSlide")+'</a></div>'+
     '<div class="stage"><div class="stage-box" id="canvas-wrap">'+pv('data-pid="'+p.id+'" data-idx="'+i+'"', "big")+(g.phase === "run" ? '<div class="scan"></div>' : "")+'</div>'+
       '<div class="stage-meta">'+
-        (g.phase === "done" || g.phase === "sent" ? (g.server ? '<span class="tag good">PNG 1600 × 2000 × '+(outs ? outs.length : set.length)+'</span>' : '<span class="tag good">'+t("fidelity")+' 98.6%</span><span class="tag good">'+t("rules")+'</span><span class="tag">'+t("demoTag")+'</span>') : g.phase === "error" ? '<span class="tag bad">'+t("renderErr")+' '+esc(g.error)+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
+        (g.phase === "done" || g.phase === "sent" ? (g.server ? '<span class="tag good">PNG 1600 × 2000 × '+(outs ? outs.length : set.length)+'</span><span class="tag">'+t("photoAsIs")+'</span>' : '<span class="tag">'+t("previewOnly")+'</span><span class="tag">'+t("photoAsIs")+'</span><span class="tag">'+t("pngNeedsServer")+'</span>') : g.phase === "error" ? '<span class="tag bad">'+t("renderErr")+' '+esc(g.error)+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
       '</div>'+
       scoreCard(slideCheck(p, sl), "bscore")+
       '<div class="stage-tools"><button type="button" class="btn btn-ghost btn-sm" data-move="-1"'+(i === 0 ? " disabled" : "")+'>↑ '+t("moveUp")+'</button><button type="button" class="btn btn-ghost btn-sm" data-move="1"'+(i === set.length - 1 ? " disabled" : "")+'>↓ '+t("moveDown")+'</button><button type="button" class="btn btn-ghost btn-sm" data-remove="'+i+'"'+(set.length < 2 ? " disabled" : "")+'>'+t("removeSlide")+'</button></div>'+
@@ -1016,7 +1058,7 @@ function vStudio(){
       '<div class="tpl-name"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span></div>'+
       tp.fields.map(function(fd){ return fieldInput(fd, sl.fields[fd.key] != null ? sl.fields[fd.key] : (tp.sample[fd.key] || "")); }).join("")+
       '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+(bk ? '<button type="button" data-kit="-1" aria-pressed="'+(kitIdx === -1)+'" aria-label="'+t("brandKitName")+'" title="'+t("brandKitName")+'" class="sw-brand"><i style="background:'+bk.bg+'"></i><i style="background:'+bk.fg+'"></i></button>' : "")+KITS.map(function(k,j){ return '<button type="button" data-kit="'+j+'" aria-pressed="'+(kitIdx === j)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div>'+(tp.kit ? '<span class="note">'+t("seasonalKit")+'</span>' : "")+'</div>'+
-      (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(sn,j){ var c = j < g.step ? "done" : j === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(sn)+(j === 3 && c === "done" && !g.server ? ' · 98.6%' : "")+'</div>'; }).join("")+'</div>' : "")+
+      (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(sn,j){ var c = j < g.step ? "done" : j === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(sn)+'</div>'; }).join("")+'</div>' : "")+
       '<div style="display:grid;gap:8px">'+
         '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? tf("generateN", {n:set.length}) : t("regenerate"))+'</button>'+
         '<button type="button" class="btn btn-ghost" id="send"'+(g.phase === "done" ? "" : " disabled")+'>'+(g.phase === "sent" ? t("sent")+" ✓" : t("sendAppr"))+'</button>'+
@@ -1044,13 +1086,13 @@ function vApprovals(){
   var q = state.queue;
   return '<div class="head"><div><h1>'+t("approvals")+'</h1><p>'+t("apprSub")+'</p></div></div>'+
   (q.length ? '<div style="display:grid;gap:12px">'+q.map(function(it){ var p = PM[it.pid], iss = ISSUES[it.issue];
-    var stTag = it.status === "pending" ? '<span class="tag warn">'+t("pending")+'</span>' : it.status === "publishing" ? '<span class="tag brand">'+t("publishing")+'</span>' : it.status === "live" ? '<span class="tag good"><span class="dot"></span>'+t("live")+'</span>' : '<span class="tag">'+t("changesReq")+'</span>';
+    var stTag = it.status === "pending" ? '<span class="tag warn">'+t("pending")+'</span>' : it.status === "approved" ? '<span class="tag good"><span class="dot"></span>'+t("approvedReady")+'</span>' : '<span class="tag">'+t("changesReq")+'</span>';
     return '<div class="card appr">'+
       '<div class="ba"><span class="m" style="background:linear-gradient(160deg,#B9BDB9,#8E948F);display:grid;place-items:center;filter:grayscale(.5)">'+sym(p,"","width:60%")+'</span><svg class="arrow flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="m">'+pv('data-pid="'+p.id+'" data-idx="'+Math.min(1, setOf(p).length - 1)+'"')+'</span></div>'+
       '<div style="min-width:0;display:grid;gap:6px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(tr(p.name))+'</b>'+stTag+'</div>'+
         '<div style="font-size:13px;color:var(--ink-2)">'+tr(iss.t)+' · 4 '+t("slidesN")+' · '+t("newTitle")+' · '+t("scoreAfter")+' <b class="tnum" style="color:var(--good)">'+p.target+'</b></div>'+
         '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)">'+chans(p)+'<span>'+t("by")+' '+it.by+'</span></div></div>'+
-      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approve")+'</button>' : it.status === "asking" ? "" : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>')+'</div>'+
+      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approveOnly")+'</button>' : it.status === "asking" ? "" : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>'+(it.status === "approved" ? '<button type="button" class="btn btn-primary btn-sm" data-xexport="'+p.id+'">'+t("toExport")+'</button>' : ""))+'</div>'+
       (it.status === "asking" ? '<div class="reasons"><b>'+t("reasonsT")+'</b><div class="chips">'+REJECT_REASONS.map(function(r){ return '<button type="button" class="chip" data-reason="'+it.id+'|'+r+'" aria-pressed="'+((it.reasons || []).indexOf(r) > -1)+'">'+t("r_"+r)+'</button>'; }).join("")+'</div><div style="display:flex;gap:8px"><button type="button" class="btn btn-primary btn-sm" data-sendfb="'+it.id+'">'+t("sendFeedback")+'</button><button type="button" class="btn btn-ghost btn-sm" data-cancelfb="'+it.id+'">'+t("cancel")+'</button></div></div>' : "")+
       (it.learned && it.learned.length ? learnedBlock(it.learned) : "")+
     '</div>'; }).join("")+'</div>' : '<div class="card empty">'+t("queueEmpty")+'</div>');
@@ -1127,7 +1169,7 @@ function vPhotos(){
         (r.arabicText !== "none" ? '<span class="tag '+(r.arabicText === "broken" ? "bad" : "good")+'">'+t("arText_"+r.arabicText)+'</span>' : "")+
         r.problems.map(function(x){ return '<p class="note">✕ '+esc(tr([x.en, x.ar]))+'</p>'; }).join("")+r.strengths.map(function(x){ return '<p class="note" style="color:var(--good)">✓ '+esc(tr([x.en, x.ar]))+'</p>'; }).join("")+'</div>' : "")+
       '<div class="pactions"><button type="button" class="btn btn-ghost btn-sm" data-pc-bg="'+it.id+'">'+t("removeBg")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-main="'+it.id+'">'+t("makeMain")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-use="'+it.id+'">'+t("useInStudio")+'</button><button type="button" class="btn btn-ghost btn-sm" data-pc-del="'+it.id+'">'+t("remove")+'</button></div></div>';
-  }).join("")+'</div>';
+  }).join("")+'</div>'+omCard();
 }
 function pcFind(id){ return state.pc.items.filter(function(x){ return x.id === id; })[0]; }
 function pcReplace(id, fn, label){
@@ -1273,7 +1315,7 @@ function pushServer(ws){
   apiJson("/api/brand/"+ws, {method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({genome: BD.genomes[ws], baseVersion: BD.serverVer[ws]})})
     .then(function(j){ BD.serverVer[ws] = j.version; })
     .catch(function(e){ if (e.status === 409) reloadFromServer(ws); else toast(e.message); });
-  if (evs.length) apiJson("/api/brand/"+ws+"/events", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({events: evs})}).catch(function(){});
+  if (evs.length) apiJson("/api/brand/"+ws+"/events", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({events: evs})}).then(function(){ if (evs.some(function(e){ return e.type === "approve"; })) refreshAccount(); }).catch(function(){});
 }
 function loadFromServer(){
   apiJson("/api/workspaces").then(function(list){
@@ -1412,7 +1454,7 @@ function copyContent(e){
 function copyCheck(p, e){ return check(genome(), copyContent(e), {channel:p.ch[0], category:catOf(p), lang:"ar"}); }
 function copyCard(p){
   var cs = state.copy[p.id], cur = copyCurrentOf(p), ok = state.api && state.api.ai, sample = SAMPLE_COPY[p.id];
-  var head = '<div class="card copy"><div class="card-h"><h2>'+t("copyT")+'</h2>'+(cs && cs.draft ? '<span class="tag brand">'+t(cs.source === "ai" ? "copyAiTag" : "copySampleTag")+'</span>' : "")+'</div>';
+  var head = '<div class="card copy"><div class="card-h"><h2>'+t("copyT")+'</h2>'+(cs && cs.draft ? '<span class="tag brand">'+t(cs.source === "ai" ? "copyAiTag" : cs.source === "rules" ? "copyRulesTag" : "copySampleTag")+'</span>' : "")+'</div>';
   if (!cs || !cs.draft){
     var col = function(title, bullets, dir, lbl){ return '<div dir="'+dir+'"><span class="note">'+lbl+'</span><b>'+esc(title || "—")+'</b>'+(bullets.length ? '<ul>'+bullets.map(function(b){ return '<li>'+esc(b)+'</li>'; }).join("")+'</ul>' : "")+'</div>'; };
     return head+'<span class="note">'+t("copyCurrent")+'</span><div class="cur">'+col(cur.titleEn, cur.bulletsEn || [], "ltr", "EN")+col(cur.titleAr, cur.bulletsAr || [], "rtl", "AR")+'</div>'+
@@ -1456,15 +1498,8 @@ function approveCopy(pid){
   var n = evs.length;
   evs.push({type:"approve", product:pid, edits:n, label:t("copyT"), content:copyContent(finalCopy), exemplar:{titleEn:finalCopy.titleEn, titleAr:finalCopy.titleAr}, ctx:ctx});
   var changes = recordAll(evs);
-  p.copyNow = finalCopy;
-  if (p.listing){
-    Object.assign(p.listing, finalCopy);
-    var r = auditListing(p.listing); p.score = r.score; p.br = r.breakdown; p.issues = r.issues.map(function(i){ return i.key; }); p.issueDetails = r.issues;
-  } else {
-    var before = p.issues.length;
-    p.issues = p.issues.filter(function(k){ var f = TEXT_ISSUES[k]; return !(f && (Array.isArray(finalCopy[f]) ? finalCopy[f].length : finalCopy[f])); });
-    p.score = Math.min(p.target, p.score + 7 * (before - p.issues.length));
-  }
+  applyCopy(p, finalCopy);
+  var bi = bItem(pid); if (bi){ bi.copy = JSON.parse(JSON.stringify(finalCopy)); bi.status = "approved"; bi.learned = learnedNote(changes); }
   state.copy[pid] = {learned: learnedNote(changes)};
   render(); toast(t("copyApproved"));
 }
@@ -1634,12 +1669,544 @@ function vBrand(){
   '</div>';
 }
 
+/* ---------- bulk fixes, export, results, plan and client data ---------- */
+Object.assign(S, {
+  batch:["Bulk fixes","تعديلات بالجملة"], results:["Results","النتائج"], settings:["Settings","الإعدادات"],
+  usageT:["Fixes this month","التعديلات هذا الشهر"], usageOf:["{used} of {limit} used","{used} من {limit}"], usageNoLimit:["{used} used · no limit","{used} · بلا حد"], usageLocal:["Counted in this browser","محسوبة في هذا المتصفح"], planL:["Plan","الخطة"],
+  fixedThisMonth:["{n} approved this month","{n} معتمدة هذا الشهر"],
+  previewOnly:["Browser preview","معاينة في المتصفح"], photoAsIs:["Product photo used as-is","صورة المنتج كما هي دون تعديل"], pngNeedsServer:["PNG export needs the Basira server","تصدير PNG يحتاج خادم بصيرة"],
+  st4p:["Check slides against Brand DNA","فحص الشرائح مقابل هوية العلامة"],
+  approveOnly:["Approve","وافق"], approvedReady:["Approved · ready to export","تمت الموافقة · جاهز للتصدير"], toExport:["Export","صدّر"], approvedToast:["Approved. Export it from Bulk fixes.","تمت الموافقة. صدّره من التعديلات بالجملة."],
+  selectAll:["Select all shown","حدد الكل"], clearSel:["Clear","إلغاء"], nSelected:["{n} selected","{n} محدد"], prepare:["Prepare fixes","جهّز التعديلات"], selectRow:["Select","تحديد"],
+  batchSub:["Brand rules are applied to every selected product. Review, approve, then export the upload files.","تُطبَّق قواعد العلامة على كل منتج محدد. راجع ووافق ثم صدّر ملفات الرفع."],
+  batchEmpty:["Select products in the Catalog, then choose Prepare fixes.","حدد منتجات في الكتالوج ثم اختر «جهّز التعديلات»."], toCatalog:["Go to Catalog","اذهب إلى الكتالوج"],
+  allCatalog:["Prepare all {n} products","جهّز كل المنتجات ({n})"],
+  byRules:["Brand rules","قواعد العلامة"], byAi:["AI draft + rules","مسودة ذكاء + قواعد"],
+  aiAll:["Draft copy with AI for all","اكتب النصوص بالذكاء للكل"], aiAllBusy:["Drafting {d} of {n}…","جارٍ الكتابة {d} من {n}…"], aiNeedsKey:["AI drafts need ANTHROPIC_API_KEY on the server. Brand rules work without it.","مسودات الذكاء تحتاج مفتاح ANTHROPIC_API_KEY على الخادم. قواعد العلامة تعمل بدونه."],
+  approveAll:["Approve all ready ({n})","وافق على الجاهز ({n})"], skip:["Skip","تخطَّ"], undo:["Undo","تراجع"], edit:["Edit","عدّل"],
+  st_draft:["Ready for review","جاهز للمراجعة"], st_approved:["Approved","تمت الموافقة"], st_skipped:["Skipped","تم التخطي"], st_busy:["Drafting…","جارٍ الكتابة…"],
+  noChanges:["No rule changes needed","لا تحتاج تعديلات بالقواعد"],
+  ch_avoidWord:["Removed «{d}»","حُذفت «{d}»"], ch_noExclamation:["Removed “!”","حُذفت علامة التعجب"], ch_noEmoji:["Removed emoji","حُذفت الرموز التعبيرية"], ch_numerals:["Digits matched to the brand","الأرقام حسب العلامة"], ch_maxHeadline:["Shortened title {d}","اختُصر العنوان {d}"], ch_repeatedWords:["Removed repeated words","حُذفت الكلمات المكررة"], ch_tooLong:["Title {d} characters: shorten it","العنوان {d} حرفاً: اختصره"],
+  slidesPlanned:["{n} slides","{n} شرائح"], brandScore:["Brand","العلامة"], copyS:["copy","النص"], slidesS:["slides","الشرائح"], extraN:["+{n} on-model","+{n} على عارضة"],
+  exportT:["Export","التصدير"], exportSub:["Upload files for the channel, slides as 1600 × 2000 PNG, and a README.","ملفات رفع للقناة مع الشرائح PNG بمقاس ١٦٠٠ × ٢٠٠٠ وملف تعليمات."],
+  exportN:["Download ZIP ({n} products)","نزّل ZIP ({n} منتجات)"], exporting:["Rendering slides…","جارٍ تصدير الشرائح…"], exportReady:["Export ready","التصدير جاهز"], downloadAgain:["Download the ZIP","نزّل ملف ZIP"],
+  exportLocal:["Without the server the ZIP holds the upload files and README; slides need the server to become PNGs.","بدون الخادم يحتوي ZIP على ملفات الرفع والتعليمات فقط، وتحتاج الشرائح الخادم لتصبح PNG."],
+  notHosted:["Image links in the file are empty: marketplaces fetch images by link, so set PUBLIC_URL to the server's https address, or upload the images from images/.","روابط الصور فارغة: المتاجر تجلب الصور برابط، فاضبط PUBLIC_URL على عنوان https للخادم أو ارفع الصور من مجلد images."],
+  hostedOk:["Images are hosted and their links are in the upload file.","الصور مستضافة وروابطها في ملف الرفع."],
+  approveFirst:["Approve products to export them.","وافق على المنتجات لتصديرها."],
+  publishAmazon:["Publish to Amazon","انشر على أمازون"], publishing2:["Publishing…","جارٍ النشر…"], amazonNeeds:["Direct publishing needs a connected Amazon seller account (SP-API keys and SPAPI_SELLER_ID).","النشر المباشر يحتاج ربط حساب بائع أمازون (مفاتيح SP-API و SPAPI_SELLER_ID)."],
+  exportFirst:["Export first: Amazon gets the same approved copy and hosted images.","صدّر أولاً: تصل أمازون النصوص المعتمدة نفسها والصور المستضافة."],
+  pub_ACCEPTED:["Accepted by Amazon","قبلته أمازون"], pub_INVALID:["Rejected","مرفوض"], pub_NOT_FOUND:["SKU not found","SKU غير موجود"], pub_ERROR:["Error","خطأ"], pub_SKIPPED:["Nothing to change","لا تغيير"],
+  pubNote:["Amazon processes accepted changes within about 15 minutes. Check the listing afterwards.","تعالج أمازون التغييرات المقبولة خلال ١٥ دقيقة تقريباً. راجع المنتج بعدها."],
+  marketplace:["Marketplace","المتجر"], filesL:["Files","الملفات"],
+  resultsSub:["Upload sales reports from before and after the fixes. Untouched products are the control group, so a season doesn't count as your result.","ارفع تقارير المبيعات قبل التعديلات وبعدها. المنتجات التي لم تتغير هي مجموعة المقارنة حتى لا يُحسب الموسم نتيجةً لك."],
+  beforeR:["Report before","التقرير قبل"], afterR:["Report after","التقرير بعد"], uploadReport:["Upload CSV","ارفع CSV"], sampleReports:["Load sample reports","حمّل تقارير تجريبية"], sampleTag:["Sample data","بيانات تجريبية"],
+  reportHint:["Amazon: Business Reports → Detail Page Sales and Traffic by Child Item. Noon, Salla, Zid: a sales export with SKU, sessions or views, and units.","أمازون: تقارير الأعمال ← مبيعات وزيارات صفحة المنتج. نون وسلة وزد: تصدير مبيعات فيه SKU والزيارات والوحدات."],
+  changedL:["Products that got fixes (SKU or ASIN, one per line)","المنتجات المعدلة (SKU أو ASIN، كل واحد في سطر)"], changedHint:["Filled from approvals in this client. Edit it if the report uses ASINs.","مأخوذة من الموافقات لهذا العميل. عدّلها إن كان التقرير يستخدم ASIN."],
+  upliftT:["Conversion uplift vs control","تحسن التحويل مقابل المقارنة"], noControl:["No untouched products in the report, so there's no control group: this is the raw change.","لا توجد منتجات بدون تعديل في التقرير، فلا مجموعة مقارنة: هذا تغير خام."],
+  convChanged:["Conversion, changed","التحويل، المعدلة"], unitsChanged:["Units, changed","الوحدات، المعدلة"], convControl:["Conversion, control","التحويل، المقارنة"],
+  reportPreview:["Report for the client","تقرير العميل"], pdf:["Download PDF","نزّل PDF"], print:["Print or save as PDF","اطبع أو احفظ PDF"], pdfBusy:["Making PDF…","جارٍ إنشاء PDF…"],
+  periodL:["Period","الفترة"], reportLang:["Report language","لغة التقرير"], agencyBrandHint:["The report carries your agency's name, logo and colour from Settings.","يحمل التقرير اسم وكالتك وشعارها ولونها من الإعدادات."],
+  needBoth:["Upload both reports to compare.","ارفع التقريرين للمقارنة."], rowsRead:["{n} rows","{n} صفاً"], pts:["pts","نقطة"],
+  setSub:["Agency profile, plan and usage, and each client's data.","ملف الوكالة والخطة والاستخدام وبيانات كل عميل."],
+  agencyT:["Agency profile","ملف الوكالة"], agencyName:["Agency name","اسم الوكالة"], agencyColour:["Report colour","لون التقرير"], agencyLogo:["Logo","الشعار"], uploadLogo:["Upload logo","ارفع الشعار"], save:["Save","حفظ"], saved:["Saved","تم الحفظ"], agencyHint:["Used on client reports.","يظهر في تقارير العملاء."],
+  planT:["Plan and usage","الخطة والاستخدام"], currentPlan:["Current plan","الخطة الحالية"], paidUntil:["Paid until {d}","مدفوعة حتى {d}"], expiredNote:["The paid month ended, so the trial limits apply. Renew to continue.","انتهى الشهر المدفوع وتُطبَّق حدود التجربة. جدّد للمتابعة."],
+  rendersL:["Slides rendered","شرائح مُصدّرة"], aiL:["AI calls","طلبات الذكاء"], perMonth:["SAR / month","ريال / شهر"], withVat:["{v} SAR with 15% VAT","{v} ريال مع ضريبة ١٥٪"], fixesL:["{n} fixes a month","{n} تعديل شهرياً"], clientsL:["{n} clients","{n} عملاء"], customL:["Custom","حسب الاتفاق"],
+  upgrade:["Upgrade","ترقية"], renew:["Renew","تجديد"], contactSales:["Talk to us","تواصل معنا"], payNeeds:["Online payment needs MOYASAR_SECRET_KEY on the server (Mada, cards, Apple Pay).","الدفع الإلكتروني يحتاج MOYASAR_SECRET_KEY على الخادم (مدى والبطاقات وApple Pay)."], payServer:["Payments run on the Basira server.","الدفع يعمل على خادم بصيرة."],
+  redirecting:["Opening the payment page…","جارٍ فتح صفحة الدفع…"], paidOk:["Payment received: the {p} plan is on","تم الدفع: خطة {p} مفعّلة"], payPending:["Payment not completed ({s})","لم يكتمل الدفع ({s})"],
+  overLimit:["This month's fixes are used. AI drafting pauses until next month or an upgrade; approvals and exports keep working.","استُخدمت تعديلات هذا الشهر. تتوقف مسودات الذكاء حتى الشهر القادم أو الترقية، وتستمر الموافقات والتصدير."],
+  privacyT:["Client data and privacy","بيانات العملاء والخصوصية"],
+  privacySub:["Each client's brand rules, history and exports are kept apart. Under the Saudi PDPL your client can ask for a copy or for deletion.","قواعد كل عميل وسجله وتصديراته منفصلة. وفق نظام حماية البيانات الشخصية يحق لعميلك طلب نسخة أو الحذف."],
+  consentL:["Allow anonymised use to improve Basira","السماح باستخدام مجهول الهوية لتحسين بصيرة"], consentHint:["Off by default. When on, approved edits may be used without names or images to improve shared models.","مغلق افتراضياً. عند تفعيله قد تُستخدم التعديلات المعتمدة دون أسماء أو صور لتحسين النماذج المشتركة."],
+  dlData:["Download data","نزّل البيانات"], delClient:["Delete client","احذف العميل"], delConfirm:["Delete {name} with its brand rules, history and exports? This can't be undone.","حذف {name} مع قواعده وسجله وتصديراته؟ لا يمكن التراجع."], delYes:["Delete for good","احذف نهائياً"], deletedT:["{name} deleted","حُذف {name}"], keepOne:["Keep at least one client","أبقِ عميلاً واحداً على الأقل"],
+  storedServer:["Stored on the Basira server. For clients under the PDPL, run the server in a Saudi region.","محفوظة على خادم بصيرة. لعملاء نظام حماية البيانات شغّل الخادم في منطقة سعودية."], storedLocal:["Stored only in this browser.","محفوظة في هذا المتصفح فقط."],
+  legalT:["Contracts","العقود"], legalText:["Drafts of the terms of service, the data processing agreement (PDPL) and the privacy notice are in the repository under docs/legal. Have a lawyer licensed in Saudi Arabia review them before you sign with clients.","مسودات شروط الخدمة واتفاقية معالجة البيانات (نظام حماية البيانات) وإشعار الخصوصية في المستودع ضمن docs/legal. راجعها مع محامٍ مرخص في السعودية قبل التوقيع مع العملاء."],
+  omT:["On-model photos","صور على عارضة"], omSub:["Show the garment worn, with modest styling. The product photo is the reference, and every result is checked for colour against it.","اعرض القطعة ملبوسة بأسلوب محتشم. صورة المنتج هي المرجع ويُفحص لون كل نتيجة مقابلها."],
+  omLook:["Model","العارضة"], omCover:["Head cover","غطاء الرأس"], omSetting:["Setting","المكان"], omCount:["Photos","عدد الصور"],
+  look_gulf:["Gulf","خليجية"], look_levant:["Levant","شامية"], look_northAfrica:["North Africa","مغاربية"], look_southAsia:["South Asia","جنوب آسيوية"], look_any:["Any","أي"],
+  cover_hijab:["Hijab","حجاب"], cover_none:["None","بدون"], cover_any:["Any","أي"],
+  set_studio:["Studio","استوديو"], set_home:["Home","منزل"], set_outdoor:["Outdoor","خارجي"], set_majlis:["Majlis","مجلس"],
+  omRef:["Reference photo","الصورة المرجعية"], omRefNone:["Add the product photo in Studio or on this page first.","أضف صورة المنتج في الاستوديو أو في هذه الصفحة أولاً."],
+  omGo:["Generate","ولّد"], omBusy:["Generating…","جارٍ التوليد…"], omNeeds:["Needs an image model on the server: set IMAGE_API_URL and IMAGE_API_KEY.","يحتاج نموذج صور على الخادم: اضبط IMAGE_API_URL و IMAGE_API_KEY."],
+  omCheckOwn:["Check a photo made elsewhere","افحص صورة وُلّدت في مكان آخر"], colourOk:["Colour matches the product ({s})","اللون يطابق المنتج ({s})"], colourBad:["Colour differs from the product ({s}): don't use","اللون مختلف عن المنتج ({s}): لا تستخدمها"], checking:["Checking colour…","جارٍ فحص اللون…"],
+  addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"]
+});
+Object.assign(ICONS, {
+  batch:'<path d="M4 7h9M4 12h9M4 17h5"/><path d="M14 16l2.5 2.5L21 14"/>',
+  results:'<path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>'
+});
+Object.assign(state, {sel:{}, shown:[], account:null, agency:null, extra:{},
+  batch:{items:[], ai:null, channel:null, market:"amazon.sa", exp:null, pub:null},
+  res:{before:null, after:null, bName:"", aName:"", error:null, sample:false, changedText:null, period:"", lang:null, pdf:false},
+  om:{look:"gulf", cover:"hijab", setting:"studio", count:2, busy:false, error:null, results:[]}, delAsk:null, agDraft:null});
+try { state.agency = JSON.parse(localStorage.getItem("basira-agency") || "null"); } catch(e){}
+
+function post(url, body){ return apiJson(url, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)}); }
+function download(blob, name){ var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+function readFileAs(file, how){ return new Promise(function(res, rej){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.onerror = function(){ rej(new Error("Couldn't read that file")); }; r[how](file); }); }
+function thisMonth(at){ return String(at || "").slice(0, 7) === new Date().toISOString().slice(0, 7); }
+
+/* usage: the server's meter when connected, otherwise approvals counted in this browser */
+function usageNow(){
+  if (state.account) return state.account;
+  var used = 0; Object.keys(BD.events).forEach(function(ws){ (BD.events[ws] || []).forEach(function(e){ if (e.type === "approve" && thisMonth(e.at)) used++; }); });
+  var pl = PLANS.trial;
+  return {plan:"trial", planName:pl.name, limit:pl.fixes, used:used, left:Math.max(0, pl.fixes - used), over: used >= pl.fixes, renders:0, ai:0, local:true};
+}
+function usageMeter(){
+  var u = usageNow(), w = u.limit ? Math.min(100, Math.round(u.used / u.limit * 100)) : 6;
+  return '<a class="credits" href="#settings"><span>'+t("usageT")+' · '+esc(tr(u.planName))+'</span><span class="tr"><i style="width:'+w+'%'+(u.over ? ";background:var(--bad)" : "")+'"></i></span><b>'+(u.limit == null ? tf("usageNoLimit", {used:u.used}) : tf("usageOf", {used:u.used, limit:u.limit}))+'</b>'+(u.local ? '<small>'+t("usageLocal")+'</small>' : "")+'</a>';
+}
+function refreshAccount(){
+  if (!state.api) return Promise.resolve();
+  return apiJson("/api/account").then(function(a){ state.account = a; if (a.agency) state.agency = a.agency; renderSide(); if (state.route === "settings") render(); }).catch(function(){});
+}
+function approvedThisMonth(){
+  var seen = {}; wsEvents().forEach(function(e){ if (e.type === "approve" && thisMonth(e.at) && e.product) seen[e.product] = 1; });
+  return Object.keys(seen).length;
+}
+
+/* ---------- catalog selection → bulk fixes ---------- */
+function selIds(){ return Object.keys(state.sel).filter(function(id){ return state.sel[id] && PM[id] && PM[id].ws === state.ws; }); }
+function selBar(){
+  var n = selIds().length;
+  return '<div class="selbar">'+(n ? '<b>'+tf("nSelected", {n:n})+'</b><button type="button" class="btn btn-ghost btn-sm" id="x-sel-clear">'+t("clearSel")+'</button><button type="button" class="btn btn-primary btn-sm" id="x-sel-go">'+t("prepare")+' '+arrow()+'</button>' : '<button type="button" class="btn btn-ghost btn-sm" id="x-sel-shown">'+t("selectAll")+'</button>')+'</div>';
+}
+function bCtx(p){ return {channel:p.ch[0], category:catOf(p), lang:"ar"}; }
+function bItem(pid){ return state.batch.items.filter(function(x){ return x.pid === pid; })[0]; }
+function bItems(){ return state.batch.items.filter(function(x){ return PM[x.pid] && PM[x.pid].ws === state.ws; }); }
+function buildItem(p, src, source){
+  var r = cleanupCopy(src, genome(), bCtx(p));
+  return {pid:p.id, status:"draft", source:source, copy:r.copy, original:JSON.parse(JSON.stringify(src)), changes:r.changes};
+}
+function prepareBatch(ids){
+  ids.forEach(function(id){ var p = PM[id]; if (!p) return; var old = bItem(id); if (old && old.status !== "skipped") return; if (old) state.batch.items.splice(state.batch.items.indexOf(old), 1); state.batch.items.push(buildItem(p, copyCurrentOf(p), "rules")); });
+  state.batch.exp = null; state.batch.pub = null;
+}
+function applyCopy(p, finalCopy){
+  p.copyNow = finalCopy;
+  if (p.listing){
+    Object.assign(p.listing, finalCopy);
+    var r = auditListing(p.listing); p.score = r.score; p.br = r.breakdown; p.issues = r.issues.map(function(i){ return i.key; }); p.issueDetails = r.issues;
+  } else {
+    var before = p.issues.length;
+    p.issues = p.issues.filter(function(k){ var f = TEXT_ISSUES[k]; return !(f && (Array.isArray(finalCopy[f]) ? finalCopy[f].length : finalCopy[f])); });
+    p.score = Math.min(p.target, p.score + 7 * (before - p.issues.length));
+  }
+}
+function approveItem(it){
+  var p = PM[it.pid]; if (!p || it.status === "approved") return;
+  var changes = recordAll([{type:"approve", product:p.id, edits:0, label:t("batch"), content:copyContent(it.copy), exemplar:{titleEn:it.copy.titleEn, titleAr:it.copy.titleAr}, ctx:bCtx(p)}]);
+  it.learned = learnedNote(changes); it.status = "approved"; applyCopy(p, it.copy);
+}
+function runAiAll(){
+  var todo = bItems().filter(function(x){ return x.status === "draft"; });
+  if (!todo.length) return;
+  var b = state.batch; b.ai = {done:0, n:todo.length, error:null}; render();
+  var i = 0;
+  (function next(){
+    var it = todo[i++];
+    if (!it || b.ai.error){ b.ai.busy = false; var err = b.ai.error; b.ai = err ? {error:err} : null; refreshAccount(); render(); return; }
+    var p = PM[it.pid], cur = copyCurrentOf(p), lf = p.listing || Object.assign({category:catOf(p)}, cur);
+    it.busy = true; render();
+    post("/api/copy", {product:tr(p.name), channel:p.ch[0], category:catOf(p), listing:cur,
+      issues: openIssues(p).map(function(k){ return ISSUES[k] ? ISSUES[k].t[0] + ": " + ISSUES[k].d[0] : k; }),
+      missingKeywords: keywordCoverage(lf).items.filter(function(x){ return !x.inAr && !x.inEn; }).slice(0, 6), brief: exprFor(p).brief})
+      .then(function(j){ var n = buildItem(p, {titleEn:j.titleEn, titleAr:j.titleAr, bulletsEn:j.bulletsEn, bulletsAr:j.bulletsAr}, "ai"); n.original = it.original; Object.assign(it, n); })
+      .catch(function(e){ if (e.status === 402 || e.status === 503) b.ai.error = e.message; else it.error = e.message; })
+      .then(function(){ it.busy = false; b.ai.done++; next(); });
+  })();
+}
+function changeChip(c){
+  var d = c.rule === "avoidWord" || c.rule === "tooLong" ? c.detail : c.rule === "maxHeadline" ? "("+c.detail+")" : "";
+  return '<span class="tag '+(c.applied === false ? "warn" : "brand")+'">'+esc(tf("ch_"+c.rule, {d:d}))+' · '+fieldLabel(c.field)+'</span>';
+}
+function diffLine(lbl, before, after, dir){
+  before = String(before || ""); after = String(after || "");
+  if (!before && !after) return "";
+  return '<span class="lbl">'+lbl+'</span><span dir="'+dir+'">'+(before !== after && before ? '<del>'+esc(before)+'</del>' : "")+'<ins>'+esc(after || "—")+'</ins></span>';
+}
+function avgScore(list){ var v = list.filter(function(x){ return x != null; }); return v.length ? Math.round(v.reduce(function(a, b){ return a + b; }, 0) / v.length) : null; }
+function bItemHTML(it){
+  var p = PM[it.pid], set = setOf(p), cs = copyCheck(p, it.copy).score, ss = avgScore(set.map(function(sl){ return slideCheck(p, sl).score; }));
+  var dedup = {}, chips = it.changes.filter(function(c){ var k = c.field+c.rule+c.detail; if (dedup[k]) return false; dedup[k] = 1; return true; });
+  var ex = (state.extra[p.id] || []).length;
+  var stTag = it.busy ? '<span class="tag brand">'+t("st_busy")+'</span>' : '<span class="tag '+(it.status === "approved" ? "good" : it.status === "skipped" ? "" : "warn")+'">'+t("st_"+it.status)+'</span>';
+  return '<div class="card bitem is-'+it.status+'">'+
+    '<span class="pthumb">'+thumb(p)+'</span>'+
+    '<div style="min-width:0"><div class="bhead"><b>'+esc(tr(p.name))+'</b><small class="mono">'+esc(p.sku)+'</small>'+stTag+'<span class="tag">'+t(it.source === "ai" ? "byAi" : "byRules")+'</span>'+
+      '<span class="tag" title="'+t("brandScore")+'">'+t("brandScore")+' · '+t("copyS")+' '+(cs == null ? "—" : cs)+' · '+t("slidesS")+' '+(ss == null ? "—" : ss)+'</span>'+(ex ? '<span class="tag good">'+tf("extraN", {n:ex})+'</span>' : "")+'</div>'+
+      '<div class="bchg">'+(chips.length ? chips.slice(0, 8).map(changeChip).join("") : '<span class="note">'+t("noChanges")+'</span>')+'</div>'+
+      '<div class="bdiff">'+diffLine("EN", it.original.titleEn, it.copy.titleEn, "ltr")+diffLine("AR", it.original.titleAr, it.copy.titleAr, "rtl")+'</div>'+
+      (it.error ? '<p class="err">'+esc(it.error)+'</p>' : "")+
+      '<div class="bslides">'+set.slice(0, 6).map(function(sl, j){ return pv('data-pid="'+p.id+'" data-idx="'+j+'"'); }).join("")+'<span class="note">'+tf("slidesPlanned", {n:set.length})+'</span></div>'+
+      (it.learned && it.learned.length ? learnedBlock(it.learned) : "")+
+    '</div>'+
+    '<div class="bact">'+(it.status === "draft" ? '<button type="button" class="btn btn-primary btn-sm" data-xb="approve|'+p.id+'"'+(it.busy ? " disabled" : "")+'>'+t("approveOnly")+'</button><button type="button" class="btn btn-ghost btn-sm" data-xb="edit|'+p.id+'">'+t("edit")+'</button><button type="button" class="btn btn-ghost btn-sm" data-xb="skip|'+p.id+'">'+t("skip")+'</button>' :
+      it.status === "skipped" ? '<button type="button" class="btn btn-ghost btn-sm" data-xb="undo|'+p.id+'">'+t("undo")+'</button>' : '<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'">'+t("studio")+'</a>')+'</div>'+
+  '</div>';
+}
+function vBatch(){
+  var items = bItems(), b = state.batch, ai = state.api && state.api.ai;
+  var head = '<div class="head"><div><h1>'+t("batch")+'</h1><p>'+t("batchSub")+'</p></div></div>';
+  if (!items.length) return head+'<div class="card empty"><p>'+t("batchEmpty")+'</p><div class="exp-row" style="justify-content:center;margin-top:14px"><a class="btn btn-ghost" href="#catalog">'+t("toCatalog")+'</a>'+(WP().length ? '<button type="button" class="btn btn-primary" id="x-b-all">'+tf("allCatalog", {n:WP().length})+'</button>' : "")+'</div></div>';
+  var drafts = items.filter(function(x){ return x.status === "draft"; }), approved = items.filter(function(x){ return x.status === "approved"; });
+  var u = usageNow();
+  return head+
+    (u.over ? '<p class="err">'+t("overLimit")+' <a href="#settings">'+t("upgrade")+'</a></p>' : "")+
+    '<div class="card exp-row">'+
+      (ai ? '<button type="button" class="btn btn-ghost" id="x-b-ai"'+(b.ai && b.ai.n && !b.ai.error || !drafts.length ? " disabled" : "")+'>'+(b.ai && b.ai.n ? tf("aiAllBusy", {d:b.ai.done, n:b.ai.n}) : t("aiAll"))+'</button>' : '<span class="note">'+t("aiNeedsKey")+'</span>')+
+      '<span style="margin-inline-start:auto"></span><button type="button" class="btn btn-primary" id="x-b-approve"'+(drafts.length ? "" : " disabled")+'>'+tf("approveAll", {n:drafts.length})+'</button>'+
+    '</div>'+
+    (b.ai && b.ai.error ? '<p class="err">'+esc(b.ai.error)+'</p>' : "")+
+    '<div class="bitems">'+items.map(bItemHTML).join("")+'</div>'+
+    exportCard(approved);
+}
+
+/* ---------- export: ZIP of upload files (and PNG slides on the server), Amazon publishing ---------- */
+function topChannel(items){ var c = {}; items.forEach(function(it){ var ch = PM[it.pid].ch[0]; c[ch] = (c[ch] || 0) + 1; }); return Object.keys(c).sort(function(a, b){ return c[b] - c[a]; })[0] || "noon"; }
+function exportCard(approved){
+  var b = state.batch, ch = b.channel || topChannel(approved), server = state.api && state.api.render, ex = b.exp || {}, r = ex.result, pub = b.pub || {};
+  var canPub = state.api && state.api.amazonPublish;
+  return '<div class="card"><div class="card-h"><h2>'+t("exportT")+'</h2><small>'+(server ? t("exportSub") : "")+'</small></div>'+
+    (approved.length ? "" : '<p class="note">'+t("approveFirst")+'</p>')+
+    '<div class="exp-row"><label class="tpl-for">'+t("channel")+' <select class="sel" id="x-exp-ch">'+EXPORT_CHANNELS.map(function(c){ return '<option value="'+c+'"'+(c === ch ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("")+'</select></label>'+
+      '<button type="button" class="btn btn-primary" id="x-exp-go"'+(approved.length && !ex.busy ? "" : " disabled")+'>'+(ex.busy ? t("exporting") : tf("exportN", {n:approved.length}))+'</button></div>'+
+    (server ? "" : '<p class="note" style="margin-top:10px">'+t("exportLocal")+'</p>')+
+    (ex.error ? '<p class="err">'+esc(ex.error)+'</p>' : "")+
+    (r ? '<div class="exp-done"><span class="tag good">'+t("exportReady")+'</span>'+(r.zipUrl ? ' <a href="'+esc(r.zipUrl)+'" download>'+t("downloadAgain")+'</a>' : "")+
+      '<p class="note">'+t("filesL")+': '+r.files.map(esc).join(", ")+(r.rendered ? " · "+r.rendered+" PNG" : "")+'</p>'+
+      (r.zipUrl ? '<p class="note">'+t(r.hosted ? "hostedOk" : "notHosted")+'</p>' : "")+'</div>' : "")+
+    (ch === "amazon" ? '<div class="pub"><div class="exp-row"><label class="tpl-for">'+t("marketplace")+' <select class="sel" id="x-mk">'+["amazon.sa","amazon.ae","amazon.eg"].map(function(m){ return '<option'+(b.market === m ? " selected" : "")+'>'+m+'</option>'; }).join("")+'</select></label>'+
+      '<button type="button" class="btn btn-ghost" id="x-pub"'+(canPub && r && r.batch && !pub.busy ? "" : " disabled")+'>'+(pub.busy ? t("publishing2") : t("publishAmazon"))+'</button></div>'+
+      '<p class="note">'+(canPub ? (r && r.batch ? t("pubNote") : t("exportFirst")) : t("amazonNeeds"))+'</p>'+
+      (pub.error ? '<p class="err">'+esc(pub.error)+'</p>' : "")+
+      (pub.result ? '<div class="publist">'+pub.result.results.map(function(x){ return '<div><span class="mono">'+esc(x.sku)+'</span><span class="tag '+(x.status === "ACCEPTED" ? "good" : x.status === "SKIPPED" ? "" : "bad")+'">'+t("pub_"+x.status)+'</span><span class="note">'+(x.issues || []).slice(0, 3).map(function(i){ return esc(i.message); }).join(" · ")+'</span></div>'; }).join("")+'</div>' : "")+
+    '</div>' : "")+
+  '</div>';
+}
+function exportPayload(items){
+  return Promise.all(items.map(function(it){
+    var p = PM[it.pid];
+    return ensureDataImage(p).then(function(image){
+      return {sku:p.sku, name:tr(p.name), copy:it.copy, image:image, extraImages: state.extra[p.id] || [],
+        slides: setOf(p).map(function(sl){ return {template:sl.tpl, fields:sl.fields, kit:ctxFor(p, sl).kit}; })};
+    });
+  }));
+}
+function runExport(){
+  var b = state.batch, items = bItems().filter(function(x){ return x.status === "approved"; }), ch = b.channel || topChannel(items);
+  if (!items.length) return;
+  b.exp = {busy:true}; b.pub = null; render();
+  var client = wsInfo().name, date = new Date().toISOString().slice(0, 10);
+  if (state.api && state.api.render){
+    var p0 = PM[items[0].pid], c0 = ctxFor(p0, setOf(p0)[0]);
+    exportPayload(items).then(function(list){
+      return post("/api/export", {ws:state.ws, channel:ch, client:client, style:{language:c0.language, numerals:c0.numerals, brand:c0.brand, logo:c0.logo, fonts:c0.fonts}, items:list});
+    }).then(function(j){
+      b.exp = {result:j}; render(); refreshAccount();
+      var a = document.createElement("a"); a.href = j.zipUrl; a.download = ""; document.body.appendChild(a); a.click(); a.remove();
+    }).catch(function(e){ b.exp = {error:e.message}; render(); });
+    return;
+  }
+  try {
+    var rows = items.map(function(it){ var p = PM[it.pid]; return {sku:p.sku, name:tr(p.name), copy:it.copy, images:[]}; });
+    var files = exportFiles(ch, rows, {});
+    var all = files.map(function(f){ return {name:f.name, data:f.content}; }).concat([{name:"README.txt", data:exportReadme(ch, rows.length, {client:client})}]);
+    download(new Blob([makeZip(all)], {type:"application/zip"}), "basira-"+ch+"-"+date+".zip");
+    b.exp = {result:{files:files.map(function(f){ return f.name; }).concat(["README.txt"])}};
+  } catch(e){ b.exp = {error:e.message}; }
+  render();
+}
+function runPublish(){
+  var b = state.batch; if (!b.exp || !b.exp.result || !b.exp.result.batch) return;
+  b.pub = {busy:true}; render();
+  post("/api/publish/amazon", {ws:state.ws, batch:b.exp.result.batch, marketplace:b.market})
+    .then(function(j){ b.pub = {result:j}; }).catch(function(e){ b.pub = {error:e.message}; }).then(render);
+}
+
+/* ---------- results: before/after with a control group, client report ---------- */
+function defaultChanged(){
+  var ids = {}; wsEvents().forEach(function(e){ if (e.type === "approve" && e.product) ids[e.product] = 1; });
+  bItems().forEach(function(x){ if (x.status === "approved") ids[x.pid] = 1; });
+  return WP().filter(function(p){ return ids[p.id] || p.fixed; }).map(function(p){ return p.sku; });
+}
+function changedList(){ var r = state.res; return (r.changedText != null ? r.changedText : defaultChanged().join("\n")).split(/[\n,]+/).map(function(x){ return x.trim(); }).filter(Boolean); }
+function resResult(){ var r = state.res; if (!r.before || !r.after) return null; return compareResults({before:r.before.rows, after:r.after.rows, changed:changedList()}); }
+function sampleReports(){
+  var ps = WP(); if (!ps.length) return;
+  // Sample: the lower-scoring half got fixes, the rest is the control group.
+  var changed = ps.slice().sort(function(a, b){ return a.score - b.score; }).slice(0, Math.ceil(ps.length / 2)).map(function(p){ return p.sku; });
+  var head = '"SKU","Title","Sessions - Total","Unit Session Percentage","Units Ordered","Ordered Product Sales"\n';
+  var csv = function(after){ return head + ps.map(function(p, i){
+    var s0 = 600 + (i * 389) % 1100, c0 = 0.018 + ((i * 7) % 5) / 400, ch = changed.indexOf(p.sku) > -1;
+    var s = after ? Math.round(s0 * 1.08) : s0, c = after ? c0 + (ch ? 0.011 + ((i * 3) % 4) / 1000 : 0.002) : c0, u = Math.round(s * c);
+    return '"'+p.sku+'","'+String(p.name[0]).replace(/"/g, "")+'","'+s+'","'+(c * 100).toFixed(2)+'%","'+u+'","SAR '+(u * 180).toLocaleString("en-US")+'.00"';
+  }).join("\n"); };
+  var r = state.res;
+  r.before = parseSalesReport(csv(false)); r.after = parseSalesReport(csv(true)); r.bName = "sample-before.csv"; r.aName = "sample-after.csv"; r.sample = true; r.error = null; r.changedText = changed.join("\n");
+  r.period = r.period || (state.lang === "ar" ? "سبتمبر مقابل أكتوبر ٢٠٢٦" : "September vs October 2026");
+}
+function fmtConv(v){ return v == null ? "—" : (Math.round(v * 10000) / 100).toFixed(2) + "%"; }
+function fmtPts(v){ return v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + " " + t("pts"); }
+function fmtPct(v){ return v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + "%"; }
+function reportInput(res){ var r = state.res, ag = state.agency || {}; return {result:res, client:tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), agency:{name:ag.name || "", logo:ag.logo || "", colour:ag.colour || ""}, period:r.period, lang:r.lang || state.lang}; }
+function uplSlot(which){
+  var r = state.res, rep = r[which], name = which === "before" ? r.bName : r.aName;
+  return '<div><b>'+t(which === "before" ? "beforeR" : "afterR")+'</b>'+(rep ? '<span class="note">'+esc(name)+' · '+tf("rowsRead", {n:rep.rows.length})+'</span>' : "")+
+    '<label class="btn btn-ghost btn-sm" for="x-rep-'+which+'">'+t("uploadReport")+'</label><input type="file" id="x-rep-'+which+'" class="vh" accept=".csv,.txt,text/csv,text/plain"></div>';
+}
+function vResults(){
+  var r = state.res, res = resResult();
+  var out = '<div class="head"><div><h1>'+t("results")+'</h1><p>'+t("resultsSub")+'</p></div>'+(r.sample ? '<span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("sampleTag")+'</span>' : "")+'</div>'+
+    '<div class="card"><div class="upl">'+uplSlot("before")+uplSlot("after")+'</div>'+
+      '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost btn-sm" id="x-rep-sample">'+t("sampleReports")+'</button><span class="note">'+t("reportHint")+'</span></div>'+
+      (r.error ? '<p class="err">'+esc(r.error)+'</p>' : "")+
+      '<div class="field" style="margin-top:12px"><label for="x-changed">'+t("changedL")+'</label><textarea id="x-changed" rows="3" dir="ltr">'+esc(changedList().join("\n"))+'</textarea><span class="note">'+t("changedHint")+'</span></div>'+
+    '</div>';
+  if (!res) return out+'<p class="note">'+t("needBoth")+'</p>';
+  var c = res.changed, k = res.control;
+  out += '<div class="kpis">'+
+    '<div class="kpi"><small>'+t("upliftT")+'</small><b>'+fmtPts(res.upliftPts)+'</b><span>'+(res.hasControl ? "" : t("noControl"))+'</span></div>'+
+    '<div class="kpi"><small>'+t("convChanged")+'</small><b>'+fmtConv(c.after.conv)+'</b><span>'+fmtConv(c.before.conv)+' → '+fmtConv(c.after.conv)+' · '+c.count+'</span></div>'+
+    '<div class="kpi"><small>'+t("unitsChanged")+'</small><b>'+fmtPct(c.unitsPct)+'</b><span>'+c.before.units+' → '+c.after.units+'</span></div>'+
+    '<div class="kpi"><small>'+t("convControl")+'</small><b>'+(res.hasControl ? fmtPts(k.convPts) : "—")+'</b><span>'+(res.hasControl ? fmtConv(k.before.conv)+' → '+fmtConv(k.after.conv)+' · '+k.count : "")+'</span></div>'+
+  '</div>';
+  var lang = r.lang || state.lang;
+  out += '<div class="card"><div class="card-h"><h2>'+t("reportPreview")+'</h2><small>'+t("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
+    '<div class="exp-row"><div class="field" style="margin:0"><label for="x-period">'+t("periodL")+'</label><input id="x-period" value="'+esc(r.period || "")+'"></div>'+
+      '<div class="field" style="margin:0"><span class="lbl">'+t("reportLang")+'</span><div class="seg" role="group"><button type="button" data-xrl="en" aria-pressed="'+(lang === "en")+'">English</button><button type="button" data-xrl="ar" aria-pressed="'+(lang === "ar")+'">العربية</button></div></div>'+
+      '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button></div>'+
+    '<iframe id="x-rep-frame" class="rep-frame" title="'+t("reportPreview")+'"></iframe></div>';
+  return out;
+}
+var lastReport = "";
+function paintReport(){
+  var f = document.getElementById("x-rep-frame"); if (!f) { lastReport = ""; return; }
+  var res = resResult(); if (!res) return;
+  var html = reportHTML(reportInput(res));
+  if (html !== lastReport || !f.srcdoc){ f.srcdoc = html; lastReport = html; }
+}
+function runPdf(){
+  var res = resResult(); if (!res) return;
+  state.res.pdf = true; render();
+  fetch("/api/report/pdf", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(reportInput(res))})
+    .then(function(r){ return r.ok ? r.blob() : r.json().then(function(j){ throw new Error(j.error || r.status); }); })
+    .then(function(b){ download(b, "results-"+state.ws+".pdf"); }).catch(function(e){ toast(e.message); })
+    .then(function(){ state.res.pdf = false; render(); });
+}
+
+/* ---------- settings: agency, plan and usage, client data (PDPL) ---------- */
+function planCards(){
+  var a = usageNow(), list = state.account ? state.account.plans : Object.keys(PLANS).map(function(id){ var p = PLANS[id]; return {id:id, name:p.name, priceSar:p.priceSar, fixes:p.fixes, clients:p.clients, amountWithVat:invoiceAmount(id)}; });
+  var billing = state.account && state.account.billing;
+  return '<div class="plans">'+list.filter(function(p){ return p.id !== "trial"; }).map(function(p){
+    var cur = a.plan === p.id, btn;
+    if (p.priceSar == null) btn = '<a class="btn btn-ghost btn-sm" href="./#start">'+t("contactSales")+'</a>';
+    else btn = '<button type="button" class="btn '+(cur ? "btn-ghost" : "btn-primary")+' btn-sm" data-xplan="'+p.id+'"'+(billing ? "" : " disabled")+'>'+t(cur ? "renew" : "upgrade")+'</button>';
+    return '<div class="plan'+(cur ? " cur" : "")+'"><b>'+esc(tr(p.name))+'</b>'+(p.priceSar == null ? '<b class="price">'+t("customL")+'</b>' : '<b class="price">'+p.priceSar+' <small>'+t("perMonth")+'</small></b><span class="note">'+tf("withVat", {v:(p.amountWithVat / 100).toFixed(2)})+'</span>')+
+      (p.fixes ? '<span>'+tf("fixesL", {n:p.fixes})+' · '+tf("clientsL", {n:p.clients})+'</span>' : "")+btn+'</div>';
+  }).join("")+'</div>'+(state.api ? (billing ? "" : '<p class="note">'+t("payNeeds")+'</p>') : '<p class="note">'+t("payServer")+'</p>');
+}
+function vSettings(){
+  var a = usageNow(), ag = state.agDraft || state.agency || {}, w = a.limit ? Math.min(100, Math.round(a.used / a.limit * 100)) : 4;
+  var wsRows = BD.workspaces.map(function(w0){
+    var ask = state.delAsk === w0.id, nm = tr([w0.name, w0.nameAr || w0.name]);
+    return '<div class="wsrow"><div style="min-width:0"><b>'+esc(nm)+'</b>'+(w0.sample ? ' <span class="tag">'+t("sampleTag")+'</span>' : "")+
+      '<label class="toggle" style="margin-top:8px"><input type="checkbox" data-xconsent="'+w0.id+'"'+(w0.consentTraining ? " checked" : "")+'><span><span>'+t("consentL")+'</span><br><span class="note">'+t("consentHint")+'</span></span></label></div>'+
+      '<div class="exp-row" style="justify-content:flex-end">'+(state.api && state.api.store ? '<a class="btn btn-ghost btn-sm" href="/api/workspaces/'+w0.id+'/export" download>'+t("dlData")+'</a>' : '<button type="button" class="btn btn-ghost btn-sm" data-xdl="'+w0.id+'">'+t("dlData")+'</button>')+
+        '<button type="button" class="btn btn-ghost btn-sm" data-xdel="'+w0.id+'">'+t("delClient")+'</button></div>'+
+      (ask ? '<div class="confirm"><span>'+esc(tf("delConfirm", {name:nm}))+'</span><div class="exp-row"><button type="button" class="btn btn-danger btn-sm" data-xdelyes="'+w0.id+'">'+t("delYes")+'</button><button type="button" class="btn btn-ghost btn-sm" data-xdelno="1">'+t("cancel")+'</button></div></div>' : "")+
+    '</div>';
+  }).join("");
+  return '<div class="head"><div><h1>'+t("settings")+'</h1><p>'+t("setSub")+'</p></div></div>'+
+    '<div class="card"><div class="card-h"><h2>'+t("planT")+'</h2><small>'+(a.local ? t("usageLocal") : "")+'</small></div>'+
+      '<p>'+t("currentPlan")+': <b>'+esc(tr(a.planName))+'</b>'+(a.paidUntil ? ' · <span class="note">'+tf("paidUntil", {d:shortDate(a.paidUntil)})+'</span>' : "")+'</p>'+
+      (a.expired ? '<p class="err">'+t("expiredNote")+'</p>' : "")+
+      '<div class="meter" style="margin:10px 0 6px"><i style="width:'+w+'%'+(a.over ? ";background:var(--bad)" : "")+'"></i></div>'+
+      '<p class="note">'+(a.limit == null ? tf("usageNoLimit", {used:a.used}) : tf("usageOf", {used:a.used, limit:a.limit}))+' · '+t("rendersL")+' '+(a.renders || 0)+' · '+t("aiL")+' '+(a.ai || 0)+'</p>'+
+      (a.over ? '<p class="err">'+t("overLimit")+'</p>' : "")+
+      '<div style="margin-top:14px">'+planCards()+'</div>'+
+    '</div>'+
+  '<div class="grid2 even">'+
+    '<div class="card"><div class="card-h"><h2>'+t("agencyT")+'</h2><small>'+t("agencyHint")+'</small></div><div class="stack">'+
+      '<div class="field"><label for="x-ag-name">'+t("agencyName")+'</label><input id="x-ag-name" data-xag="name" value="'+esc(ag.name || "")+'"></div>'+
+      '<div class="form-grid"><div class="field"><label for="x-ag-colour">'+t("agencyColour")+'</label><input type="color" id="x-ag-colour" data-xag="colour" value="'+esc(ag.colour || "#1F5F5B")+'"></div>'+
+      '<div class="field"><span class="lbl">'+t("agencyLogo")+'</span><div class="agp">'+(ag.logo ? '<img src="'+esc(ag.logo)+'" alt="">' : "")+'<label class="btn btn-ghost btn-sm" for="x-ag-logo">'+t("uploadLogo")+'</label><input type="file" id="x-ag-logo" class="vh" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div></div></div>'+
+      '<div><button type="button" class="btn btn-primary" id="x-ag-save">'+t("save")+'</button></div>'+
+    '</div></div>'+
+    '<div class="card"><div class="card-h"><h2>'+t("legalT")+'</h2></div><p class="note">'+t("legalText")+'</p></div>'+
+  '</div>'+
+  '<div class="card"><div class="card-h"><h2>'+t("privacyT")+'</h2><small>'+t(state.api && state.api.store ? "storedServer" : "storedLocal")+'</small></div><p class="note" style="margin-bottom:6px">'+t("privacySub")+'</p>'+wsRows+'</div>';
+}
+function saveAgency(){
+  var ag = Object.assign({}, state.agency || {}, state.agDraft || {});
+  state.agency = ag; state.agDraft = null;
+  try { localStorage.setItem("basira-agency", JSON.stringify(ag)); } catch(e){}
+  if (state.api) apiJson("/api/account/agency", {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(ag)}).then(function(j){ state.account = j; toast(t("saved")); }).catch(function(e){ toast(e.message); });
+  else toast(t("saved"));
+  render();
+}
+function wsDataLocal(id){
+  var w0 = BD.workspaces.filter(function(x){ return x.id === id; })[0];
+  return {exportedAt:new Date().toISOString(), workspace:w0, genome:BD.genomes[id], events:BD.events[id] || [], products:P.filter(function(p){ return p.ws === id; }).map(function(p){ return {sku:p.sku, name:p.name, copy:p.copyNow || null}; })};
+}
+function deleteWs(id){
+  if (BD.workspaces.length < 2){ toast(t("keepOne")); state.delAsk = null; render(); return; }
+  var w0 = BD.workspaces.filter(function(x){ return x.id === id; })[0], nm = w0 ? w0.name : id;
+  var drop = function(){
+    BD.workspaces = BD.workspaces.filter(function(x){ return x.id !== id; }); delete BD.genomes[id]; delete BD.events[id];
+    for (var i = P.length - 1; i >= 0; i--) if (P[i].ws === id){ delete PM[P[i].id]; delete state.sets[P[i].id]; P.splice(i, 1); }
+    state.batch.items = state.batch.items.filter(function(x){ return PM[x.pid]; });
+    state.delAsk = null;
+    if (state.ws === id) switchWs(BD.workspaces[0].id); else { persist(); render(); }
+    toast(tf("deletedT", {name:nm}));
+  };
+  if (state.api && state.api.store) apiJson("/api/workspaces/"+id, {method:"DELETE"}).then(drop).catch(function(e){ toast(e.message); });
+  else drop();
+}
+function setConsent(id, on){
+  var w0 = BD.workspaces.filter(function(x){ return x.id === id; })[0]; if (!w0) return;
+  w0.consentTraining = on; w0.consentAt = new Date().toISOString(); persist();
+  if (state.api && state.api.store) apiJson("/api/workspaces/"+id, {method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({consentTraining:on})}).catch(function(e){ toast(e.message); });
+}
+function runCheckout(plan){
+  toast(t("redirecting"));
+  post("/api/billing/checkout", {plan:plan}).then(function(j){ if (j.url) location.href = j.url; }).catch(function(e){ toast(e.message); });
+}
+function billingReturn(){
+  var q = new URLSearchParams(location.search), id = q.get("id");
+  if (q.get("billing") !== "return" || !id) return;
+  apiJson("/api/billing/verify?id="+encodeURIComponent(id)).then(function(j){
+    state.account = j.account;
+    toast(j.paid ? tf("paidOk", {p:tr(PLANS[j.plan] ? PLANS[j.plan].name : [j.plan, j.plan])}) : tf("payPending", {s:j.status}));
+  }).catch(function(e){ toast(e.message); }).then(function(){
+    try { history.replaceState(null, "", location.pathname + "#settings"); } catch(e){}
+    go("settings");
+  });
+}
+
+/* ---------- on-model photos ---------- */
+function omRef(){ var p = PM[state.pid]; return (p && state.photos[p.id]) || (state.pc.items[0] && state.pc.items[0].url) || null; }
+function omOpts(key, list, prefix){ return '<div class="field"><span class="lbl">'+t(key)+'</span><div class="seg" role="group">'+list.map(function(v){ return '<button type="button" data-xom="'+key+'|'+v+'" aria-pressed="'+(state.om[key === "omLook" ? "look" : key === "omCover" ? "cover" : "setting"] === v)+'">'+t(prefix+v)+'</button>'; }).join("")+'</div></div>'; }
+function omCard(){
+  var om = state.om, ok = state.api && state.api.imageGen, ref = omRef(), p = PM[state.pid];
+  return '<div class="card"><div class="card-h"><h2>'+t("omT")+'</h2><small>'+(p ? esc(tr(p.name)) : "")+'</small></div><p class="note" style="margin-bottom:12px">'+t("omSub")+'</p>'+
+    '<div class="om-grid"><div>'+
+      omOpts("omLook", ["gulf","levant","northAfrica","southAsia","any"], "look_")+omOpts("omCover", ["hijab","none","any"], "cover_")+omOpts("omSetting", ["studio","home","outdoor","majlis"], "set_")+
+      '<div class="field"><label for="x-om-count">'+t("omCount")+'</label><select class="sel" id="x-om-count">'+[1,2,3,4].map(function(n){ return '<option'+(om.count === n ? " selected" : "")+'>'+n+'</option>'; }).join("")+'</select></div>'+
+    '</div><div><span class="lbl">'+t("omRef")+'</span>'+(ref ? '<div class="om-ref"><img src="'+ref+'" alt=""></div>' : '<p class="note">'+t("omRefNone")+'</p>')+'</div></div>'+
+    '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-primary" id="x-om-go"'+(ok && ref && !om.busy ? "" : " disabled")+'>'+t(om.busy ? "omBusy" : "omGo")+'</button>'+
+      '<label class="btn btn-ghost'+(ref ? "" : " is-off")+'" for="x-om-own">'+t("omCheckOwn")+'</label><input type="file" id="x-om-own" class="vh" accept="image/png,image/jpeg,image/webp"'+(ref ? "" : " disabled")+'>'+
+      (ok ? "" : '<span class="note">'+t("omNeeds")+'</span>')+'</div>'+
+    (om.error ? '<p class="err">'+esc(om.error)+'</p>' : "")+
+    (om.results.length ? '<div class="omgrid" style="margin-top:14px">'+om.results.map(function(r, i){
+      var f = r.fid, inEx = p && (state.extra[p.id] || []).indexOf(r.url) > -1;
+      return '<figure><img src="'+r.url+'" alt="">'+(f ? '<span class="tag '+(f.ok ? "good" : "bad")+'">'+esc(tf(f.ok ? "colourOk" : "colourBad", {s:Math.round(f.score * 100)+"%"}))+'</span>' : '<span class="tag">'+t("checking")+'</span>')+
+        (f && f.ok && p ? '<button type="button" class="btn btn-ghost btn-sm" data-xomadd="'+i+'"'+(inEx ? " disabled" : "")+'>'+t(inEx ? "inExport" : "addToExport")+'</button>' : "")+'</figure>';
+    }).join("")+'</div>' : "")+
+  '</div>';
+}
+function fidelity(refUrl, genUrl){
+  return Promise.all([loadImg(refUrl), loadImg(genUrl)]).then(function(ims){
+    var a = canvasFor(ims[0], 320), b = canvasFor(ims[1], 320);
+    return colourFidelity({data:a.getContext("2d").getImageData(0, 0, a.width, a.height).data, width:a.width, height:a.height}, {data:b.getContext("2d").getImageData(0, 0, b.width, b.height).data, width:b.width, height:b.height});
+  });
+}
+function addOmResults(urls){
+  var ref = omRef(), om = state.om;
+  urls.forEach(function(u){
+    var r = {url:u, fid:null}; om.results.unshift(r);
+    fidelity(ref, u).then(function(f){ r.fid = f; }).catch(function(){ r.fid = {ok:false, score:0}; }).then(function(){ if (state.route === "photos") render(); });
+  });
+  om.results = om.results.slice(0, 12);
+}
+function runOnModel(){
+  var p = PM[state.pid], ref = omRef(), om = state.om; if (!p || !ref) return;
+  om.busy = true; om.error = null; render();
+  var visual = activeTraits(genome(), bCtx(p)).filter(function(x){ return x.type === "visual"; }).map(function(x){ return x.params.text; }).join("; ");
+  shrinkForAi(ref).then(function(img){
+    return post("/api/imagegen/onmodel", {image:img, product:tr(p.name), category:catOf(p), look:om.look, cover:om.cover, setting:om.setting, count:om.count, visual:visual});
+  }).then(function(j){ addOmResults(j.images); refreshAccount(); }).catch(function(e){ om.error = e.message; })
+    .then(function(){ om.busy = false; render(); });
+}
+
+/* ---------- events for these pages ---------- */
+document.addEventListener("click", function(e){
+  var el;
+  if ((el = e.target.closest("#x-sel-clear"))){ state.sel = {}; render(); return; }
+  if ((el = e.target.closest("#x-sel-shown"))){ state.shown.forEach(function(id){ state.sel[id] = true; }); render(); return; }
+  if ((el = e.target.closest("#x-sel-go"))){ prepareBatch(selIds()); state.sel = {}; go("batch"); return; }
+  if ((el = e.target.closest("#x-b-all"))){ prepareBatch(WP().map(function(p){ return p.id; })); render(); return; }
+  if ((el = e.target.closest("#x-b-ai"))){ runAiAll(); return; }
+  if ((el = e.target.closest("#x-b-approve"))){ bItems().filter(function(x){ return x.status === "draft" && !x.busy; }).forEach(approveItem); render(); toast(t("approvedToast")); return; }
+  if ((el = e.target.closest("[data-xb]"))){
+    var xb = el.dataset.xb.split("|"), it = bItem(xb[1]); if (!it) return;
+    if (xb[0] === "approve"){ approveItem(it); render(); }
+    else if (xb[0] === "skip"){ it.status = "skipped"; render(); }
+    else if (xb[0] === "undo"){ it.status = "draft"; render(); }
+    else if (xb[0] === "edit"){ state.copy[it.pid] = {draft:JSON.parse(JSON.stringify(it.copy)), edit:JSON.parse(JSON.stringify(it.copy)), source:"rules", changes:[]}; go("listing-"+it.pid); }
+    return;
+  }
+  if ((el = e.target.closest("[data-xexport]"))){ var pe = PM[el.dataset.xexport]; if (pe){ var bi = bItem(pe.id); if (!bi){ var cc = JSON.parse(JSON.stringify(copyCurrentOf(pe))); bi = {pid:pe.id, status:"approved", source:"rules", copy:cc, original:JSON.parse(JSON.stringify(cc)), changes:[]}; state.batch.items.push(bi); } bi.status = "approved"; } go("batch"); return; }
+  if ((el = e.target.closest("#x-exp-go"))){ runExport(); return; }
+  if ((el = e.target.closest("#x-pub"))){ runPublish(); return; }
+  if ((el = e.target.closest("#x-rep-sample"))){ sampleReports(); render(); return; }
+  if ((el = e.target.closest("[data-xrl]"))){ state.res.lang = el.dataset.xrl; render(); return; }
+  if ((el = e.target.closest("#x-pdf"))){ runPdf(); return; }
+  if ((el = e.target.closest("#x-print"))){ var fr = document.getElementById("x-rep-frame"); try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch(err){ var wnd = window.open("", "_blank"); if (wnd){ wnd.document.write(lastReport); wnd.document.close(); wnd.print(); } } return; }
+  if ((el = e.target.closest("#x-ag-save"))){ saveAgency(); return; }
+  if ((el = e.target.closest("[data-xplan]"))){ runCheckout(el.dataset.xplan); return; }
+  if ((el = e.target.closest("[data-xdl]"))){ var id0 = el.dataset.xdl; download(new Blob([JSON.stringify(wsDataLocal(id0), null, 2)], {type:"application/json"}), "basira-"+id0+"-data.json"); return; }
+  if ((el = e.target.closest("[data-xdel]"))){ state.delAsk = el.dataset.xdel; render(); return; }
+  if ((el = e.target.closest("[data-xdelno]"))){ state.delAsk = null; render(); return; }
+  if ((el = e.target.closest("[data-xdelyes]"))){ deleteWs(el.dataset.xdelyes); return; }
+  if ((el = e.target.closest("[data-xom]"))){ var xo = el.dataset.xom.split("|"); state.om[xo[0] === "omLook" ? "look" : xo[0] === "omCover" ? "cover" : "setting"] = xo[1]; render(); return; }
+  if ((el = e.target.closest("#x-om-go"))){ runOnModel(); return; }
+  if ((el = e.target.closest("[data-xomadd]"))){ var po = PM[state.pid], ro = state.om.results[+el.dataset.xomadd]; if (po && ro){ (state.extra[po.id] = state.extra[po.id] || []).push(ro.url); toast(tf("addedToExport", {name:tr(po.name)})); render(); } return; }
+});
+document.addEventListener("change", function(e){
+  var el = e.target;
+  if (el.dataset && el.dataset.xsel){ state.sel[el.dataset.xsel] = el.checked; render(); return; }
+  if (el.id === "x-sel-all"){ state.shown.forEach(function(id){ state.sel[id] = el.checked; }); render(); return; }
+  if (el.id === "x-exp-ch"){ state.batch.channel = el.value; state.batch.exp = null; state.batch.pub = null; render(); return; }
+  if (el.id === "x-mk"){ state.batch.market = el.value; return; }
+  if (el.id === "x-om-count"){ state.om.count = +el.value; return; }
+  if (el.id === "x-changed"){ render(); return; }
+  if (el.dataset && el.dataset.xconsent){ setConsent(el.dataset.xconsent, el.checked); return; }
+  if ((el.id === "x-rep-before" || el.id === "x-rep-after") && el.files && el.files[0]){
+    var file = el.files[0], which = el.id === "x-rep-before" ? "before" : "after";
+    if (file.size > 20 * 1024 * 1024){ state.res.error = "The report is larger than 20 MB"; render(); return; }
+    readFileAs(file, "readAsText").then(function(text){
+      var rep = parseSalesReport(text);
+      if (rep.error){ state.res.error = file.name + ": " + rep.error; }
+      else { state.res[which] = rep; state.res[which === "before" ? "bName" : "aName"] = file.name; state.res.error = null; state.res.sample = false; }
+      render();
+    });
+    return;
+  }
+  if (el.id === "x-ag-logo" && el.files && el.files[0]){
+    if (el.files[0].size > 1024 * 1024){ toast("The logo must be under 1 MB"); return; }
+    readFileAs(el.files[0], "readAsDataURL").then(function(u){ state.agDraft = Object.assign({}, state.agency || {}, state.agDraft || {}, {logo:u}); render(); });
+    return;
+  }
+  if (el.id === "x-om-own" && el.files && el.files[0]){ readFileAs(el.files[0], "readAsDataURL").then(function(u){ addOmResults([u]); render(); }); return; }
+});
+document.addEventListener("input", function(e){
+  var el = e.target;
+  if (el.id === "x-changed"){ state.res.changedText = el.value; return; }
+  if (el.id === "x-period"){ state.res.period = el.value; clearTimeout(state.res.tp); state.res.tp = setTimeout(paintReport, 300); return; }
+  if (el.dataset && el.dataset.xag){ state.agDraft = Object.assign({}, state.agency || {}, state.agDraft || {}); state.agDraft[el.dataset.xag] = el.value; return; }
+});
+
+
 /* ---------- router ---------- */
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit","brand"].indexOf(h) > -1) state.route = h;
+  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
@@ -1647,8 +2214,8 @@ function render(scroll){
   renderSide();
   var r = state.route;
   if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
-  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : r === "brand" ? vBrand() : vOverview();
-  hydrate(view);
+  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
+  hydrate(view); paintReport();
   document.title = "Basira · " + t(r === "listing" || r === "empty" ? "catalog" : r);
   if (scroll){
     window.scrollTo(0,0);
@@ -1664,6 +2231,7 @@ function render(scroll){
 document.addEventListener("click", function(e){
   var el;
   if ((el = e.target.closest("[data-lang]"))){ setLang(el.dataset.lang); return; }
+  if (e.target.closest(".ck-cell")) return;
   if ((el = e.target.closest("tr[data-href]"))){ go(el.dataset.href); return; }
   if ((el = e.target.closest("[data-chan]"))){ state.chan = el.dataset.chan; render(); return; }
   if ((el = e.target.closest("[data-dialect]"))){ state.dialect = el.dataset.dialect; render(); return; }
@@ -1713,7 +2281,7 @@ document.addEventListener("click", function(e){
 });
 document.addEventListener("submit", function(e){ if (e.target.id === "imp-form"){ e.preventDefault(); runImport(); } });
 document.addEventListener("error", function(e){ var el = e.target; if (el && el.tagName === "IMG" && el.dataset && el.dataset.fallback != null){ var b = document.createElement("b"); b.className = "ini"; b.textContent = el.dataset.fallback; el.replaceWith(b); } }, true);
-document.addEventListener("keydown", function(e){ var el = e.target.closest && e.target.closest("tr[data-href]"); if (el && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); go(el.dataset.href); } });
+document.addEventListener("keydown", function(e){ var el = e.target.closest && !e.target.closest(".ck-cell") && e.target.closest("tr[data-href]"); if (el && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); go(el.dataset.href); } });
 document.addEventListener("input", function(e){
   var el = e.target;
   if (el.id === "q"){ state.q = el.value; if (state.route !== "catalog") go("catalog"); else render(); return; }
@@ -1804,7 +2372,7 @@ function runGen(pid){
       if (g.step >= 4){ g.phase = "done"; }
       if (state.route === "studio" && state.pid === pid) render();
       if (g.phase === "run") next();
-    }, reduce ? 50 : 650);
+    }, reduce ? 30 : 220);
   })();
 }
 function sendAppr(pid){
@@ -1832,16 +2400,13 @@ function sendFeedback(id){
 }
 function findQ(id){ return state.queue.filter(function(q){ return q.id === id; })[0]; }
 function approve(id){
-  var it = findQ(id); it.status = "publishing";
+  var it = findQ(id); if (it.status === "approved") return;
   var p0 = PM[it.pid], set0 = setOf(p0), b0 = set0.filter(function(x){ return x.tpl === "benefit"; })[0] || set0[1] || set0[0];
   var ex0 = b0 ? Object.assign({}, templateById(b0.tpl).sample, b0.fields) : {};
   it.learned = learnedNote(recordAll([{type:"approve", product:p0.id, edits: it.edits || 0, label: set0.length+" "+t("slidesN"), content: b0 ? slideContent(p0, b0) : null, exemplar: {template: b0 && b0.tpl, headAr: ex0.headAr, headEn: ex0.headEn}, ctx:{channel:p0.ch[0], category:catOf(p0), lang:"ar", template: b0 && b0.tpl}}]));
-  render();
-  setTimeout(function(){
-    it.status = "live"; var p = PM[it.pid]; p.score = p.target; p.fixed = true; p.imgs = Math.max(p.imgs, 4);
-    if (state.route === "approvals") render(); else renderSide();
-    toast(t("published")+" "+p.ch.map(function(c){ return CH[c].n; }).join(", "));
-  }, 1300);
+  // Approval marks the fix ready; nothing reaches a marketplace until it is exported or published from Bulk fixes.
+  it.status = "approved"; p0.fixed = true; p0.score = p0.target; p0.imgs = Math.max(p0.imgs, set0.length);
+  render(); toast(t("approvedToast"));
 }
 
 function setLang(l){
@@ -1856,7 +2421,7 @@ addEventListener("hashchange", route);
 if (/^https?:$/.test(location.protocol)){
   fetch("/api/health").then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
     if (!j || !j.ok) return;
-    state.api = j; render(); loadFromServer();
+    state.api = j; render(); loadFromServer(); refreshAccount(); billingReturn();
     fetch("/api/connectors").then(function(r){ return r.ok ? r.json() : null; }).then(function(c){ if (c){ state.connectors = c; if (state.route === "catalog") render(); } }).catch(function(){});
   }).catch(function(){});
 }

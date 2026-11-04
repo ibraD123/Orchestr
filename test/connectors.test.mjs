@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { setNetwork, assertPublicUrl } from "../server/connectors/net.mjs";
 import { parseLink } from "../server/connectors/link.mjs";
 import { extractProduct } from "../server/connectors/page.mjs";
-import { itemFromCatalog, amazonProduct, amazonStore } from "../server/connectors/amazon.mjs";
+import { itemFromCatalog, amazonProduct, amazonStore, amazonPublish, listingPatches } from "../server/connectors/amazon.mjs";
 import { listingsFromCSV, parseCSV } from "../server/catalog-csv.mjs";
 import { importLink } from "../server/importer.mjs";
 
@@ -122,6 +122,32 @@ test("store import pages through the connected seller's listings only", async ()
   assert.deepEqual(items.map((i) => i.sku), ["S1", "S2"]);
   assert.equal(items[0].marketplaceIssues[0].code, "90220");
   await assert.rejects(amazonStore("SOMEONE_ELSE", { id: "A2VIGQ35RCS4UG", country: "AE" }, {}, amazonEnv), /connected seller/);
+});
+
+test("publishes approved copy and hosted images with the listing's product type", async () => {
+  routes["https://auth.test/o2/token"] = { access_token: "Atza|tok3", expires_in: 3600 };
+  routes["https://sp.test/listings/2021-08-01/items/A1ME/OUD-100"] = (url, init) => init.method === "PATCH"
+    ? respond({ sku: "OUD-100", status: "ACCEPTED", submissionId: "sub-1", issues: [] })
+    : respond({ sku: "OUD-100", summaries: [{ marketplaceId: "A17E79C6D8DWNP", productType: "PERFUME" }] });
+  routes["https://sp.test/listings/2021-08-01/items/A1ME/GONE"] = () => respond({ errors: [{ code: "NOT_FOUND" }] }, { status: 404 });
+  const SA = { id: "A17E79C6D8DWNP", country: "SA", locales: ["en_AE", "ar_AE"] };
+  const item = { sku: "OUD-100", copy: { titleEn: "Oud Al Layl EDP 100ml", titleAr: "عطر عود الليل", bulletsEn: ["Lasts 12 hours"], bulletsAr: ["يدوم ١٢ ساعة"] }, images: ["https://basira.test/assets/a/1.png", "https://basira.test/assets/a/2.png", "/local/not-public.png"] };
+  const r = await amazonPublish(item, SA, { ...amazonEnv, refreshToken: "rt3" });
+  assert.equal(r.status, "ACCEPTED"); assert.equal(r.submissionId, "sub-1");
+  const patch = calls.find((c) => c.init.method === "PATCH");
+  assert.ok(patch.url.includes("marketplaceIds=A17E79C6D8DWNP"));
+  const body = JSON.parse(patch.init.body);
+  assert.equal(body.productType, "PERFUME");
+  const byPath = Object.fromEntries(body.patches.map((p) => [p.path, p.value]));
+  assert.deepEqual(byPath["/attributes/item_name"].map((v) => v.language_tag), ["en_AE", "ar_AE"]);
+  assert.equal(byPath["/attributes/bullet_point"].length, 2);
+  assert.equal(byPath["/attributes/main_product_image_locator"][0].media_location, "https://basira.test/assets/a/1.png");
+  assert.ok(byPath["/attributes/other_product_image_locator_1"]);
+  assert.ok(!byPath["/attributes/other_product_image_locator_2"], "non-public image links are left out");
+  const gone = await amazonPublish({ sku: "GONE", copy: { titleEn: "x" } }, SA, { ...amazonEnv, refreshToken: "rt3" });
+  assert.equal(gone.status, "NOT_FOUND");
+  await assert.rejects(amazonPublish(item, SA, { ...amazonEnv, sellerId: null }), (e) => e.status === 503);
+  assert.equal(listingPatches({ copy: {} }, SA).length, 0);
 });
 
 test("explains what to do when Amazon isn't connected", async () => {

@@ -181,6 +181,17 @@ export async function probeImage(dataUrl) {
   } finally { await page.close(); }
 }
 
+/** Print a self-contained HTML document to an A4 PDF with the embedded brand fonts. */
+export async function renderPdf(html) {
+  const page = await newPage();
+  try {
+    await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
+    await page.setContent(String(html).replace("<head>", () => `<head><style>${fontCss()}</style>`), { waitUntil: "load" });
+    await page.evaluate(() => Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready));
+    return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+  } finally { await page.close(); }
+}
+
 export async function rendererAvailable() {
   try { await browser(); return true; } catch { return false; }
 }
