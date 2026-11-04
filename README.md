@@ -6,6 +6,8 @@ Basira finds what is costing a listing sales, learns from what buyers write in r
 
 This repository holds the marketing site, the product app and the server that powers it.
 
+Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.md). Pipeline diagram: [`docs/pipeline.html`](docs/pipeline.html).
+
 ## Structure
 
 | Path | What it is |

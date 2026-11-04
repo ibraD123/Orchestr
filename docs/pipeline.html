@@ -1,0 +1,170 @@
+<title>Пайплайн Basira</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column; the diagram is the page, prose only frames it. Same oasis palette as the product. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --ink:#0C1A17; --muted:#5A6A65; --line:#CAD5D0;
+  --accent:#0B5D52; --accent-soft:#DAEBE6; --v2:#94540F; --v2-soft:#F6E7D3;
+  --font:"Onest",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1210; --surface:#111C19; --ink:#E7EFEC; --muted:#9AABA5; --line:#2A3A35;
+  --accent:#52C4AE; --accent-soft:#123129; --v2:#F2B86B; --v2-soft:#33230F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1210; --surface:#111C19; --ink:#E7EFEC; --muted:#9AABA5; --line:#2A3A35;
+  --accent:#52C4AE; --accent-soft:#123129; --v2:#F2B86B; --v2-soft:#33230F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.page{max-width:1040px;margin-inline:auto;padding-block:48px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+.page>*{min-width:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{margin:6px 0 10px;font-size:clamp(30px,4vw,44px);font-weight:700;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:64ch;font-size:17px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13.5px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend svg{width:34px;height:10px;flex:none}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 20px 16px}
+.scroll{overflow-x:auto}
+figure svg{display:block;width:100%;min-width:760px;height:auto;font-family:var(--font)}
+figcaption{margin-top:14px;font-size:14px;color:var(--muted);max-width:80ch}
+/* diagram classes */
+.box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.box.src{fill:none;stroke-dasharray:5 4}
+.dna{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.t{fill:var(--ink);font-size:16px;font-weight:600}
+.dt{fill:var(--accent);font-size:17px;font-weight:700}
+.s{fill:var(--muted);font-size:12.5px}
+.lab{fill:var(--muted);font-size:11.5px}
+.lab.a{fill:var(--accent);font-weight:600}
+.flow{stroke:var(--muted);stroke-width:1.5;fill:none}
+.read{stroke:var(--muted);stroke-width:1.3;stroke-dasharray:4 4;fill:none}
+.learn{stroke:var(--accent);stroke-width:2.2;fill:none}
+.hd{fill:var(--muted)}
+.hd.a{fill:var(--accent)}
+.dot{fill:var(--accent)}
+.v2r{fill:var(--v2-soft);stroke:var(--v2);stroke-width:1}
+.v2t{fill:var(--v2);font-size:10.5px;font-weight:600;font-family:var(--mono)}
+.rule{stroke:var(--accent);stroke-opacity:.35;stroke-width:1}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.note{display:grid;gap:6px;align-content:start;padding-top:14px;border-top:2px solid var(--line)}
+.note.a{border-top-color:var(--accent)}
+.note b{font-weight:600}
+.note p{margin:0;color:var(--muted);font-size:14.5px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--v2);background:var(--v2-soft);border:1px solid var(--v2);border-radius:99px;padding:0 7px}
+@media (max-width:760px){.notes{grid-template-columns:1fr}}
+</style>
+
+<main class="page">
+  <header>
+    <div class="eyebrow">Basira · архитектура</div>
+    <h1>Пайплайн Basira</h1>
+    <p class="lede">Пять этапов от данных до результата, общая память бренда сбоку и петля, по которой результаты и правки команды возвращаются в систему.</p>
+  </header>
+
+  <div class="legend" aria-hidden="true">
+    <span><svg viewBox="0 0 34 10"><line x1="1" y1="5" x2="33" y2="5" class="flow"/></svg>поток работы</span>
+    <span><svg viewBox="0 0 34 10"><line x1="1" y1="5" x2="33" y2="5" class="read"/></svg>этап читает Brand DNA</span>
+    <span><svg viewBox="0 0 34 10"><line x1="1" y1="5" x2="33" y2="5" class="learn"/></svg>обучение: данные возвращаются в систему</span>
+    <span><span class="tag">v2</span>во второй версии</span>
+  </div>
+
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 960 672" role="img" aria-label="Пайплайн Basira: источники данных, Product Intelligence, AI Creative Engine, Workflow and Execution и Creative Performance Intelligence идут сверху вниз. Brand DNA стоит сбоку на всю высоту: аудит, генерация и контроль качества читают его, а правки команды и результаты пополняют. Петля обучения ведёт от Performance обратно к Product Intelligence.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="hd"/></marker>
+          <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="hd a"/></marker>
+        </defs>
+
+        <!-- 0. Sources -->
+        <rect x="110" y="16" width="440" height="88" rx="12" class="box src"/>
+        <text x="130" y="46" class="t">Источники данных</text>
+        <text x="130" y="70" class="s">Amazon · Noon · Shopify · Salla · Zid · CSV · отзывы</text>
+        <rect x="130" y="80" width="26" height="16" rx="8" class="v2r"/><text x="143" y="92" text-anchor="middle" class="v2t">v2</text>
+        <text x="164" y="92" class="s">рекламная аналитика</text>
+
+        <line x1="330" y1="108" x2="330" y2="146" class="flow" marker-end="url(#ah)"/>
+        <text x="342" y="131" class="lab">каталог, фото, отзывы</text>
+
+        <!-- 1. Intelligence -->
+        <rect x="110" y="152" width="440" height="88" rx="12" class="box"/>
+        <text x="130" y="182" class="t">Product Intelligence</text>
+        <text x="130" y="206" class="s">аудит карточек · анализ отзывов покупателей</text>
+        <text x="130" y="226" class="s">ошибки и точки роста · сравнение с конкурентами</text>
+
+        <line x1="330" y1="244" x2="330" y2="282" class="flow" marker-end="url(#ah)"/>
+        <text x="342" y="267" class="lab">что исправить и почему</text>
+
+        <!-- 2. Creative -->
+        <rect x="110" y="288" width="440" height="88" rx="12" class="box"/>
+        <text x="130" y="318" class="t">AI Creative Engine</text>
+        <text x="130" y="342" class="s">инфографика · изображения · копирайтинг · локализация</text>
+        <rect x="130" y="352" width="26" height="16" rx="8" class="v2r"/><text x="143" y="364" text-anchor="middle" class="v2t">v2</text>
+        <text x="164" y="364" class="s">видео</text>
+
+        <line x1="330" y1="380" x2="330" y2="418" class="flow" marker-end="url(#ah)"/>
+        <text x="342" y="403" class="lab">черновики исправлений</text>
+
+        <!-- 3. Workflow -->
+        <rect x="110" y="424" width="440" height="88" rx="12" class="box"/>
+        <text x="130" y="454" class="t">Workflow &amp; Execution</text>
+        <text x="130" y="478" class="s">массовая обработка · согласования</text>
+        <text x="130" y="498" class="s">контроль качества · публикация</text>
+
+        <line x1="330" y1="516" x2="330" y2="554" class="flow" marker-end="url(#ah)"/>
+        <text x="342" y="539" class="lab">опубликованные изменения</text>
+
+        <!-- 4. Performance -->
+        <rect x="110" y="560" width="440" height="88" rx="12" class="box"/>
+        <text x="130" y="590" class="t">Creative Performance Intelligence</text>
+        <text x="130" y="614" class="s">замер результата · история изменений</text>
+        <text x="130" y="634" class="s">эксперименты · рекомендации</text>
+
+        <!-- Brand DNA: shared memory, full height -->
+        <rect x="700" y="152" width="244" height="496" rx="14" class="dna"/>
+        <text x="720" y="184" class="dt">Brand DNA</text>
+        <text x="720" y="204" class="s">общая память бренда</text>
+        <line x1="720" y1="220" x2="924" y2="220" class="rule"/>
+        <circle cx="724" cy="242" r="2.5" class="dot"/><text x="734" y="246" class="s">лого, цвета, шрифты</text>
+        <circle cx="724" cy="264" r="2.5" class="dot"/><text x="734" y="268" class="s">голос и тон, AR и EN</text>
+        <circle cx="724" cy="286" r="2.5" class="dot"/><text x="734" y="290" class="s">нужные и запретные слова</text>
+        <circle cx="724" cy="308" r="2.5" class="dot"/><text x="734" y="312" class="s">одобренные примеры</text>
+        <circle cx="724" cy="330" r="2.5" class="dot"/><text x="734" y="334" class="s">правила из правок команды</text>
+        <line x1="720" y1="580" x2="924" y2="580" class="rule"/>
+        <text x="720" y="604" class="s">читают все этапы</text>
+        <text x="720" y="624" class="s">пополняют Workflow и Performance</text>
+
+        <!-- sources feed the brand book -->
+        <path d="M550 60H814Q822 60 822 68V146" class="flow" marker-end="url(#ah)"/>
+        <text x="686" y="52" text-anchor="middle" class="lab">брендбук, сайт бренда</text>
+
+        <!-- stages read Brand DNA -->
+        <line x1="700" y1="196" x2="554" y2="196" class="read" marker-end="url(#ah)"/>
+        <text x="625" y="188" text-anchor="middle" class="lab">сверяет с брендом</text>
+        <line x1="700" y1="332" x2="554" y2="332" class="read" marker-end="url(#ah)"/>
+        <text x="625" y="324" text-anchor="middle" class="lab">голос, стиль, примеры</text>
+        <line x1="700" y1="458" x2="554" y2="458" class="read" marker-end="url(#ah)"/>
+        <text x="625" y="450" text-anchor="middle" class="lab">проверка качества</text>
+
+        <!-- learning: edits and results flow back -->
+        <line x1="550" y1="480" x2="696" y2="480" class="learn" marker-end="url(#aa)"/>
+        <text x="625" y="497" text-anchor="middle" class="lab a">правки, одобрения</text>
+        <line x1="550" y1="604" x2="696" y2="604" class="learn" marker-end="url(#aa)"/>
+        <text x="625" y="596" text-anchor="middle" class="lab a">что сработало</text>
+        <path d="M110 604H72Q60 604 60 592V208Q60 196 72 196H104" class="learn" marker-end="url(#aa)"/>
+        <text x="44" y="400" text-anchor="middle" transform="rotate(-90 44 400)" class="lab a" style="font-size:12.5px">петля обучения: результаты → новые выводы</text>
+      </svg>
+    </div>
+    <figcaption>Работа идёт сверху вниз. Brand DNA не шаг конвейера, а память, к которой обращаются все этапы. Зелёные линии замыкают цикл: что сработало и как команда правила черновики, возвращается в аудит и в память бренда, поэтому следующая генерация требует меньше правок.</figcaption>
+  </figure>
+
+  <section class="notes">
+    <div class="note a"><b>Петля обучения</b><p>Каждое изменение публикуется с замером. Результат подсказывает аудиту, что исправлять в первую очередь, а память бренда запоминает, какие решения работают. Это главный аргумент против генераторов без памяти.</p></div>
+    <div class="note a"><b>Brand DNA сбоку</b><p>Аудит сверяет карточки с брендом, движок пишет и рисует его голосом, контроль качества проверяет по брендбуку. Пополняется правками и одобрениями команды и результатами публикаций.</p></div>
+    <div class="note"><b>Во второй версии <span class="tag">v2</span></b><p>Рекламная аналитика и видео. Performance стартует на данных о продажах и конверсии: Amazon отдаёт их через SP-API, Noon только через выгрузки.</p></div>
+  </section>
+</main>
