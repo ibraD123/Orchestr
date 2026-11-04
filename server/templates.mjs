@@ -84,6 +84,15 @@ export const TEMPLATES = [
     sample: { headAr: "الجمعة البيضاء", headEn: "White Friday", discount: "40%" }, kit: { bg: "#0D0D0D", fg: "#FFFFFF", accent: "#BDBDBD" } }
 ];
 export const TEMPLATE_IDS = TEMPLATES.map((t) => t.id);
+
+// Font pairs: Arabic display, Latin display, body. Brand DNA picks one.
+export const TEMPLATE_FONTS = {
+  // Single quotes: these values go inside a double-quoted style attribute.
+  kufi: ["'Reem Kufi'", "'Bricolage Grotesque'", "'Readex Pro'"],
+  naskh: ["'Amiri'", "'Amiri'", "'Readex Pro'"],
+  modern: ["'Readex Pro'", "'Readex Pro'", "'Readex Pro'"]
+};
+export const LOGO_POSITIONS = ["top-end", "top-start", "bottom"];
 export const templateById = (id) => TEMPLATES.find((t) => t.id === id) || null;
 
 const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
@@ -98,16 +107,16 @@ function icon(name, size) {
 }
 
 export const TEMPLATE_CSS = `
-.bz{position:relative;width:${SLIDE_W}px;height:${SLIDE_H}px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:"Readex Pro",sans-serif;--soft:color-mix(in srgb,var(--fg) 12%,transparent);--line:color-mix(in srgb,var(--fg) 28%,transparent)}
+.bz{position:relative;width:${SLIDE_W}px;height:${SLIDE_H}px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--fb),"Readex Pro",sans-serif;--soft:color-mix(in srgb,var(--fg) 12%,transparent);--line:color-mix(in srgb,var(--fg) 28%,transparent)}
 .bz *{box-sizing:border-box;margin:0;padding:0}
-.bz .brand{position:absolute;top:84px;inset-inline-end:96px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:44px;letter-spacing:.24em;color:var(--ac);opacity:.85;direction:ltr}
+.bz .brand{position:absolute;top:84px;inset-inline-end:96px;font-family:var(--fl),sans-serif;font-weight:700;font-size:44px;letter-spacing:.24em;color:var(--ac);opacity:.85;direction:ltr}
 .bz .prod{position:absolute;display:flex;align-items:center;justify-content:center}
 .bz .prod img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 40px 40px rgba(0,0,0,.28))}
 .bz .stack{position:absolute;inset-inline:120px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:26px}
-.bz .h1{font-family:"Reem Kufi",sans-serif;font-weight:600;font-size:150px;line-height:1.16}
-.bz .h1.en{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:124px;line-height:1.02;letter-spacing:-.02em}
-.bz .h2{font-family:"Reem Kufi",sans-serif;font-weight:600;font-size:104px;line-height:1.2}
-.bz .h2.en{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:90px;line-height:1.05;letter-spacing:-.02em}
+.bz .h1{font-family:var(--fa),"Readex Pro",sans-serif;font-weight:600;font-size:150px;line-height:1.16}
+.bz .h1.en{font-family:var(--fl),sans-serif;font-weight:700;font-size:124px;line-height:1.02;letter-spacing:-.02em}
+.bz .h2{font-family:var(--fa),"Readex Pro",sans-serif;font-weight:600;font-size:104px;line-height:1.2}
+.bz .h2.en{font-family:var(--fl),sans-serif;font-weight:700;font-size:90px;line-height:1.05;letter-spacing:-.02em}
 .bz .sub{font-size:56px;font-weight:300;color:var(--ac);line-height:1.3}
 .bz .en-sub{font-size:44px;font-weight:300;color:var(--ac);opacity:.9;line-height:1.3;direction:ltr}
 .bz .t{font-size:62px;line-height:1.3}
@@ -121,8 +130,12 @@ export const TEMPLATE_CSS = `
 .bz td{padding:30px 12px;border-bottom:2px solid var(--line)}
 .bz td:first-child{font-weight:600}
 .bz .ic{display:grid;place-items:center;width:200px;height:200px;border-radius:50%;background:var(--soft);color:var(--fg);flex:none}
-.bz .num{display:grid;place-items:center;width:140px;height:140px;border-radius:50%;background:var(--fg);color:var(--bg);font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:72px;flex:none}
+.bz .num{display:grid;place-items:center;width:140px;height:140px;border-radius:50%;background:var(--fg);color:var(--bg);font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;flex:none}
 .bz .mark{font-size:84px;font-weight:600;line-height:1}
+.bz .logo{position:absolute;top:56px;height:84px;max-width:420px;object-fit:contain}
+.bz .logo.top-end{inset-inline-end:96px;object-position:right center}
+.bz .logo.top-start{inset-inline-start:96px;object-position:left center}
+.bz .logo.bottom{top:auto;bottom:44px;left:50%;transform:translateX(-50%);object-position:center}
 .bz .pattern{position:absolute;inset:0;opacity:.12;background-image:radial-gradient(circle at 50% 50%,var(--fg) 3px,transparent 4px);background-size:80px 80px}
 `;
 
@@ -225,9 +238,9 @@ export function templateHTML(id, fields, ctx) {
       const u = esc(v.unit || "cm");
       body = '<div class="stack" style="top:150px">' + head(v.titleAr, v.titleEn, 2) + "</div>" + img("top:520px;bottom:300px;inset-inline:420px") +
         '<div style="position:absolute;inset-inline:420px;bottom:200px;height:4px;background:var(--fg)"></div>' +
-        '<div style="position:absolute;inset-inline:420px;bottom:120px;text-align:center;font-family:\'Bricolage Grotesque\',sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.width) + " " + u + "</div>" +
+        '<div style="position:absolute;inset-inline:420px;bottom:120px;text-align:center;font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.width) + " " + u + "</div>" +
         '<div style="position:absolute;top:520px;bottom:300px;inset-inline-end:330px;width:4px;background:var(--fg)"></div>' +
-        '<div style="position:absolute;top:50%;inset-inline-end:110px;font-family:\'Bricolage Grotesque\',sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.height) + " " + u + "</div>";
+        '<div style="position:absolute;top:50%;inset-inline-end:110px;font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.height) + " " + u + "</div>";
       break;
     }
     case "notes": {
@@ -249,10 +262,13 @@ export function templateHTML(id, fields, ctx) {
       break;
     }
     case "whitefriday":
-      body = '<div style="position:absolute;inset-inline-end:-200px;top:-200px;width:860px;height:860px;border-radius:50%;background:var(--fg);box-sizing:border-box;padding-top:200px;padding-inline-end:200px;display:grid;place-items:center"><div style="color:var(--bg);font-family:\'Bricolage Grotesque\',sans-serif;font-weight:800;font-size:200px;letter-spacing:-.04em;direction:ltr">−' + E(v.discount || "") + "</div></div>" +
+      body = '<div style="position:absolute;inset-inline-end:-200px;top:-200px;width:860px;height:860px;border-radius:50%;background:var(--fg);box-sizing:border-box;padding-top:200px;padding-inline-end:200px;display:grid;place-items:center"><div style="color:var(--bg);font-family:var(--fl),sans-serif;font-weight:800;font-size:200px;letter-spacing:-.04em;direction:ltr">−' + E(v.discount || "") + "</div></div>" +
         img("inset:980px 300px 120px 300px") + '<div style="position:absolute;top:680px;inset-inline-start:110px;display:flex;flex-direction:column;gap:20px;max-width:1100px">' + head(v.headAr, v.headEn) + "</div>";
       break;
   }
-  const brand = ctx.brand && tpl.id !== "cover" ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
-  return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + '">' + brand + body + "</div>";
+  // The brand's logo replaces the plain brand name; the main image stays clean (marketplace rules).
+  const logo = ctx.logo && ctx.logo.src && tpl.id !== "cover" ? '<img class="logo ' + (LOGO_POSITIONS.indexOf(ctx.logo.pos) > -1 ? ctx.logo.pos : "top-end") + '" src="' + esc(ctx.logo.src) + '" alt="">' : "";
+  const brand = !logo && ctx.brand && tpl.id !== "cover" ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
+  const fonts = TEMPLATE_FONTS[ctx.fonts] || TEMPLATE_FONTS.kufi;
+  return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' + logo + brand + body + "</div>";
 }

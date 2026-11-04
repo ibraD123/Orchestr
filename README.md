@@ -24,6 +24,10 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/economics.mjs` | Unit economics per channel (VAT, commission, fulfilment, COD, ads, returns), shared with the app |
 | `server/photo-metrics.mjs` | Photo checks (white background, product fill) and background removal on raw pixels, shared with the app |
 | `server/photo.mjs` | Claude reviews main-image candidates and picks the one most likely to be clicked |
+| `server/brand-dna.mjs` | Brand DNA: evidence-weighted brand genome (traits used both to generate and to check, learning from edits and approvals), shared with the app |
+| `server/brand-ai.mjs` | Claude: reads brand materials into proposed rules; writes listing copy with the brand brief |
+| `server/brand-seed.mjs` | Sample client workspaces (Layali with a learning history, Noor as a new client) |
+| `server/store.mjs` | File store per client workspace: genome and event log |
 | `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |
@@ -55,7 +59,7 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | --- | --- | --- |
 | `GET /api/health` | | `{ ok, render, ai, model }` |
 | `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] } }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }` |
-| `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
+| `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand, logo?: { src: data URL, pos }, fonts?: kufi \| naskh \| modern }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
 | `POST /api/reviews/analyze` | `{ product, reviews: [string \| { text, rating }] }` (up to 200) | `{ total, dialects, themes[], reviews[], fixes[] }` |
 | `POST /api/import` | `{ url, limit? }`: an Amazon, Noon, Shopify, Salla or Zid product or store link | `{ source, count, averageScore, items[{ sku, name, url, image, listing, audit }], warnings }` |
 | `POST /api/import/csv` | `{ csv, channel?, category?, measure? }` | Same as above |
@@ -64,6 +68,11 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/keywords` | `{ listing }` | `{ category, items[{ ar, en, inAr, inEn }], covered, total }` |
 | `POST /api/fetch-image` | `{ url }` | `{ dataUrl }` for a public PNG, JPEG or WebP |
 | `POST /api/photos/review` | `{ photos: [data URL] (1-4), product, channel }` | `{ photos[{ index, scores, arabicText, strengths, problems }], winner, why }` |
+| `GET /api/workspaces`, `POST /api/workspaces` | `{ name, nameAr }` | Client workspaces |
+| `GET /api/brand/:ws`, `PUT /api/brand/:ws` | `{ genome, baseVersion }` | Brand DNA genome; PUT returns 409 if the stored version moved on |
+| `GET /api/brand/:ws/events?product=`, `POST /api/brand/:ws/events` | `{ events[] }` | Feedback event log (Product Memory) |
+| `POST /api/brand/analyze` | `{ name, url?, pdf?: data URL, images?: [data URL], texts?: [] }` | `{ proposals[], palette[], logoPos, sources }` |
+| `POST /api/copy` | `{ product, channel, category, listing, issues[], missingKeywords[], brief }` | `{ titleEn, titleAr, bulletsEn[], bulletsAr[], changes[] }` |
 | `POST /api/leads` | `{ name, whatsapp, store, lang }` | `{ ok }`, appended to `data/leads.jsonl` |
 
 Review analysis uses `claude-opus-5-5` (override with `BASIRA_MODEL`) at low effort, with structured output validated by Zod, and server-side fallback (`fallbacks: "default"`) if a request is declined.
@@ -90,7 +99,7 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `ANTHROPIC_API_KEY` | | Enables review analysis |
 | `BASIRA_MODEL` | `claude-opus-5-5` | Model for review analysis |
 | `CHROMIUM_PATH` | | Chromium binary for rendering |
-| `BASIRA_DATA_DIR` | `./data` | Where leads are stored |
+| `BASIRA_DATA_DIR` | `./data` | Leads, client workspaces, Brand DNA genomes and event logs |
 | `SPAPI_CLIENT_ID`, `SPAPI_CLIENT_SECRET`, `SPAPI_REFRESH_TOKEN` | | Amazon Selling Partner API app credentials (Login with Amazon) |
 | `SPAPI_SELLER_ID` | | The connected seller account, needed to import a whole Amazon store |
 | `SPAPI_ENDPOINT` | `https://sellingpartnerapi-eu.amazon.com` | SP-API endpoint (Saudi Arabia, UAE and Egypt use the EU one) |

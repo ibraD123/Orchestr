@@ -10,6 +10,8 @@ import { keywordCoverage } from "./keywords.mjs";
 import { safeFetch } from "./connectors/net.mjs";
 import { importLink, importCsv, connectorStatus } from "./importer.mjs";
 import { reviewPhotos } from "./photo.mjs";
+import { createStore } from "./store.mjs";
+import { analyseBrand, writeCopy } from "./brand-ai.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
@@ -36,7 +38,21 @@ async function readJson(req) {
   catch { const e = new Error("Body must be JSON"); e.status = 400; throw e; }
 }
 
+const store = createStore(DATA);
+
+// Routes with a workspace id in the path.
+const paramRoutes = [
+  ["GET", /^\/api\/brand\/([a-z0-9-]+)$/, (m) => store.getGenome(m[1])],
+  ["PUT", /^\/api\/brand\/([a-z0-9-]+)$/, (m, body) => store.putGenome(m[1], body.genome, body.baseVersion)],
+  ["GET", /^\/api\/brand\/([a-z0-9-]+)\/events$/, (m, body, url) => store.listEvents(m[1], { product: url.searchParams.get("product") || undefined })],
+  ["POST", /^\/api\/brand\/([a-z0-9-]+)\/events$/, (m, body) => store.appendEvents(m[1], body.events)]
+];
+
 const routes = {
+  "GET /api/workspaces": async () => store.listWorkspaces(),
+  "POST /api/workspaces": async (body) => store.createWorkspace(body),
+  "POST /api/brand/analyze": async (body) => analyseBrand(body),
+  "POST /api/copy": async (body) => writeCopy(body),
   "GET /api/health": async () => ({ ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: aiConfigured() ? MODEL : null }),
   "POST /api/audit": async (body) => auditListing(body.listing || body),
   "POST /api/reviews/analyze": async (body) => analyseReviews(body),
@@ -70,6 +86,10 @@ export const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/render") {
       const png = await renderSlide(await readJson(req));
       return send(res, 200, png, "image/png");
+    }
+    for (const [method, re, fn] of paramRoutes) {
+      const m = req.method === method && re.exec(url.pathname);
+      if (m) return send(res, 200, await fn(m, method === "GET" ? {} : await readJson(req), url));
     }
     const handler = routes[`${req.method} ${url.pathname}`];
     if (handler) return send(res, 200, await handler(req.method === "POST" ? await readJson(req) : {}));

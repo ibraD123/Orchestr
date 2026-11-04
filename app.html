@@ -10,7 +10,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=Amiri:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: app shell with a quiet sidebar and one working canvas; same oasis palette as the site,
    state carried by chips and score bars so problems read at a glance. */
@@ -263,6 +263,91 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .field textarea{unicode-bidi:plaintext}
 .ini{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:600;font-family:var(--font-display);font-size:18px;color:var(--ink-3)}
 .pthumb img{width:100%;height:100%;object-fit:cover}
+.ws-wrap{position:relative}
+button.ws{width:100%;border:0;text-align:start;cursor:pointer;color:inherit;font:inherit}
+button.ws:hover{filter:brightness(1.15)}
+.wl{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;overflow:hidden;font-style:normal;font-weight:600;color:#fff;font-size:13px}
+.wl img{width:88%;height:88%;object-fit:contain}
+.ws .chev{width:14px;height:14px;margin-inline-start:auto;opacity:.6;flex:none}
+.ws-menu{position:absolute;inset-inline:0;top:calc(100% + 6px);z-index:30;background:var(--side-hi);border:1px solid #2A3B36;border-radius:12px;padding:8px;display:grid;gap:2px;box-shadow:0 18px 40px -12px rgba(0,0,0,.6)}
+.ws-menu small{color:var(--side-ink-2);padding:2px 6px 4px;font-size:11.5px}
+.ws-menu button[data-ws]{display:flex;gap:10px;align-items:center;padding:7px 6px;border:0;background:transparent;color:var(--side-ink);border-radius:8px;cursor:pointer;text-align:start;font:inherit;font-size:13.5px}
+.ws-menu button[data-ws]:hover,.ws-menu button[aria-current="true"]{background:#22332E;color:#fff}
+.ws-new{display:flex;gap:6px;padding:6px 2px 2px}
+.ws-new input{flex:1;min-width:0;height:32px;border-radius:8px;border:1px solid #2C3E38;background:var(--side);color:#fff;padding-inline:8px;font-size:13px}
+.ws-pick{flex:none;height:32px;border-radius:999px;border:1px solid var(--line);background:var(--surface);padding-inline:10px;font-size:13px;max-width:160px}
+.bd-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){.bd-kpis{grid-template-columns:1fr}}
+.kpi-wide .kpi-spark{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.kpi-spark b{white-space:nowrap}
+.spark{width:140px;height:40px;flex:none}
+.bd-grid{grid-template-columns:1.3fr 1fr}
+@media (max-width:1050px){.bd-grid{grid-template-columns:1fr}}
+.dimh{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:16px 0 2px;font-weight:600}
+html[lang="ar"] .dimh{letter-spacing:0;text-transform:none;font-size:12.5px}
+.trait{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.dimh+.trait{border-top:0}
+.tr-main{display:grid;gap:5px;min-width:0}
+.tr-main b{font-weight:500;line-height:1.35}
+.tr-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tr-act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.trait .sbar i{width:56px}
+@media (max-width:640px){.trait{grid-template-columns:1fr}.tr-act{justify-content:flex-start}}
+.evl{grid-column:1/-1;margin:0;padding:10px 12px;list-style:none;background:var(--surface-2);border-radius:10px;display:grid;gap:5px;font-size:12.5px;color:var(--ink-2)}
+.evl li{display:grid;grid-template-columns:62px 34px 1fr;gap:8px}
+.evl .plus{color:var(--good);font-weight:600}.evl .minus{color:var(--bad);font-weight:600}
+.cand{grid-template-columns:minmax(0,1fr) auto}
+.prog{height:6px;border-radius:6px;background:var(--surface-2);overflow:hidden;max-width:240px}
+.prog i{display:block;height:100%;background:var(--saffron);border-radius:6px}
+pre.brief{white-space:pre-wrap;font-family:var(--font-mono);font-size:12px;line-height:1.6;background:var(--surface-2);border-radius:10px;padding:12px 14px;max-height:360px;overflow:auto;margin:0;color:var(--ink-2)}
+.logo-box{width:100%;height:96px;border-radius:12px;display:grid;place-items:center;padding:12px;border:1px solid var(--line)}
+.logo-box img{max-height:68px;max-width:90%;object-fit:contain}
+.pal{display:grid;gap:8px}
+.pal-row{display:grid;grid-template-columns:44px 80px 1fr auto;gap:8px;align-items:center}
+.pal-row input[type=color]{width:44px;height:34px;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--surface);cursor:pointer}
+.pal-row select{height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding-inline:8px;min-width:0}
+.font-prev{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;font-size:26px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+.bd-prev{margin-top:12px;max-width:220px}
+.xpal{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.xsw{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px 3px 4px;cursor:pointer;font-size:12px}
+.xsw i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
+.props{display:grid;gap:8px;margin-top:6px}
+.props .check{align-items:flex-start}
+.props .check input{margin-top:3px;flex:none}
+.logl{display:grid;gap:8px;font-size:13px}
+.logl>div{display:grid;grid-template-columns:62px 1fr;gap:10px}
+.logl .mono{color:var(--ink-3);font-size:11.5px}
+.logl b{font-weight:500}
+.learned{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:var(--brand-soft);margin-top:12px;font-size:13.5px}
+.learned b{font-weight:600}
+.bscore .bs-top{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.bs-num{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1}
+.bs-v{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.bs-row{display:grid;grid-template-columns:8px 1fr;gap:8px;font-size:13px}
+.bs-row b{font-weight:500}
+.bs-row .dotb{width:7px;height:7px;border-radius:50%;background:var(--bad);margin-top:6px}
+.bs-row .note{display:block}
+.stage .bscore{width:min(100%,420px);text-align:start}
+.copy .cp-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:8px}
+@media (max-width:900px){.copy .cp-grid{grid-template-columns:1fr}}
+.cp-fields{display:grid;gap:10px;min-width:0}
+.cp-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.cur{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+.cur>div{display:grid;gap:4px;align-content:start;min-width:0}
+.cur b{font-weight:500}
+.cur ul{margin:4px 0 0;padding-inline-start:18px;color:var(--ink-2);font-size:13.5px}
+@media (max-width:700px){.cur{grid-template-columns:1fr}}
+.chg{margin:4px 0 0;padding-inline-start:18px;font-size:13px;color:var(--ink-2)}
+.mem{display:grid;gap:9px}
+.mem-i{display:grid;grid-template-columns:56px 1fr;gap:10px;font-size:13px;line-height:1.45}
+.mem-i .mono{color:var(--ink-3);font-size:11.5px;padding-top:2px}
+.mem-i .del{color:var(--bad);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 50%,transparent)}
+.mem-i .ins{color:var(--good)}
+.reasons{grid-column:1/-1;display:grid;gap:10px;padding-top:4px}
+.reasons b{font-weight:500;font-size:13.5px}
+.appr .learned{grid-column:1/-1;margin-top:0}
+.noprod{display:grid;gap:8px}
+
 .mcards{display:none}
 @media (max-width:700px){.tbl-wrap{display:none}.mcards{display:grid;gap:10px}}
 .mcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-decoration:none;padding:14px}
@@ -606,6 +691,15 @@ const TEMPLATES = [
     sample: { headAr: "الجمعة البيضاء", headEn: "White Friday", discount: "40%" }, kit: { bg: "#0D0D0D", fg: "#FFFFFF", accent: "#BDBDBD" } }
 ];
 const TEMPLATE_IDS = TEMPLATES.map((t) => t.id);
+
+// Font pairs: Arabic display, Latin display, body. Brand DNA picks one.
+const TEMPLATE_FONTS = {
+  // Single quotes: these values go inside a double-quoted style attribute.
+  kufi: ["'Reem Kufi'", "'Bricolage Grotesque'", "'Readex Pro'"],
+  naskh: ["'Amiri'", "'Amiri'", "'Readex Pro'"],
+  modern: ["'Readex Pro'", "'Readex Pro'", "'Readex Pro'"]
+};
+const LOGO_POSITIONS = ["top-end", "top-start", "bottom"];
 const templateById = (id) => TEMPLATES.find((t) => t.id === id) || null;
 
 const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
@@ -620,16 +714,16 @@ function icon(name, size) {
 }
 
 const TEMPLATE_CSS = `
-.bz{position:relative;width:${SLIDE_W}px;height:${SLIDE_H}px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:"Readex Pro",sans-serif;--soft:color-mix(in srgb,var(--fg) 12%,transparent);--line:color-mix(in srgb,var(--fg) 28%,transparent)}
+.bz{position:relative;width:${SLIDE_W}px;height:${SLIDE_H}px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--fb),"Readex Pro",sans-serif;--soft:color-mix(in srgb,var(--fg) 12%,transparent);--line:color-mix(in srgb,var(--fg) 28%,transparent)}
 .bz *{box-sizing:border-box;margin:0;padding:0}
-.bz .brand{position:absolute;top:84px;inset-inline-end:96px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:44px;letter-spacing:.24em;color:var(--ac);opacity:.85;direction:ltr}
+.bz .brand{position:absolute;top:84px;inset-inline-end:96px;font-family:var(--fl),sans-serif;font-weight:700;font-size:44px;letter-spacing:.24em;color:var(--ac);opacity:.85;direction:ltr}
 .bz .prod{position:absolute;display:flex;align-items:center;justify-content:center}
 .bz .prod img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 40px 40px rgba(0,0,0,.28))}
 .bz .stack{position:absolute;inset-inline:120px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:26px}
-.bz .h1{font-family:"Reem Kufi",sans-serif;font-weight:600;font-size:150px;line-height:1.16}
-.bz .h1.en{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:124px;line-height:1.02;letter-spacing:-.02em}
-.bz .h2{font-family:"Reem Kufi",sans-serif;font-weight:600;font-size:104px;line-height:1.2}
-.bz .h2.en{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:90px;line-height:1.05;letter-spacing:-.02em}
+.bz .h1{font-family:var(--fa),"Readex Pro",sans-serif;font-weight:600;font-size:150px;line-height:1.16}
+.bz .h1.en{font-family:var(--fl),sans-serif;font-weight:700;font-size:124px;line-height:1.02;letter-spacing:-.02em}
+.bz .h2{font-family:var(--fa),"Readex Pro",sans-serif;font-weight:600;font-size:104px;line-height:1.2}
+.bz .h2.en{font-family:var(--fl),sans-serif;font-weight:700;font-size:90px;line-height:1.05;letter-spacing:-.02em}
 .bz .sub{font-size:56px;font-weight:300;color:var(--ac);line-height:1.3}
 .bz .en-sub{font-size:44px;font-weight:300;color:var(--ac);opacity:.9;line-height:1.3;direction:ltr}
 .bz .t{font-size:62px;line-height:1.3}
@@ -643,8 +737,12 @@ const TEMPLATE_CSS = `
 .bz td{padding:30px 12px;border-bottom:2px solid var(--line)}
 .bz td:first-child{font-weight:600}
 .bz .ic{display:grid;place-items:center;width:200px;height:200px;border-radius:50%;background:var(--soft);color:var(--fg);flex:none}
-.bz .num{display:grid;place-items:center;width:140px;height:140px;border-radius:50%;background:var(--fg);color:var(--bg);font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:72px;flex:none}
+.bz .num{display:grid;place-items:center;width:140px;height:140px;border-radius:50%;background:var(--fg);color:var(--bg);font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;flex:none}
 .bz .mark{font-size:84px;font-weight:600;line-height:1}
+.bz .logo{position:absolute;top:56px;height:84px;max-width:420px;object-fit:contain}
+.bz .logo.top-end{inset-inline-end:96px;object-position:right center}
+.bz .logo.top-start{inset-inline-start:96px;object-position:left center}
+.bz .logo.bottom{top:auto;bottom:44px;left:50%;transform:translateX(-50%);object-position:center}
 .bz .pattern{position:absolute;inset:0;opacity:.12;background-image:radial-gradient(circle at 50% 50%,var(--fg) 3px,transparent 4px);background-size:80px 80px}
 `;
 
@@ -747,9 +845,9 @@ function templateHTML(id, fields, ctx) {
       const u = esc(v.unit || "cm");
       body = '<div class="stack" style="top:150px">' + head(v.titleAr, v.titleEn, 2) + "</div>" + img("top:520px;bottom:300px;inset-inline:420px") +
         '<div style="position:absolute;inset-inline:420px;bottom:200px;height:4px;background:var(--fg)"></div>' +
-        '<div style="position:absolute;inset-inline:420px;bottom:120px;text-align:center;font-family:\'Bricolage Grotesque\',sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.width) + " " + u + "</div>" +
+        '<div style="position:absolute;inset-inline:420px;bottom:120px;text-align:center;font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.width) + " " + u + "</div>" +
         '<div style="position:absolute;top:520px;bottom:300px;inset-inline-end:330px;width:4px;background:var(--fg)"></div>' +
-        '<div style="position:absolute;top:50%;inset-inline-end:110px;font-family:\'Bricolage Grotesque\',sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.height) + " " + u + "</div>";
+        '<div style="position:absolute;top:50%;inset-inline-end:110px;font-family:var(--fl),sans-serif;font-weight:700;font-size:72px;direction:ltr">' + A(v.height) + " " + u + "</div>";
       break;
     }
     case "notes": {
@@ -771,17 +869,20 @@ function templateHTML(id, fields, ctx) {
       break;
     }
     case "whitefriday":
-      body = '<div style="position:absolute;inset-inline-end:-200px;top:-200px;width:860px;height:860px;border-radius:50%;background:var(--fg);box-sizing:border-box;padding-top:200px;padding-inline-end:200px;display:grid;place-items:center"><div style="color:var(--bg);font-family:\'Bricolage Grotesque\',sans-serif;font-weight:800;font-size:200px;letter-spacing:-.04em;direction:ltr">−' + E(v.discount || "") + "</div></div>" +
+      body = '<div style="position:absolute;inset-inline-end:-200px;top:-200px;width:860px;height:860px;border-radius:50%;background:var(--fg);box-sizing:border-box;padding-top:200px;padding-inline-end:200px;display:grid;place-items:center"><div style="color:var(--bg);font-family:var(--fl),sans-serif;font-weight:800;font-size:200px;letter-spacing:-.04em;direction:ltr">−' + E(v.discount || "") + "</div></div>" +
         img("inset:980px 300px 120px 300px") + '<div style="position:absolute;top:680px;inset-inline-start:110px;display:flex;flex-direction:column;gap:20px;max-width:1100px">' + head(v.headAr, v.headEn) + "</div>";
       break;
   }
-  const brand = ctx.brand && tpl.id !== "cover" ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
-  return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + '">' + brand + body + "</div>";
+  // The brand's logo replaces the plain brand name; the main image stays clean (marketplace rules).
+  const logo = ctx.logo && ctx.logo.src && tpl.id !== "cover" ? '<img class="logo ' + (LOGO_POSITIONS.indexOf(ctx.logo.pos) > -1 ? ctx.logo.pos : "top-end") + '" src="' + esc(ctx.logo.src) + '" alt="">' : "";
+  const brand = !logo && ctx.brand && tpl.id !== "cover" ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
+  const fonts = TEMPLATE_FONTS[ctx.fonts] || TEMPLATE_FONTS.kufi;
+  return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' + logo + brand + body + "</div>";
 }
 
-return { SLIDE_W, SLIDE_H, TEMPLATE_GROUPS, TPL_ICONS, ICON_NAMES, TEMPLATES, TEMPLATE_IDS, templateById, TEMPLATE_CSS, templateHTML };
+return { SLIDE_W, SLIDE_H, TEMPLATE_GROUPS, TPL_ICONS, ICON_NAMES, TEMPLATES, TEMPLATE_IDS, TEMPLATE_FONTS, LOGO_POSITIONS, templateById, TEMPLATE_CSS, templateHTML };
 })();
-var SLIDE_W = __shared1.SLIDE_W, SLIDE_H = __shared1.SLIDE_H, TEMPLATE_GROUPS = __shared1.TEMPLATE_GROUPS, TPL_ICONS = __shared1.TPL_ICONS, ICON_NAMES = __shared1.ICON_NAMES, TEMPLATES = __shared1.TEMPLATES, TEMPLATE_IDS = __shared1.TEMPLATE_IDS, templateById = __shared1.templateById, TEMPLATE_CSS = __shared1.TEMPLATE_CSS, templateHTML = __shared1.templateHTML;
+var SLIDE_W = __shared1.SLIDE_W, SLIDE_H = __shared1.SLIDE_H, TEMPLATE_GROUPS = __shared1.TEMPLATE_GROUPS, TPL_ICONS = __shared1.TPL_ICONS, ICON_NAMES = __shared1.ICON_NAMES, TEMPLATES = __shared1.TEMPLATES, TEMPLATE_IDS = __shared1.TEMPLATE_IDS, TEMPLATE_FONTS = __shared1.TEMPLATE_FONTS, LOGO_POSITIONS = __shared1.LOGO_POSITIONS, templateById = __shared1.templateById, TEMPLATE_CSS = __shared1.TEMPLATE_CSS, templateHTML = __shared1.templateHTML;
 var __shared2 = (function(){
 // Catalog file import (Noon, Amazon, Salla and Zid catalog exports, or any spreadsheet saved as CSV).
 // Pure functions with no imports: the server uses this module directly, and
@@ -1095,6 +1196,584 @@ function mainImageChecks(m, channel) {
 return { borderColour, measurePixels, removeBackground, fitBox, mainImageChecks };
 })();
 var borderColour = __shared5.borderColour, measurePixels = __shared5.measurePixels, removeBackground = __shared5.removeBackground, fitBox = __shared5.fitBox, mainImageChecks = __shared5.mainImageChecks;
+var __shared6 = (function(){
+// Brand DNA: an evidence-weighted brand genome.
+//
+// A genome is a set of traits. Every trait is used twice: the expression compiler turns it into
+// generation instructions (template kit, logo, fonts, a brief for the copywriter), and the checker
+// turns the same trait into a test (Brand Consistency Score). Generation and verification can't drift.
+//
+// Every trait carries an evidence ledger (brandbook, edits, approvals, rejections). Confidence is a
+// Beta posterior over that ledger, with learned evidence decaying over time so a brand can evolve.
+// Edits and rejections create candidate traits ("mutation"); a candidate becomes active only after
+// consistent evidence or a person's decision ("selection"). Every change is versioned in the log.
+//
+// Pure functions with no imports: the server uses this module directly, and scripts/build.mjs inlines
+// it into the app so the genome learns and checks in the browser too.
+
+const DIMS = ["colors", "composition", "typography", "voice"];
+
+const TRAIT_TYPES = {
+  palette:       { dim: "colors",      check: true },
+  logo:          { dim: "composition", check: true },
+  textDensity:   { dim: "composition", check: true },
+  template:      { dim: "composition", check: true },
+  bilingual:     { dim: "composition", check: true },
+  visual:        { dim: "composition", check: false },
+  numerals:      { dim: "typography",  check: true },
+  maxHeadline:   { dim: "typography",  check: true },
+  avoidWord:     { dim: "voice",       check: true },
+  noExclamation: { dim: "voice",       check: true },
+  noEmoji:       { dim: "voice",       check: true },
+  preferWord:    { dim: "voice",       check: false },
+  voice:         { dim: "voice",       check: false }
+};
+
+const FONT_PAIRS = {
+  kufi:   { name: ["Kufi and grotesque", "كوفي وحديث"], ar: "Reem Kufi", latin: "Bricolage Grotesque", body: "Readex Pro" },
+  naskh:  { name: ["Classic naskh", "نسخ كلاسيكي"], ar: "Amiri", latin: "Amiri", body: "Readex Pro" },
+  modern: { name: ["Modern sans", "حديث بسيط"], ar: "Readex Pro", latin: "Readex Pro", body: "Readex Pro" }
+};
+
+const LEARN = {
+  promoteSupport: 3,       // consistent positive signals a candidate needs (decay affects confidence, not this count)
+  promoteStrength: 0.7,    // and the confidence it needs
+  retireStrength: 0.4,     // learned traits below this with contradicting evidence are retired
+  halfLifeDays: 120        // learned evidence loses half its weight in this time
+};
+
+// Evidence from the brand itself doesn't decay; evidence learned from behaviour does.
+const DURABLE = { declared: 1, brandbook: 1, analysis: 1 };
+const DAY = 86400000;
+
+/* ---------- text helpers ---------- */
+
+function normaliseWord(s) {
+  return String(s || "").toLowerCase()
+    .replace(/[ً-ْٰـ]/g, "")
+    .replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي")
+    .replace(/[^\p{L}\p{N}]+/gu, "");
+}
+const STOP = new Set(["the", "and", "for", "with", "you", "your", "are", "this", "that", "from", "our", "its", "has", "have", "was", "will", "can", "not", "but", "all", "per",
+  "في", "من", "علي", "مع", "عن", "الي", "هذا", "هذه", "او", "ما", "لا", "كل", "ان", "قد", "حتي", "التي", "الذي", "هو", "هي", "لك", "لكم", "به", "بها"]);
+// Arabic words carry the article and attached prepositions: «الفاخر», «والفاخر», «بالفاخر» are all «فاخر».
+const AR_PREFIX = /^(وال|بال|فال|كال|لل|ال)/;
+function stem(raw) {
+  const w = String(raw || "");
+  if (!ARABIC.test(w)) return w;
+  const cut = w.replace(/^([وبفك]?)(ال)/, "").replace(/^لل/, "");
+  return cut.length >= 3 ? cut : w;
+}
+function tokens(s) {
+  return String(s || "").split(/[^\p{L}\p{N}]+/u).filter(Boolean).map((w) => ({ raw: stem(w), n: normaliseWord(stem(w)) }))
+    .filter((w) => w.n.length >= 3 && !STOP.has(w.n) && !/^\d+$/.test(w.n));
+}
+function hasWord(text, word) {
+  const target = normaliseWord(stem(word));
+  return tokens(text).some((t) => t.n === target);
+}
+const EMOJI = /\p{Extended_Pictographic}/u;
+const ARABIC = /[؀-ۿ]/;
+const WESTERN_DIGIT = /[0-9]/;
+const ARABIC_DIGIT = /[٠-٩]/;
+
+/* ---------- colour helpers ---------- */
+
+function hexRgb(hex) {
+  const h = String(hex || "").replace("#", "");
+  const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6);
+  const n = parseInt(v, 16);
+  return Number.isFinite(n) ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [0, 0, 0];
+}
+function lab(hex) {
+  const lin = (c) => { c /= 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; };
+  const [r, g, b] = hexRgb(hex).map(lin);
+  const x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047, y = r * 0.2126 + g * 0.7152 + b * 0.0722, z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+function colourDistance(a, b) {
+  const p = lab(a), q = lab(b);
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+}
+function luminance(hex) {
+  const lin = (c) => { c /= 255; return c > 0.03928 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; };
+  const [r, g, b] = hexRgb(hex).map(lin);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function contrast(a, b) {
+  const x = luminance(a), y = luminance(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+/** Template kit (background, headline colour, secondary text) from a brand palette, with readable contrast. */
+function kitFromPalette(palette) {
+  const cols = (palette || []).filter((p) => /^#[0-9a-f]{6}$/i.test(p.hex));
+  if (!cols.length) return null;
+  const pick = (role) => cols.find((p) => p.role === role);
+  const bg = (pick("background") || cols.slice().sort((a, b) => luminance(a.hex) - luminance(b.hex))[0]).hex;
+  const others = cols.filter((p) => p.hex !== bg);
+  const best = (list) => list.slice().sort((a, b) => contrast(b.hex, bg) - contrast(a.hex, bg))[0];
+  let fg = (pick("accent") || pick("primary") || best(others) || {}).hex;
+  if (!fg || contrast(fg, bg) < 3) fg = luminance(bg) > 0.4 ? "#1A1A1A" : "#FFFFFF";
+  let accent = (pick("text") || best(others.filter((p) => p.hex !== fg)) || {}).hex;
+  if (!accent || contrast(accent, bg) < 3) accent = luminance(bg) > 0.4 ? "#3A3A3A" : "#EDEDED";
+  return { bg, fg, accent };
+}
+
+/** Dominant colours from RGBA pixels (logo, product photos): a small k-means, ignoring transparent and near-white/near-black background. */
+function extractPalette(d, w, h, k = 5) {
+  const pts = [];
+  const step = Math.max(1, Math.floor(Math.sqrt((w * h) / 6000)));
+  for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
+    const i = (y * w + x) * 4;
+    if (d[i + 3] < 200) continue;
+    pts.push([d[i], d[i + 1], d[i + 2]]);
+  }
+  if (!pts.length) return [];
+  let cs = [];
+  for (let j = 0; j < k; j++) cs.push(pts[Math.floor(((j + 0.5) / k) * pts.length)].slice());
+  for (let it = 0; it < 8; it++) {
+    const sum = cs.map(() => [0, 0, 0, 0]);
+    for (const p of pts) {
+      let bi = 0, bd = Infinity;
+      cs.forEach((c, j) => { const dd = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2; if (dd < bd) { bd = dd; bi = j; } });
+      const s = sum[bi]; s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; s[3]++;
+    }
+    cs = sum.map((s, j) => (s[3] ? [s[0] / s[3], s[1] / s[3], s[2] / s[3], s[3]] : cs[j]));
+  }
+  const hex = (c) => "#" + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, "0")).join("").toUpperCase();
+  const out = [];
+  cs.filter((c) => c[3]).sort((a, b) => b[3] - a[3]).forEach((c) => {
+    const hx = hex(c);
+    if (!out.some((o) => colourDistance(o.hex, hx) < 10)) out.push({ hex: hx, share: Math.round((c[3] / pts.length) * 100) / 100 });
+  });
+  return out;
+}
+
+/* ---------- genome ---------- */
+
+function newGenome(ws, identity) {
+  return { ws, version: 1, updatedAt: null, identity: Object.assign({ name: "", nameAr: "", logo: null, logoPos: "top-end", palette: [], fonts: "kufi" }, identity || {}), traits: [], exemplars: [], log: [] };
+}
+
+function traitKey(type, params) {
+  const p = params || {};
+  if (type === "avoidWord" || type === "preferWord") return type + ":" + normaliseWord(stem(p.word));
+  if (type === "template") return type + ":" + p.id;
+  if (type === "voice" || type === "visual") return type + ":" + normaliseWord(p.text).slice(0, 40);
+  return type;
+}
+
+/** Human-readable rule, English and Arabic. */
+function describe(t) {
+  const p = t.params || {};
+  switch (t.type) {
+    case "palette": return { en: "Use only the brand palette", ar: "استخدم ألوان العلامة فقط" };
+    case "logo": return { en: "Show the logo on every slide except the main image", ar: "أظهر الشعار في كل شريحة عدا الصورة الرئيسية" };
+    case "textDensity": return { en: `Keep slide text under ${p.maxChars} characters`, ar: `أبقِ نص الشريحة أقل من ${p.maxChars} حرفاً` };
+    case "template": return { en: `Don't use the «${p.id}» template` + (t.scope && t.scope.category ? ` for ${t.scope.category.join(", ")}` : ""), ar: `لا تستخدم قالب «${p.id}»` };
+    case "bilingual": return { en: p.mode === "both" ? "Arabic and English on every slide" : `Slides in ${p.mode === "ar" ? "Arabic" : "English"} only`, ar: p.mode === "both" ? "العربية والإنجليزية في كل شريحة" : (p.mode === "ar" ? "الشرائح بالعربية فقط" : "الشرائح بالإنجليزية فقط") };
+    case "numerals": return { en: p.style === "arabic" ? "Arabic-Indic digits in Arabic text (١٢)" : "Western digits in Arabic text (12)", ar: p.style === "arabic" ? "أرقام عربية في النص العربي (١٢)" : "أرقام لاتينية في النص العربي (12)" };
+    case "maxHeadline": return { en: `Headlines of ${p.chars} characters or fewer`, ar: `عناوين لا تتجاوز ${p.chars} حرفاً` };
+    case "avoidWord": return { en: `Avoid the word «${p.word}»`, ar: `تجنّب كلمة «${p.word}»` };
+    case "preferWord": return { en: `Prefer the word «${p.word}»`, ar: `فضّل كلمة «${p.word}»` };
+    case "noExclamation": return { en: "No exclamation marks", ar: "بدون علامات تعجب" };
+    case "noEmoji": return { en: "No emoji", ar: "بدون رموز تعبيرية" };
+    default: return { en: p.text || "", ar: p.textAr || p.text || "" };
+  }
+}
+
+function now(at) { return at ? new Date(at).getTime() : Date.now(); }
+
+/** Weighted evidence and Beta-posterior confidence for a trait at a point in time. */
+function strength(t, at) {
+  const ts = now(at);
+  let pos = 0, neg = 0;
+  for (const e of t.evidence || []) {
+    const age = Math.max(0, (ts - new Date(e.at).getTime()) / DAY);
+    const w = (e.w == null ? 1 : e.w) * (DURABLE[e.kind] ? 1 : Math.pow(0.5, age / LEARN.halfLifeDays));
+    if (e.sign > 0) pos += w; else neg += w;
+  }
+  const raw = (t.evidence || []).reduce((a, e) => a + (e.sign > 0 ? (e.w == null ? 1 : e.w) : 0), 0);
+  return { pos: Math.round(pos * 100) / 100, neg: Math.round(neg * 100) / 100, raw: Math.round(raw * 100) / 100, s: Math.round(((pos + 1) / (pos + neg + 2)) * 100) / 100 };
+}
+
+function evidenceSummary(t) {
+  const out = { declared: 0, brandbook: 0, analysis: 0, edit: 0, approve: 0, reject: 0, manual: 0, against: 0 };
+  for (const e of t.evidence || []) { if (e.sign < 0) out.against++; else out[e.kind] = (out[e.kind] || 0) + 1; }
+  return out;
+}
+
+function logChange(g, entry, at) {
+  g.version += 1;
+  g.updatedAt = at || new Date().toISOString();
+  g.log.unshift(Object.assign({ v: g.version, at: g.updatedAt }, entry));
+  if (g.log.length > 200) g.log.length = 200;
+}
+
+/** Add evidence to a trait, creating it as a candidate (or active, for declared sources) when new. */
+function addEvidence(g, spec, ev, at) {
+  const key = traitKey(spec.type, spec.params);
+  let t = g.traits.find((x) => x.key === key);
+  const changes = [];
+  const durable = DURABLE[ev.kind];
+  if (!t) {
+    if (ev.sign < 0) return changes; // nothing to contradict yet
+    t = { id: "t" + (g.traits.length + 1) + "-" + key.replace(/[^a-z0-9]+/gi, "").slice(0, 12), key, type: spec.type, params: Object.assign({}, spec.params),
+      scope: spec.scope || {}, origin: durable ? ev.kind : "learned", status: durable || ev.kind === "manual" ? "active" : "candidate", locked: false,
+      createdAt: at || new Date().toISOString(), evidence: [] };
+    g.traits.push(t);
+    changes.push({ type: t.status === "active" ? "added" : "candidate", trait: t.id });
+    if (t.status === "active" || (ev.w == null ? 1 : ev.w) >= 1) logChange(g, { type: t.status === "active" ? "added" : "candidate", trait: t.id, note: describe(t).en }, at);
+  } else if (spec.params && spec.type === "maxHeadline" && ev.sign > 0) {
+    // Learned length limits move towards what people actually keep.
+    const n = (t.evidence || []).filter((e) => e.sign > 0).length;
+    t.params.chars = Math.round((t.params.chars * n + spec.params.chars) / (n + 1));
+  } else if (spec.params && spec.type === "textDensity" && ev.sign > 0) {
+    t.params.maxChars = Math.min(t.params.maxChars, spec.params.maxChars);
+  }
+  const existed = t.evidence.length > 0;
+  t.evidence.push(Object.assign({ at: at || new Date().toISOString(), w: 1 }, ev));
+  if (existed && t.status === "candidate" && ev.sign > 0) changes.push({ type: "reinforced", trait: t.id });
+  if (t.evidence.length > 60) t.evidence.splice(0, t.evidence.length - 60);
+  // Selection: promote consistent candidates, retire learned traits that the brand keeps contradicting.
+  if (!t.locked) {
+    const st = strength(t, at);
+    if (t.status === "candidate" && st.raw >= LEARN.promoteSupport && st.s >= LEARN.promoteStrength) {
+      t.status = "active"; changes.push({ type: "promoted", trait: t.id });
+      logChange(g, { type: "promoted", trait: t.id, note: describe(t).en }, at);
+    } else if (t.status === "active" && t.origin === "learned" && st.s < LEARN.retireStrength && st.neg >= 2) {
+      t.status = "retired"; changes.push({ type: "retired", trait: t.id });
+      logChange(g, { type: "retired", trait: t.id, note: describe(t).en }, at);
+    }
+  }
+  return changes;
+}
+
+/** Record a change to the brand's identity (logo, palette, fonts) in the version log. */
+function touch(g, note, at) { logChange(g, { type: "identity", note: note || "identity" }, at); }
+
+/** A person decides: accept a candidate, switch a rule off, or bring it back. Locks the trait against automatic changes. */
+function setStatus(g, id, status, at) {
+  const t = g.traits.find((x) => x.id === id);
+  if (!t) return null;
+  t.status = status; t.locked = true;
+  logChange(g, { type: status === "active" ? "accepted" : status === "off" ? "switched-off" : status, trait: t.id, note: describe(t).en }, at);
+  return t;
+}
+
+/** Add a rule by hand (or from a brand analysis). */
+function declare(g, spec, kind, at, note) {
+  // A person's or brand book's word is strong evidence; an AI analysis of materials is weaker.
+  const w = kind === "analysis" ? 2 : 6;
+  const changes = addEvidence(g, spec, { kind: kind || "manual", sign: 1, w, note: note || "" }, at);
+  const t = g.traits.find((x) => x.key === traitKey(spec.type, spec.params));
+  if (t && t.status === "candidate") { t.status = "active"; t.locked = kind === "manual"; }
+  return { trait: t, changes };
+}
+
+/* ---------- observation: turning feedback into evidence ---------- */
+
+/**
+ * What an edit says about the brand. before = what Basira proposed, after = what a person kept.
+ * Returns trait specs with evidence signs; learn() applies them.
+ */
+function observeEdit(before, after, ctx) {
+  const obs = [];
+  const b = String(before || ""), a = String(after || "");
+  if (b === a) return obs;
+  const tb = tokens(b), ta = tokens(a);
+  const setA = new Set(ta.map((t) => t.n)), setB = new Set(tb.map((t) => t.n));
+  const kept = tb.filter((t) => setA.has(t.n)).length;
+  const overlap = tb.length ? kept / tb.length : 0;
+  // Only read word choices from edits, not full rewrites: a rewrite says too little about any one word.
+  const removed = [], added = [], seen = new Set();
+  for (const t of tb) if (!setA.has(t.n) && !seen.has(t.n)) { seen.add(t.n); removed.push(t); }
+  for (const t of ta) if (!setB.has(t.n) && !seen.has(t.n)) { seen.add(t.n); added.push(t); }
+  const headline = ctx && (ctx.role === "headline" || ctx.role === "title");
+  // Cutting several words from a headline is mostly about length, so those words get little weight;
+  // removing or replacing one or two words is a deliberate word choice.
+  const trimming = !added.length && removed.length >= 3;
+  if (overlap >= 0.3) {
+    const w = trimming ? 0.25 : removed.length <= 3 ? 1 : 0.5;
+    for (const t of removed) obs.push({ spec: { type: "avoidWord", params: { word: t.raw, lang: ARABIC.test(t.raw) ? "ar" : "en" } }, sign: 1, w, note: `removed «${t.raw}»` });
+    for (const t of added) obs.push({ spec: { type: "preferWord", params: { word: t.raw, lang: ARABIC.test(t.raw) ? "ar" : "en" } }, sign: 1, w: 0.5, note: `added «${t.raw}»` });
+  }
+  // Words a person put back are evidence against avoiding them.
+  for (const t of ta) if (!setB.has(t.n)) obs.push({ spec: { type: "avoidWord", params: { word: t.raw } }, sign: -1, note: `used «${t.raw}»` });
+  if (/[!！]/.test(b) && !/[!！]/.test(a)) obs.push({ spec: { type: "noExclamation", params: {} }, sign: 1, note: "removed «!»" });
+  if (!/[!！]/.test(b) && /[!！]/.test(a)) obs.push({ spec: { type: "noExclamation", params: {} }, sign: -1, note: "added «!»" });
+  if (EMOJI.test(b) && !EMOJI.test(a)) obs.push({ spec: { type: "noEmoji", params: {} }, sign: 1, note: "removed emoji" });
+  if (headline && a.length && (trimming ? a.length <= b.length * 0.85 : a.length <= b.length * 0.6)) {
+    obs.push({ spec: { type: "maxHeadline", params: { chars: Math.ceil(a.length * 1.1) } }, sign: 1, note: `shortened ${b.length} → ${a.length}` });
+  }
+  if (ARABIC.test(a)) {
+    if (WESTERN_DIGIT.test(b) && !WESTERN_DIGIT.test(a) && ARABIC_DIGIT.test(a)) obs.push({ spec: { type: "numerals", params: { style: "arabic" } }, sign: 1, note: "12 → ١٢" });
+    if (ARABIC_DIGIT.test(b) && !ARABIC_DIGIT.test(a) && WESTERN_DIGIT.test(a)) obs.push({ spec: { type: "numerals", params: { style: "western" } }, sign: 1, note: "١٢ → 12" });
+  }
+  return obs;
+}
+
+const REJECT_REASONS = ["tooMuchText", "offColours", "logo", "offTone", "productDiffers"];
+function observeReject(reasons, ctx) {
+  const obs = [];
+  for (const r of reasons || []) {
+    if (r === "tooMuchText" && ctx && ctx.chars) obs.push({ spec: { type: "textDensity", params: { maxChars: Math.max(20, Math.round(ctx.chars * 0.75)) } }, sign: 1, note: "rejected: too much text" });
+    if (r === "offColours") obs.push({ spec: { type: "palette", params: {} }, sign: 1, note: "rejected: off-brand colours" });
+    if (r === "logo") obs.push({ spec: { type: "logo", params: { required: true } }, sign: 1, note: "rejected: logo" });
+  }
+  return obs;
+}
+
+/**
+ * Apply one feedback event to the genome. Event types:
+ *   edit       { before, after, role, ctx }
+ *   reject     { reasons[], ctx: { chars, ... } }
+ *   approve    { content, ctx }   reinforces active traits the content satisfies, stores an exemplar
+ *   removeSlide{ template, ctx }  weak evidence against a template in that category
+ *   kit        { onBrand: boolean } choosing colours outside the palette weakens the palette rule
+ * Returns the list of changes (new candidates, promotions, retirements).
+ */
+function learn(g, ev) {
+  const at = ev.at || new Date().toISOString();
+  const ref = { product: ev.product || null, field: ev.field || null };
+  let changes = [];
+  const apply = (list, kind) => {
+    for (const o of list) {
+      // Contradicting evidence only touches traits that already exist.
+      if (o.sign < 0 && !g.traits.some((t) => t.key === traitKey(o.spec.type, o.spec.params))) continue;
+      changes = changes.concat(addEvidence(g, o.spec, { kind, sign: o.sign, w: o.w == null ? 1 : o.w, note: o.note, ref }, at));
+    }
+  };
+  if (ev.type === "edit") apply(observeEdit(ev.before, ev.after, Object.assign({ role: ev.role }, ev.ctx)), "edit");
+  else if (ev.type === "reject") apply(observeReject(ev.reasons, ev.ctx), "reject");
+  else if (ev.type === "removeSlide" && ev.template) apply([{ spec: { type: "template", params: { id: ev.template, avoid: true }, scope: ev.ctx && ev.ctx.category ? { category: [ev.ctx.category] } : {} }, sign: 1, w: 0.5, note: "slide removed" }], "edit");
+  else if (ev.type === "kit" && ev.onBrand === false) apply([{ spec: { type: "palette", params: {} }, sign: -1, w: 0.5, note: "chose colours outside the palette" }], "edit");
+  else if (ev.type === "approve" && ev.content) {
+    const r = check(g, ev.content, ev.ctx || {}, at);
+    for (const res of r.results) if (res.pass && res.trait.status === "active") {
+      addEvidence(g, { type: res.trait.type, params: res.trait.params }, { kind: "approve", sign: 1, w: 0.5, note: "approved", ref }, at);
+    }
+    g.exemplars.unshift({ id: "x" + g.version, at, ctx: ev.ctx || {}, content: ev.exemplar || null, product: ev.product || null, edits: ev.edits || 0 });
+    if (g.exemplars.length > 40) g.exemplars.length = 40;
+    logChange(g, { type: "approved", note: ev.label || "approved", edits: ev.edits || 0 }, at);
+  }
+  return changes;
+}
+
+/* ---------- expression: genome → generation instructions ---------- */
+
+function inScope(t, ctx) {
+  const sc = t.scope || {};
+  for (const k of ["channel", "category", "lang", "template"]) {
+    if (sc[k] && sc[k].length && ctx && ctx[k] && sc[k].indexOf(ctx[k]) < 0) return false;
+  }
+  return true;
+}
+
+function activeTraits(g, ctx, at) {
+  return g.traits.filter((t) => t.status === "active" && inScope(t, ctx || {}))
+    .map((t) => Object.assign({}, t, { st: strength(t, at) }))
+    .sort((a, b) => b.st.s - a.st.s);
+}
+
+/** Pick past approved work that fits this context: same category, then channel, then language, newest first. */
+function exemplars(g, ctx, n = 3) {
+  const c = ctx || {};
+  return (g.exemplars || []).filter((x) => x.content)
+    .map((x) => ({ x, score: (x.ctx.category === c.category ? 3 : 0) + (x.ctx.channel === c.channel ? 2 : 0) + (x.ctx.lang === c.lang ? 1 : 0) }))
+    .sort((a, b) => b.score - a.score || (a.x.at < b.x.at ? 1 : -1)).slice(0, n).map((s) => s.x);
+}
+
+/** Everything a generator needs for this context: template kit, fonts, logo, and a brief for the copywriter. */
+function express(g, ctx, at) {
+  const traits = activeTraits(g, ctx, at);
+  const id = g.identity || {};
+  const kit = kitFromPalette(id.palette);
+  const has = (type) => traits.find((t) => t.type === type);
+  const lines = [];
+  lines.push(`Brand: ${id.name || "the brand"}${id.nameAr ? " (" + id.nameAr + ")" : ""}.`);
+  const voice = traits.filter((t) => t.type === "voice");
+  if (voice.length) lines.push("Voice: " + voice.map((t) => t.params.text).join(" "));
+  const visual = traits.filter((t) => t.type === "visual");
+  if (visual.length) lines.push("Visual style: " + visual.map((t) => t.params.text).join(" "));
+  const rules = traits.filter((t) => t.type !== "voice" && t.type !== "visual");
+  if (rules.length) {
+    lines.push("Rules, strongest first (confidence in brackets):");
+    for (const t of rules) {
+      const ev = evidenceSummary(t);
+      const why = [ev.declared || ev.brandbook ? "brand book" : "", ev.edit ? ev.edit + " edits" : "", ev.approve ? ev.approve + " approvals" : "", ev.reject ? ev.reject + " rejections" : ""].filter(Boolean).join(", ");
+      lines.push(`- [${t.st.s.toFixed(2)}] ${describe(t).en}${why ? " (" + why + ")" : ""}`);
+    }
+  }
+  const ex = exemplars(g, ctx);
+  if (ex.length) {
+    lines.push("Approved examples for similar products:");
+    for (const x of ex) lines.push("- " + JSON.stringify(x.content));
+  }
+  return {
+    traits, kit,
+    fonts: FONT_PAIRS[id.fonts] ? id.fonts : "kufi",
+    logo: id.logo ? { src: id.logo, pos: id.logoPos || "top-end" } : null,
+    language: (has("bilingual") || { params: {} }).params.mode || null,
+    numerals: (has("numerals") || { params: {} }).params.style || null,
+    maxChars: (has("textDensity") || { params: {} }).params.maxChars || null,
+    avoidTemplates: traits.filter((t) => t.type === "template" && t.params.avoid).map((t) => t.params.id),
+    brief: lines.join("\n")
+  };
+}
+
+/* ---------- checking: the same traits as tests ---------- */
+
+/**
+ * Brand Consistency Score for one piece of content.
+ * content: { texts: [{ text, lang, role }], kit: { bg, fg, accent }, template, language, logo: boolean, chars }
+ * Scores are weighted by each trait's confidence. Dimensions with nothing checkable return null.
+ */
+function check(g, content, ctx, at) {
+  const traits = activeTraits(g, ctx, at).filter((t) => TRAIT_TYPES[t.type] && TRAIT_TYPES[t.type].check);
+  const texts = (content && content.texts) || [];
+  const all = texts.map((x) => x.text || "").join(" \n ");
+  const palette = ((g.identity && g.identity.palette) || []).map((p) => p.hex);
+  const results = [];
+  for (const t of traits) {
+    let pass = null, detail = "";
+    const p = t.params || {};
+    switch (t.type) {
+      case "palette":
+        if (content.kit && palette.length) {
+          const off = ["bg", "fg"].filter((k) => content.kit[k] && Math.min(...palette.map((h) => colourDistance(h, content.kit[k]))) > 15);
+          pass = !off.length; detail = off.length ? off.map((k) => content.kit[k]).join(", ") : "";
+        }
+        break;
+      case "logo": if (content.template && content.template !== "cover") { pass = !!content.logo; } break;
+      case "textDensity": if (content.chars != null) { pass = content.chars <= p.maxChars; detail = content.chars + " / " + p.maxChars; } break;
+      case "template": if (content.template) { pass = !(p.avoid && content.template === p.id); } break;
+      case "bilingual": if (content.language) { pass = content.language === p.mode; } break;
+      case "numerals": {
+        const arTexts = texts.filter((x) => x.lang === "ar" || ARABIC.test(x.text || ""));
+        if (arTexts.length) { const bad = arTexts.some((x) => (p.style === "arabic" ? WESTERN_DIGIT : ARABIC_DIGIT).test(x.text || "")); pass = !bad; }
+        break;
+      }
+      case "maxHeadline": {
+        const heads = texts.filter((x) => x.role === "headline" || x.role === "title");
+        if (heads.length) { const long = heads.filter((x) => (x.text || "").length > p.chars); pass = !long.length; detail = long.map((x) => x.text.length).join(", "); }
+        break;
+      }
+      case "avoidWord": if (texts.length && (!p.lang || texts.some((x) => (x.lang || (ARABIC.test(x.text || "") ? "ar" : "en")) === p.lang))) { pass = !hasWord(all, p.word); } break;
+      case "noExclamation": if (texts.length) pass = !/[!！]/.test(all); break;
+      case "noEmoji": if (texts.length) pass = !EMOJI.test(all); break;
+    }
+    if (pass !== null) results.push({ trait: t, dim: TRAIT_TYPES[t.type].dim, pass, detail, weight: t.st.s });
+  }
+  const dims = {};
+  for (const d of DIMS) {
+    const r = results.filter((x) => x.dim === d);
+    const w = r.reduce((s, x) => s + x.weight, 0);
+    dims[d] = r.length ? Math.round((100 * r.reduce((s, x) => s + (x.pass ? x.weight : 0), 0)) / w) : null;
+  }
+  const present = DIMS.filter((d) => dims[d] != null);
+  const totalW = results.reduce((s, x) => s + x.weight, 0);
+  const score = results.length ? Math.round((100 * results.reduce((s, x) => s + (x.pass ? x.weight : 0), 0)) / totalW) : null;
+  return { score, dims, present, results, violations: results.filter((x) => !x.pass), checked: results.length };
+}
+
+/* ---------- learning metrics ---------- */
+
+/** Edits a person made per approved item, oldest first: the number that should fall as the genome learns. */
+function editTrend(g) {
+  return (g.log || []).filter((l) => l.type === "approved").slice().reverse().map((l) => ({ at: l.at, edits: l.edits || 0 }));
+}
+
+return { DIMS, TRAIT_TYPES, FONT_PAIRS, LEARN, normaliseWord, stem, tokens, colourDistance, contrast, kitFromPalette, extractPalette, newGenome, traitKey, describe, strength, evidenceSummary, addEvidence, touch, setStatus, declare, observeEdit, REJECT_REASONS, observeReject, learn, activeTraits, exemplars, express, check, editTrend };
+})();
+var DIMS = __shared6.DIMS, TRAIT_TYPES = __shared6.TRAIT_TYPES, FONT_PAIRS = __shared6.FONT_PAIRS, LEARN = __shared6.LEARN, normaliseWord = __shared6.normaliseWord, stem = __shared6.stem, tokens = __shared6.tokens, colourDistance = __shared6.colourDistance, contrast = __shared6.contrast, kitFromPalette = __shared6.kitFromPalette, extractPalette = __shared6.extractPalette, newGenome = __shared6.newGenome, traitKey = __shared6.traitKey, describe = __shared6.describe, strength = __shared6.strength, evidenceSummary = __shared6.evidenceSummary, addEvidence = __shared6.addEvidence, touch = __shared6.touch, setStatus = __shared6.setStatus, declare = __shared6.declare, observeEdit = __shared6.observeEdit, REJECT_REASONS = __shared6.REJECT_REASONS, observeReject = __shared6.observeReject, learn = __shared6.learn, activeTraits = __shared6.activeTraits, exemplars = __shared6.exemplars, express = __shared6.express, check = __shared6.check, editTrend = __shared6.editTrend;
+var __shared7 = (function(){
+// Sample workspaces for the demo: two clients of one agency.
+// Layali's genome is not hand-written: it is built by replaying a realistic history of edits,
+// rejections and approvals through the learner, so every rule carries real evidence.
+// Inlined into the app by scripts/build.mjs (the import line is dropped there).
+
+
+function svgUrl(svg) { return "data:image/svg+xml;utf8," + encodeURIComponent(svg); }
+
+const LAYALI_LOGO = svgUrl('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 180"><path d="M92 34a62 62 0 1 0 54 98a50 50 0 1 1-54-98z" fill="#F2C88A"/><circle cx="150" cy="52" r="7" fill="#F2C88A"/><text x="182" y="116" font-family="Georgia,Times New Roman,serif" font-size="78" letter-spacing="16" fill="#F2C88A">LAYALI</text></svg>');
+const NOOR_LOGO = svgUrl('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 180"><circle cx="80" cy="90" r="54" fill="none" stroke="#3E4A3D" stroke-width="10"/><circle cx="80" cy="90" r="18" fill="#B08D57"/><text x="160" y="116" font-family="Georgia,Times New Roman,serif" font-size="80" letter-spacing="14" fill="#3E4A3D">NOOR</text></svg>');
+
+const SAMPLE_WORKSPACES = [
+  { id: "layali", name: "Layali Fragrances", nameAr: "ليالي للعطور", sample: true },
+  { id: "noor", name: "Noor Modest Wear", nameAr: "نور للأزياء المحتشمة", sample: true }
+];
+
+const T0 = "2026-09-01T09:00:00.000Z";
+const on = (d) => "2026-" + d + "T10:00:00.000Z";
+const C = (category, lang) => ({ channel: "noon", category, lang: lang || "en" });
+const titles = (en, ar) => ({ texts: [{ text: en, lang: "en", role: "title" }].concat(ar ? [{ text: ar, lang: "ar", role: "title" }] : []) });
+
+const LAYALI_HISTORY = [
+  { type: "edit", at: on("09-08"), product: "musk", field: "titleEn", role: "title", before: "Best Musk Tahara 50ml, Pure White Musk!", after: "Musk Tahara 50ml, Pure White Musk", ctx: C("fragrance") },
+  { type: "approve", at: on("09-08"), product: "musk", edits: 6, label: "Title and 4 slides", content: titles("Musk Tahara 50ml, Pure White Musk", "مسك الطهارة ٥٠ مل · مسك أبيض"), exemplar: { titleEn: "Musk Tahara 50ml, Pure White Musk", titleAr: "مسك الطهارة ٥٠ مل · مسك أبيض" }, ctx: C("fragrance") },
+  { type: "edit", at: on("09-14"), product: "burner", field: "titleEn", role: "title", before: "Best Bakhoor Burner in Hand-Hammered Brass!", after: "Bakhoor Burner in Hand-Hammered Brass", ctx: C("home") },
+  { type: "approve", at: on("09-14"), product: "burner", edits: 5, label: "Title and 5 slides", content: titles("Bakhoor Burner in Hand-Hammered Brass", "مبخرة نحاس مطروق يدوياً"), exemplar: { titleEn: "Bakhoor Burner in Hand-Hammered Brass", titleAr: "مبخرة نحاس مطروق يدوياً" }, ctx: C("home") },
+  { type: "edit", at: on("09-21"), product: "thobem", field: "titleEn", role: "title", before: "Men's Linen Thobe Ivory, Saudi Collar, Breathable Summer Fabric, All Sizes", after: "Men's Linen Thobe · Ivory · Saudi Collar", ctx: C("fashion") },
+  { type: "approve", at: on("09-21"), product: "thobem", edits: 5, label: "Title and size chart", content: titles("Men's Linen Thobe · Ivory · Saudi Collar", "ثوب كتان رجالي · عاجي · ياقة سعودية"), exemplar: { titleEn: "Men's Linen Thobe · Ivory · Saudi Collar", titleAr: "ثوب كتان رجالي · عاجي · ياقة سعودية" }, ctx: C("fashion") },
+  { type: "edit", at: on("09-29"), product: "dates", field: "titleEn", role: "title", before: "Best Sukkari Dates Gift Box 1kg!", after: "Sukkari Dates Gift Box 1kg", ctx: C("food") },
+  { type: "approve", at: on("09-29"), product: "dates", edits: 4, label: "Title and Ramadan slide", content: titles("Sukkari Dates Gift Box 1kg", "علبة تمر سكري هدية ١ كجم"), exemplar: { titleEn: "Sukkari Dates Gift Box 1kg", titleAr: "علبة تمر سكري هدية ١ كجم" }, ctx: C("food") },
+  { type: "edit", at: on("10-06"), product: "coffee", field: "titleEn", role: "title", before: "Saudi Coffee with Cardamom 500g, Light Roast, Khawlani Beans, Fresh Ground Daily", after: "Saudi Coffee with Cardamom 500g", ctx: C("food") },
+  { type: "approve", at: on("10-06"), product: "coffee", edits: 3, label: "Title and bullets", content: titles("Saudi Coffee with Cardamom 500g", "قهوة سعودية بالهيل ٥٠٠ جم"), exemplar: { titleEn: "Saudi Coffee with Cardamom 500g", titleAr: "قهوة سعودية بالهيل ٥٠٠ جم" }, ctx: C("food") },
+  { type: "edit", at: on("10-13"), product: "oud", field: "titleAr", role: "title", before: "عطر عود الليل الفاخر ١٠٠ مل", after: "عطر عود الليل ١٠٠ مل", ctx: C("fragrance", "ar") },
+  { type: "edit", at: on("10-13"), product: "oud", field: "titleEn", role: "title", before: "Oud Al Layl Luxury Eau de Parfum 100ml", after: "Oud Al Layl Eau de Parfum 100ml", ctx: C("fragrance") },
+  { type: "reject", at: on("10-13"), product: "oud", reasons: ["tooMuchText"], label: "Details slide", ctx: Object.assign(C("fragrance"), { chars: 180 }) },
+  { type: "approve", at: on("10-15"), product: "oud", edits: 3, label: "Title and 4 slides", content: titles("Oud Al Layl Eau de Parfum 100ml", "عطر عود الليل ١٠٠ مل"), exemplar: { titleEn: "Oud Al Layl Eau de Parfum 100ml", titleAr: "عطر عود الليل ١٠٠ مل" }, ctx: C("fragrance") },
+  { type: "edit", at: on("10-20"), product: "abaya", field: "titleEn", role: "title", before: "Linen Abaya Sand Colour, Relaxed Fit, Side Pockets, Breathable Summer Fabric", after: "Linen Abaya · Sand · Relaxed Fit", ctx: C("fashion") },
+  { type: "approve", at: on("10-20"), product: "abaya", edits: 2, label: "Title and size chart", content: titles("Linen Abaya · Sand · Relaxed Fit", "عباية كتان · رملي · قصة واسعة"), exemplar: { titleEn: "Linen Abaya · Sand · Relaxed Fit", titleAr: "عباية كتان · رملي · قصة واسعة" }, ctx: C("fashion") },
+  { type: "removeSlide", at: on("10-22"), product: "oud", template: "compare", label: "Us vs ordinary", ctx: C("fragrance") },
+  { type: "edit", at: on("10-27"), product: "musk", field: "titleAr", role: "title", before: "مسك الطهارة ٥٠ مل، مسك أبيض نقي بدون كحول للاستخدام اليومي", after: "مسك الطهارة ٥٠ مل · مسك أبيض", ctx: C("fragrance", "ar") },
+  { type: "edit", at: on("10-28"), product: "oud", field: "bulletsAr", role: "body", before: "زعفران فاخر وعنبر", after: "زعفران وعنبر", ctx: C("fragrance", "ar") },
+  { type: "edit", at: on("10-28"), product: "oud", field: "bulletsEn", role: "body", before: "Luxury gift box", after: "Gift box", ctx: C("fragrance") },
+  { type: "approve", at: on("10-28"), product: "oud", edits: 2, label: "Bullets", content: { texts: [{ text: "زعفران وعنبر", lang: "ar" }, { text: "Gift box", lang: "en" }] }, exemplar: { bulletsEn: ["Gift box"], bulletsAr: ["زعفران وعنبر"] }, ctx: C("fragrance") }
+];
+
+function layaliGenome(events) {
+  const g = newGenome("layali", {
+    name: "Layali Fragrances", nameAr: "ليالي للعطور", logo: LAYALI_LOGO, logoPos: "top-end", fonts: "kufi",
+    palette: [{ hex: "#2A1A0E", role: "background" }, { hex: "#F2C88A", role: "accent" }, { hex: "#F4E9D8", role: "text" }, { hex: "#5C1E1E", role: "primary" }]
+  });
+  declare(g, { type: "palette", params: {} }, "brandbook", T0, "Brand book p. 4");
+  declare(g, { type: "logo", params: { required: true } }, "brandbook", T0, "Brand book p. 6");
+  declare(g, { type: "bilingual", params: { mode: "both" }, scope: { channel: ["noon", "amazon"] } }, "brandbook", T0, "Brand book p. 9");
+  declare(g, { type: "numerals", params: { style: "arabic" } }, "brandbook", T0, "Brand book p. 9");
+  declare(g, { type: "noEmoji", params: {} }, "brandbook", T0, "Brand book p. 10");
+  declare(g, { type: "voice", params: { text: "Warm, hospitable Gulf Arabic. Speak to the buyer as «you». Calm confidence, no hype.", textAr: "عربية خليجية دافئة ومضيافة. خاطب المشتري بـ«أنت». ثقة هادئة بلا مبالغة." } }, "brandbook", T0, "Brand book p. 12");
+  declare(g, { type: "visual", params: { text: "Low warm light, dark backgrounds with gold accents, one product in focus, no busy props.", textAr: "إضاءة دافئة خافتة، خلفيات داكنة بلمسات ذهبية، منتج واحد في التركيز، بلا إكسسوارات مزدحمة." } }, "brandbook", T0, "Brand book p. 14");
+  for (const ev of events) learn(g, ev);
+  return g;
+}
+
+function noorGenome() {
+  const g = newGenome("noor", {
+    name: "Noor Modest Wear", nameAr: "نور للأزياء المحتشمة", logo: NOOR_LOGO, logoPos: "top-start", fonts: "naskh",
+    palette: [{ hex: "#F4EFE6", role: "background" }, { hex: "#3E4A3D", role: "primary" }, { hex: "#B08D57", role: "accent" }]
+  });
+  declare(g, { type: "palette", params: {} }, "brandbook", T0, "Style guide");
+  declare(g, { type: "bilingual", params: { mode: "both" } }, "brandbook", T0, "Style guide");
+  return g;
+}
+
+/** Fresh copies of the sample data: { workspaces, genomes, events }. */
+function sampleData() {
+  const events = LAYALI_HISTORY.map((e, i) => Object.assign({ id: "seed" + (i + 1), ws: "layali", sample: true }, JSON.parse(JSON.stringify(e))));
+  return {
+    workspaces: SAMPLE_WORKSPACES.map((w) => Object.assign({}, w)),
+    genomes: { layali: layaliGenome(events), noor: noorGenome() },
+    events: { layali: events, noor: [] }
+  };
+}
+
+return { SAMPLE_WORKSPACES, sampleData };
+})();
+var SAMPLE_WORKSPACES = __shared7.SAMPLE_WORKSPACES, sampleData = __shared7.sampleData;
 /* ---------- strings ---------- */
 var S = {
   overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
@@ -1166,6 +1845,39 @@ var S = {
   arText_broken:["Arabic text is broken","النص العربي مكسور"], arText_correct:["Arabic text is correct","النص العربي صحيح"], aiNote:["Claude's judgement before launch, not measured clicks.","تقدير Claude قبل النشر، وليس نقرات مقاسة."],
   photoNeeds:["Claude review runs on the Basira server with an Anthropic API key. Rule checks and background fixes work here.","مراجعة Claude تعمل على خادم بصيرة بمفتاح API. الفحوصات وإصلاح الخلفية تعمل هنا."],
   processing:["Working…","جارٍ العمل…"], mainReady:["Main image ready","صورة رئيسية جاهزة"], usedInStudio:["Photo set for","تم تعيين الصورة لـ"], bgDone:["Background removed","أُزيلت الخلفية"],
+  brand:["Brand DNA","هوية العلامة"], bdSub:["Everything Basira knows about this brand. Each rule both guides new content and checks it, and shows the evidence behind it.","كل ما تعرفه بصيرة عن هذه العلامة. كل قاعدة توجّه المحتوى الجديد وتفحصه، وتعرض الأدلة التي بُنيت عليها."],
+  bdActive:["Active rules","قواعد مفعّلة"], bdFromBook:["from the brand book or you","من دليل العلامة أو منك"], bdLearnedN:["learned from your team","تعلّمتها من فريقك"],
+  bdLearning:["Learning now","قيد التعلّم"], bdLearningSub:["Patterns Basira noticed in your edits. Three consistent signals turn one into a rule, or decide yourself.","أنماط لاحظتها بصيرة في تعديلاتك. ثلاث إشارات متسقة تحوّلها إلى قاعدة، أو قرّر بنفسك."],
+  bdEdits:["Edits per approval","تعديلات لكل موافقة"], bdEditsSub:["Falls as Basira learns the brand","تنخفض كلما تعلّمت بصيرة العلامة"],
+  bdIdentity:["Identity","الهوية"], bdName:["Brand name","اسم العلامة"], bdNameAr:["Brand name in Arabic","اسم العلامة بالعربية"], bdLogo:["Logo","الشعار"], bdUploadLogo:["Upload logo","ارفع الشعار"],
+  bdLogoPos:["Logo position on slides","موضع الشعار في الشرائح"], pos_top_end:["Top corner","الزاوية العليا"], pos_top_start:["Opposite top corner","الزاوية العليا المقابلة"], pos_bottom:["Bottom centre","أسفل الوسط"],
+  bdPalette:["Palette","الألوان"], bdAddColour:["Add colour","أضف لوناً"], role_background:["Background","الخلفية"], role_primary:["Primary","أساسي"], role_accent:["Accent","مميز"], role_text:["Text","النص"],
+  bdFonts:["Type","الخطوط"], bdRules:["Rules","القواعد"], dim_colors:["Colours","الألوان"], dim_composition:["Composition","التكوين"], dim_typography:["Typography","الطباعة"], dim_voice:["Tone of voice","نبرة الصوت"],
+  bdNoRules:["No rules here yet.","لا توجد قواعد هنا بعد."], bdWhy:["Why","لماذا"], bdOff:["Switch off","أوقف"], bdOn:["Switch on","فعّل"], bdAccept:["Make it a rule","اجعلها قاعدة"], bdDismiss:["Dismiss","تجاهل"],
+  bdSignals:["{n} of 3 signals","{n} من ٣ إشارات"], bdOffList:["Switched off","موقوفة"],
+  origin_brandbook:["Brand book","دليل العلامة"], origin_learned:["Learned","مكتسبة"], origin_analysis:["AI analysis","تحليل ذكي"], origin_manual:["Added by you","أضفتها أنت"], origin_declared:["Brand book","دليل العلامة"],
+  bdTeach:["Teach Basira this brand","علّم بصيرة هذه العلامة"], bdTeachSub:["Add what you have. Colours are read from images right here; Claude reads the rest and proposes rules for you to accept.","أضف ما لديك. تُقرأ الألوان من الصور هنا مباشرة؛ ويقرأ Claude الباقي ويقترح قواعد لتوافق عليها."],
+  bdSite:["Website or store link","رابط الموقع أو المتجر"], bdBook:["Brand book (PDF)","دليل العلامة (PDF)"], bdImages:["Logo, product photos, ads","الشعار وصور المنتجات والإعلانات"], bdTexts:["Copy the brand liked, one example per line","نصوص أعجبت العلامة، مثال في كل سطر"],
+  bdChoose:["Choose files","اختر ملفات"], bdChooseOne:["Choose file","اختر ملفاً"], bdExtracted:["Colours found in your images","ألوان وُجدت في صورك"], bdUse:["Use","استخدم"],
+  bdAnalyse:["Analyse with Claude","حلّل مع Claude"], bdAnalysing:["Reading the brand…","جارٍ قراءة العلامة…"], bdAnalyseNeeds:["Runs on the Basira server with an Anthropic API key. Colours from images work here.","يعمل على خادم بصيرة بمفتاح API. استخراج الألوان من الصور يعمل هنا."],
+  bdProposals:["Proposed rules","قواعد مقترحة"], bdAddSelected:["Add selected rules","أضف القواعد المحددة"], bdAdded:["Rules added","أُضيفت القواعد"],
+  bdAddRule:["Add a rule","أضف قاعدة"], bdRuleType:["Rule","القاعدة"], bdRuleValue:["Value","القيمة"], bdRuleScope:["Applies to","تنطبق على"], bdAllProducts:["All products","كل المنتجات"], bdAdd:["Add","أضف"],
+  rt_avoidWord:["Avoid a word","تجنّب كلمة"], rt_preferWord:["Prefer a word","فضّل كلمة"], rt_maxHeadline:["Headline length limit","حد طول العنوان"], rt_textDensity:["Text limit per slide","حد النص في الشريحة"], rt_noExclamation:["No exclamation marks","بدون علامات تعجب"], rt_noEmoji:["No emoji","بدون رموز تعبيرية"], rt_numerals:["Digits in Arabic text","الأرقام في النص العربي"], rt_logo:["Logo on every slide","الشعار في كل شريحة"], rt_palette:["Brand colours only","ألوان العلامة فقط"], rt_bilingual:["Arabic and English on slides","العربية والإنجليزية في الشرائح"], rt_voice:["Tone of voice note","ملاحظة عن النبرة"], rt_visual:["Visual style note","ملاحظة عن الأسلوب البصري"],
+  bdLog:["What changed","ما الذي تغيّر"], log_promoted:["Learned a rule","تعلّمت قاعدة"], log_candidate:["Noticed a pattern","لاحظت نمطاً"], log_added:["Rule added","أُضيفت قاعدة"], log_accepted:["You accepted","وافقت على"], log_retired:["Rule retired","أُلغيت قاعدة"], log_approved:["Approved","تمت الموافقة"], log_identity:["Identity updated","حُدّثت الهوية"], "log_switched-off":["You switched off","أوقفت"], log_off:["You switched off","أوقفت"],
+  bdBrief:["What Basira tells the AI","ما تقوله بصيرة للذكاء الاصطناعي"], bdBriefSub:["Compiled from the active rules for one context: only rules in scope, strongest first, with approved examples.","مجمّعة من القواعد المفعّلة لسياق واحد: القواعد المنطبقة فقط، الأقوى أولاً، مع أمثلة معتمدة."],
+  bdVersion:["Version","الإصدار"], bdSample:["Sample history","سجل تجريبي"],
+  evBook:["brand book","دليل العلامة"], evYou:["added by you","أضفتها أنت"], evAi:["AI analysis","تحليل ذكي"], evEdits:["edits","تعديلات"], evApprovals:["approvals","موافقات"], evRejects:["rejections","رفض"], evAgainst:["against","ضدها"],
+  bcs:["Brand consistency","الاتساق مع العلامة"], beta:["beta","تجريبي"], bcsChecked:["{n} rules checked","فُحصت {n} قواعد"], bcsAllGood:["Follows every brand rule that applies here.","يلتزم بكل قواعد العلامة المنطبقة هنا."], bcsNone:["No checkable brand rules apply here yet. Add some in Brand DNA.","لا توجد قواعد قابلة للفحص هنا بعد. أضفها في هوية العلامة."],
+  learnedT:["What Basira learned","ما تعلّمته بصيرة"], learnedPromoted:["New rule","قاعدة جديدة"], learnedCandidate:["Noticed","لاحظت"], learnedRetired:["Dropped","أسقطت"], learnedNone:["Saved as an example. No new patterns yet.","حُفظ كمثال. لا أنماط جديدة بعد."],
+  copyT:["Title and bullets","العنوان والنقاط"], copyCurrent:["Live now","المنشور حالياً"], copyWrite:["Write with Basira","اكتب مع بصيرة"], copyWriting:["Writing in the brand's voice…","جارٍ الكتابة بصوت العلامة…"], copySample:["Show sample draft","اعرض مسودة تجريبية"], copySampleTag:["Sample draft","مسودة تجريبية"], copyAiTag:["Draft by Claude","مسودة من Claude"],
+  copyNeeds:["Drafts are written by Claude on the Basira server. Edit and approve below, and Basira learns from what you change.","يكتب Claude المسودات على خادم بصيرة. عدّل ووافق أدناه، وتتعلّم بصيرة مما تغيّره."], copyEditHint:["Edit anything you'd change before it goes live. Basira learns from the difference.","عدّل أي شيء قبل النشر. تتعلّم بصيرة من الفرق."],
+  copyApprove:["Approve copy","وافق على النص"], copyDiscard:["Discard","تجاهل"], copyChanges:["What changed and why","ما الذي تغيّر ولماذا"], titleEnS:["Title · English","العنوان · إنجليزي"], titleArS:["Title · Arabic","العنوان · عربي"], bulletsEnS:["Bullets · English","النقاط · إنجليزي"], bulletsArS:["Bullets · Arabic","النقاط · عربي"], copyApproved:["Copy approved","تمت الموافقة على النص"],
+  memory:["Product memory","ذاكرة المنتج"], memorySub:["Everything that happened to this listing","كل ما حدث لهذا المنتج"], memEmpty:["Nothing yet. Imports, edits and approvals appear here.","لا شيء بعد. يظهر هنا الاستيراد والتعديلات والموافقات."],
+  mem_edit:["Edited","عدّل"], mem_approve:["Approved","وافق"], mem_reject:["Changes requested","طُلبت تعديلات"], mem_removeSlide:["Removed slide","حذف شريحة"], mem_import:["Imported","استورد"], mem_kit:["Changed colours","غيّر الألوان"], edits:["edits","تعديلات"],
+  reasonsT:["What's wrong?","ما المشكلة؟"], r_tooMuchText:["Too much text","نص كثير"], r_offColours:["Off-brand colours","ألوان خارج الهوية"], r_logo:["Logo is wrong","الشعار خطأ"], r_offTone:["Tone isn't ours","النبرة ليست لنا"], r_productDiffers:["Product looks different","المنتج يبدو مختلفاً"], sendFeedback:["Send feedback","أرسل الملاحظات"], cancel:["Cancel","إلغاء"],
+  wsClients:["Clients","العملاء"], wsNew:["New client","عميل جديد"], wsNewPh:["Client name","اسم العميل"], wsCreate:["Create","أنشئ"], wsRules:["{n} rules","{n} قواعد"], ovSub2:["{name} · {n} listings","{name} · {n} منتجاً"],
+  noProducts:["No products for this client yet","لا توجد منتجات لهذا العميل بعد"], noProductsSub:["Import a catalog to audit it, or set up the brand first.","استورد كتالوجاً لتدقيقه، أو جهّز هوية العلامة أولاً."], goImport:["Import catalog","استورد الكتالوج"], goBrand:["Set up Brand DNA","جهّز هوية العلامة"],
+  bdReloaded:["Brand DNA was changed elsewhere. Loaded the latest version.","تغيّرت هوية العلامة في مكان آخر. حُمّلت أحدث نسخة."], brandKitName:["Brand","العلامة"],
   uploadPhoto:["Upload photo","ارفع صورة"], changePhoto:["Change photo","غيّر الصورة"], add:["Add","أضف"], mostProfit:["Most profitable","الأعلى ربحاً"],
   pcStep1:["Add up to 4 photos you're considering for the main image.","أضف حتى ٤ صور تفكر في استخدامها كصورة رئيسية."],
   pcStep2:["Each is checked against the channel's rules: size, white background, how much of the frame the product fills.","تُفحص كل صورة وفق قواعد القناة: المقاس، والخلفية البيضاء، ومساحة المنتج في الإطار."],
@@ -1263,13 +1975,14 @@ var P = [
    st:{headAr:"نحاس مطروق يدوياً",headEn:"Hand-hammered brass",bAr:"نحاس خالص\nكهربائية\nضمان سنتين",bEn:"Solid brass\nElectric\n2-year warranty",oAr:"ضيافة المجلس",oEn:"For the majlis",kit:2},
    newTitle:"Bakhoor Burner · Hand-Hammered Brass, Electric"}
 ];
-var PM = {}; P.forEach(function(p){ PM[p.id] = p; });
+var PM = {}; P.forEach(function(p){ p.ws = "layali"; PM[p.id] = p; });
 
 var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"score", dialect:"all", api:null, photos:{}, renders:{},
   al:{channel:"noon", category:"fragrance", titleEn:"Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume", titleAr:"", bulletsEn:"Long lasting\nBest gift for men and women", bulletsAr:"", images:1, res:800, white:false, sizeChart:false, attrs:{volume:true}},
   rev:{text:"الريحة حلوة بس ما تثبت، بعد ساعتين راحت\nالعطر حلو بس بيروح بسرعة خالص\nالتغليف فخم ومناسب للهدايا\nريحة العود قوية ومميزة، بس الثبات ضعيف\nوصل متأخر يومين\nSmells great but fades within two hours", busy:false, result:null, error:null},
   pc:{channel:"noon", items:[], review:null, busy:false, error:null},
   pf:{country:"SA", price:230, cost:60, inbound:3, ads:10, returns:5, returnCost:20, cod:40, fees: JSON.parse(JSON.stringify(CHANNEL_DEFAULTS))},
+  ws:"layali", wsMenu:false, bd:{}, copy:{}, kitWarned:{}, lastLearned:null,
   slide:1, langMode:"both", num:"ar", gen:{}, sets:{}, kitBy:{}, tgroup:"all", src:"all", imp:{busy:false, error:null, note:null}, connectors:null, replies:{}, queue:[
     {id:"q1",pid:"abaya",by:"Omar",status:"pending",issue:"noSizeChart"},
     {id:"q2",pid:"dates",by:"Sara",status:"pending",issue:"noSeason"}
@@ -1314,6 +2027,7 @@ var ICONS = {
   studio:'<path d="M12 3l2.6 5.6L20 11l-5.4 2.4L12 19l-2.6-5.6L4 11l5.4-2.4z"/>',
   approvals:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
   audit:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/>',
+  brand:'<path d="M7 3c0 6 10 6 10 12s-10 6-10 6M17 3c0 6-10 6-10 12s10 6 10 6"/><path d="M8.5 7.5h7M8.5 16.5h7"/>',
   photos:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/>',
   profit:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
   templates:'<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/>'
@@ -1321,8 +2035,8 @@ var ICONS = {
 function navHTML(mobile){
   var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","audit","catalog","photos","reviews","templates","studio","profit","approvals"].map(function(k){
-    var href = k === "studio" ? "studio-"+state.pid : k;
+  return ["overview","brand","audit","catalog","photos","reviews","templates","studio","profit","approvals"].map(function(k){
+    var href = k === "studio" ? (state.pid ? "studio-"+state.pid : "catalog") : k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
     return '<a href="#'+href+'"'+cur+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg>'+t(k)+(k === "approvals" && pend ? '<span class="cnt">'+pend+'</span>' : "")+'</a>';
@@ -1331,14 +2045,16 @@ function navHTML(mobile){
 function renderSide(){
   document.getElementById("side").innerHTML =
     '<a class="brand" href="#overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#52C4AE"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#04120F"/><circle cx="16" cy="16" r="3" fill="#52C4AE"/></svg>Basira <small>بصيرة</small></a>'+
-    '<div class="ws"><i></i><div><b>Layali Fragrances</b><small>'+t("wsSub")+'</small></div></div>'+
+    wsBlock()+
     '<nav class="navl" aria-label="Sections">'+navHTML(false)+'</nav>'+
     '<div class="side-foot"><div class="credits"><span>'+t("credits")+'</span><span class="tr"><i></i></span><b>'+t("creditsOf")+'</b></div><a href="./">'+t("site")+'</a></div>';
-  document.getElementById("mnav").innerHTML = navHTML(true);
+  document.getElementById("mnav").innerHTML = wsSelect() + navHTML(true);
 }
 
 /* ---------- views ---------- */
 function vOverview(){
+  var P = WP();
+  if (!P.length) return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+esc(wsInfo().name)+'</p></div></div>'+vNoProducts();
   var avg = Math.round(P.reduce(function(a,p){ return a+p.score; },0)/P.length);
   var low = P.filter(function(p){ return p.score < 60; }).length;
   var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
@@ -1348,8 +2064,8 @@ function vOverview(){
   var top = Object.keys(agg).map(function(k){ return [k, Math.round(agg[k]/tot*100)]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
   var maxT = top.length ? top[0][1] : 1;
   var first = P.slice().sort(function(a,b){ return a.score-b.score; }).slice(0,4);
-  var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length), ps.length]; });
-  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+t("ovSub")+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span></div>'+
+  var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, ps.length ? Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length) : 0, ps.length]; }).filter(function(c){ return c[2]; });
+  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+esc(tf("ovSub2", {name: tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), n: P.length}))+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span></div>'+
   '<div class="kpis">'+
     '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span><span class="up">+9</span> '+t("vsLast")+'</span></div>'+
     '<div class="kpi"><small>'+t("needFix")+'</small><b>'+low+'</b><span>/ '+P.length+'</span></div>'+
@@ -1372,6 +2088,7 @@ function vOverview(){
 }
 
 function vCatalog(){
+  var P = WP();
   var q = state.q.trim().toLowerCase();
   var nImp = P.filter(function(p){ return p.imported; }).length;
   var rows = P.filter(function(p){
@@ -1405,6 +2122,7 @@ function vListing(){
   return '<div><a class="crumb" href="#catalog">'+backArrow()+t("back")+'</a>'+
   '<div class="head"><div class="lhead">'+ring(p.score)+'<div><h1>'+esc(tr(p.name))+'</h1><p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="mono" style="font-size:12.5px">'+p.sku+'</span>'+chans(p)+'<span class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' · '+p.rev+' '+t("fromReviews") : "")+'</span>'+(p.url ? '<a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+t("openSource")+'</a>' : "")+'</p></div></div>'+
   '<a class="btn btn-primary" href="#studio-'+p.id+'">'+t("genFix")+arrow()+'</a></div></div>'+
+  copyCard(p)+
   '<div class="grid2">'+
     '<div style="display:grid;gap:18px">'+
       '<div class="card"><div class="card-h"><h2>'+t("gallery")+'</h2><small>'+(p.fixed ? 4 : p.imgs)+' / 7</small></div><div class="gallery">'+slots.join("")+'</div></div>'+
@@ -1416,6 +2134,7 @@ function vListing(){
       '<div class="card"><div class="card-h"><h2>'+t("breakdown")+'</h2></div>'+
         [["images",br.images],["title",br.title],["arabic",br.arabic],["attrs",br.attrs],["reviewFit",br.reviewFit]].map(function(b){ return '<div class="hbar"><span>'+t(b[0])+'</span><span class="tr"><i style="--w:'+b[1]+'%;--c:'+scoreColor(b[1])+'"></i></span><span class="mono">'+b[1]+'</span></div>'; }).join("")+
       '</div>'+
+      memoryCard(p)+
       (p.listing ? kwCard(p.listing) : "")+
       '<div class="card"><div class="card-h"><h2>'+t("insight")+'</h2><small>'+(p.rev ? p.rev+' '+t("fromReviews") : "")+'</small></div>'+(p.themes.length ? "" : '<p class="note">'+t("noReviewsYet")+'</p>')+
         p.themes.map(function(th){ return '<div class="hbar"><span>'+tr(THEMES[th[0]])+'</span><span class="tr"><i style="--w:'+th[1]+'%;--c:'+(th[2] ? "var(--good)" : "var(--bad)")+'"></i></span><span class="mono">'+th[1]+'%</span></div>'; }).join("")+
@@ -1431,6 +2150,7 @@ function quoteHTML(q, p, link){
 }
 
 function vReviews(){
+  var P = WP();
   var all = []; P.forEach(function(p){ p.quotes.forEach(function(q){ all.push([q,p]); }); });
   var list = all.filter(function(x){ return state.dialect === "all" || x[0][1] === state.dialect; });
   var agg = {}; P.forEach(function(p){ p.themes.forEach(function(th){ var a = agg[th[0]] || (agg[th[0]] = {neg:0,pos:0}); a[th[2] ? "pos" : "neg"] += Math.round(th[1]*p.rev/100); }); });
@@ -1522,7 +2242,7 @@ function replyBlock(key){
 function runReply(key){
   var parts = key.split("|"), p = PM[parts[0]], q = p && p.quotes[+parts[1]]; if (!q) return;
   var r = state.replies[key] = {busy:true}; render();
-  fetch("/api/reviews/reply", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({review:q[0], product: tr(p.name), brand:"Layali Fragrances"})})
+  fetch("/api/reviews/reply", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({review:q[0], product: tr(p.name), brand: genome().identity.name || wsInfo().name, brief: exprFor(p).brief})})
     .then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
     .then(function(j){ state.replies[key] = {text:j.reply, en:j.replyEn, needsPerson:j.needsPerson, reason:j.reason}; })
     .catch(function(e){ state.replies[key] = {error:e.message}; })
@@ -1531,7 +2251,7 @@ function runReply(key){
 function runAnalyse(){
   var r = state.rev, reviews = r.text.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   r.busy = true; r.error = null; render();
-  fetch("/api/reviews/analyze", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({product: tr(PM[state.pid].name), reviews: reviews})})
+  fetch("/api/reviews/analyze", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({product: PM[state.pid] ? tr(PM[state.pid].name) : "", reviews: reviews})})
     .then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
     .then(function(j){ r.result = j; }).catch(function(e){ r.error = e.message; })
     .then(function(){ r.busy = false; if (state.route === "reviews") render(); });
@@ -1551,11 +2271,19 @@ function defaultSet(p){
   set.push({tpl:"occasion", fields:clean({headAr:st.oAr, headEn:st.oEn})});
   return set;
 }
-function setOf(p){ return state.sets[p.id] || (state.sets[p.id] = defaultSet(p)); }
-function kitOf(p){ var i = state.kitBy[p.id]; if (i == null) i = (p.st && p.st.kit) || 0; return KITS[i]; }
+function setOf(p){
+  var set = state.sets[p.id] || (state.sets[p.id] = defaultSet(p));
+  // Each slide remembers what Basira proposed, so edits can be learned from.
+  set.forEach(function(sl){ if (!sl.orig) sl.orig = Object.assign({}, (templateById(sl.tpl) || {sample:{}}).sample, sl.fields); });
+  return set;
+}
+function exprFor(p, extra){ return express(genome(), Object.assign({channel: p ? p.ch[0] : "noon", category: p ? catOf(p) : null, lang: state.langMode === "en" ? "en" : "ar"}, extra || {})); }
+function brandKit(){ var k = kitFromPalette((genome().identity || {}).palette); return k ? {id:"brand", bg:k.bg, fg:k.fg, ac:k.accent} : null; }
+function kitIndex(p){ var i = state.kitBy[p.id]; if (i == null) i = brandKit() ? -1 : ((p.st && p.st.kit) || 0); return i; }
+function kitOf(p){ var i = kitIndex(p); return i < 0 ? (brandKit() || KITS[0]) : KITS[i]; }
 function ctxFor(p, sl){
-  var tp = templateById(sl.tpl), k = kitOf(p);
-  return {image: imgFor(p), kit: tp && tp.kit ? null : {bg:k.bg, fg:k.fg, accent:k.ac}, language: state.langMode, numerals: state.num === "ar" ? "arabic" : "western", brand:"LAYALI"};
+  var tp = templateById(sl.tpl), k = kitOf(p), e = exprFor(p, {template: sl.tpl}), id = genome().identity || {};
+  return {image: imgFor(p), kit: tp && tp.kit ? null : {bg:k.bg, fg:k.fg, accent:k.ac}, language: state.langMode, numerals: state.num === "ar" ? "arabic" : "western", brand: (id.name || "").toUpperCase().slice(0, 18), logo: e.logo, fonts: e.fonts};
 }
 function pv(attrs, cls){ return '<div class="pv '+(cls || "")+'" '+attrs+' aria-hidden="true"></div>'; }
 var PV_CSS = ":host{display:block}.bz{position:absolute;top:0;left:0;transform-origin:0 0;transform:scale(var(--s,.1))}";
@@ -1584,9 +2312,9 @@ function vStudio(){
   if (state.slide < 0) state.slide = 0;
   var i = state.slide, sl = set[i], tp = templateById(sl.tpl);
   var g = state.gen[p.id] || {phase:"idle"}, server = state.api && state.api.render;
-  var stepNames = ["st1","st2","st3", server ? "st4r" : "st4"], outs = state.renders[p.id], kitIdx = KITS.indexOf(kitOf(p));
+  var stepNames = ["st1","st2","st3", server ? "st4r" : "st4"], outs = state.renders[p.id], kitIdx = kitIndex(p), bk = brandKit();
   return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
-    '<select class="sel" id="pick" aria-label="'+t("product")+'">'+P.map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
+    '<select class="sel" id="pick" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
   '<div class="studio">'+
     '<div class="slist">'+set.map(function(x, j){ var tj = templateById(x.tpl); return '<button type="button" class="sitem" data-slide="'+j+'" aria-pressed="'+(i === j)+'"><span class="mini">'+pv('data-pid="'+p.id+'" data-idx="'+j+'"')+'</span><span><b>'+tr(tj.name)+'</b><small>'+tr(tj.question)+'</small></span></button>'; }).join("")+
       '<a class="btn btn-ghost" href="#templates">+ '+t("addSlide")+'</a></div>'+
@@ -1594,6 +2322,7 @@ function vStudio(){
       '<div class="stage-meta">'+
         (g.phase === "done" || g.phase === "sent" ? (g.server ? '<span class="tag good">PNG 1600 × 2000 × '+(outs ? outs.length : set.length)+'</span>' : '<span class="tag good">'+t("fidelity")+' 98.6%</span><span class="tag good">'+t("rules")+'</span><span class="tag">'+t("demoTag")+'</span>') : g.phase === "error" ? '<span class="tag bad">'+t("renderErr")+' '+esc(g.error)+'</span>' : '<span class="tag">'+t("notGen")+'</span>')+
       '</div>'+
+      scoreCard(slideCheck(p, sl), "bscore")+
       '<div class="stage-tools"><button type="button" class="btn btn-ghost btn-sm" data-move="-1"'+(i === 0 ? " disabled" : "")+'>↑ '+t("moveUp")+'</button><button type="button" class="btn btn-ghost btn-sm" data-move="1"'+(i === set.length - 1 ? " disabled" : "")+'>↓ '+t("moveDown")+'</button><button type="button" class="btn btn-ghost btn-sm" data-remove="'+i+'"'+(set.length < 2 ? " disabled" : "")+'>'+t("removeSlide")+'</button></div>'+
     '</div>'+
     '<div class="card panel">'+
@@ -1602,7 +2331,7 @@ function vStudio(){
       '<div class="field"><span class="lbl">'+t("numerals")+'</span><div class="seg" role="group"><button type="button" data-num="ar" aria-pressed="'+(state.num === "ar")+'">'+t("numAr")+'</button><button type="button" data-num="en" aria-pressed="'+(state.num === "en")+'">'+t("numEn")+'</button></div></div>'+
       '<div class="tpl-name"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span></div>'+
       tp.fields.map(function(fd){ return fieldInput(fd, sl.fields[fd.key] != null ? sl.fields[fd.key] : (tp.sample[fd.key] || "")); }).join("")+
-      '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+KITS.map(function(k,j){ return '<button type="button" data-kit="'+j+'" aria-pressed="'+(kitIdx === j)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div>'+(tp.kit ? '<span class="note">'+t("seasonalKit")+'</span>' : "")+'</div>'+
+      '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+(bk ? '<button type="button" data-kit="-1" aria-pressed="'+(kitIdx === -1)+'" aria-label="'+t("brandKitName")+'" title="'+t("brandKitName")+'" class="sw-brand"><i style="background:'+bk.bg+'"></i><i style="background:'+bk.fg+'"></i></button>' : "")+KITS.map(function(k,j){ return '<button type="button" data-kit="'+j+'" aria-pressed="'+(kitIdx === j)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div>'+(tp.kit ? '<span class="note">'+t("seasonalKit")+'</span>' : "")+'</div>'+
       (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(sn,j){ var c = j < g.step ? "done" : j === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(sn)+(j === 3 && c === "done" && !g.server ? ' · 98.6%' : "")+'</div>'; }).join("")+'</div>' : "")+
       '<div style="display:grid;gap:8px">'+
         '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? tf("generateN", {n:set.length}) : t("regenerate"))+'</button>'+
@@ -1617,7 +2346,7 @@ function vTemplates(){
   var p = PM[state.pid], cat = catOf(p);
   var list = TEMPLATES.filter(function(tp){ return state.tgroup === "all" || tp.group === state.tgroup; });
   return '<div class="head"><div><h1>'+t("templates")+'</h1><p>'+t("tplSub")+'</p></div>'+
-    '<label class="tpl-for">'+t("addTo")+' <select class="sel" id="pick-t" aria-label="'+t("product")+'">'+P.map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></label></div>'+
+    '<label class="tpl-for">'+t("addTo")+' <select class="sel" id="pick-t" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></label></div>'+
   '<div class="chips" role="group">'+[{id:"all", name:["All","الكل"]}].concat(TEMPLATE_GROUPS).map(function(gr){ var n = gr.id === "all" ? TEMPLATES.length : TEMPLATES.filter(function(tp){ return tp.group === gr.id; }).length; return '<button type="button" class="chip" data-tgroup="'+gr.id+'" aria-pressed="'+(state.tgroup === gr.id)+'">'+tr(gr.name)+' · '+n+'</button>'; }).join("")+'</div>'+
   '<div class="tgrid">'+list.map(function(tp){
     var fit = !tp.categories || tp.categories.indexOf(cat) > -1;
@@ -1637,7 +2366,9 @@ function vApprovals(){
       '<div style="min-width:0;display:grid;gap:6px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(tr(p.name))+'</b>'+stTag+'</div>'+
         '<div style="font-size:13px;color:var(--ink-2)">'+tr(iss.t)+' · 4 '+t("slidesN")+' · '+t("newTitle")+' · '+t("scoreAfter")+' <b class="tnum" style="color:var(--good)">'+p.target+'</b></div>'+
         '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)">'+chans(p)+'<span>'+t("by")+' '+it.by+'</span></div></div>'+
-      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approve")+'</button>' : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>')+'</div>'+
+      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approve")+'</button>' : it.status === "asking" ? "" : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>')+'</div>'+
+      (it.status === "asking" ? '<div class="reasons"><b>'+t("reasonsT")+'</b><div class="chips">'+REJECT_REASONS.map(function(r){ return '<button type="button" class="chip" data-reason="'+it.id+'|'+r+'" aria-pressed="'+((it.reasons || []).indexOf(r) > -1)+'">'+t("r_"+r)+'</button>'; }).join("")+'</div><div style="display:flex;gap:8px"><button type="button" class="btn btn-primary btn-sm" data-sendfb="'+it.id+'">'+t("sendFeedback")+'</button><button type="button" class="btn btn-ghost btn-sm" data-cancelfb="'+it.id+'">'+t("cancel")+'</button></div></div>' : "")+
+      (it.learned && it.learned.length ? learnedBlock(it.learned) : "")+
     '</div>'; }).join("")+'</div>' : '<div class="card empty">'+t("queueEmpty")+'</div>');
 }
 
@@ -1676,7 +2407,7 @@ function addPhoto(url, label){
   return analysePhoto(url).then(function(m){ it.m = m; }).catch(function(e){ it.error = e.message; }).then(function(){ it.busy = false; if (state.route === "photos") render(); });
 }
 function samplePhotos(){
-  var p = PM[state.pid], src = symbolDataUrl(p);
+  var p = PM[state.pid] || P[0], src = symbolDataUrl(p);
   return loadImg(src).then(function(im){
     var make = function(bg, scale, size){ var c = document.createElement("canvas"); c.width = c.height = size; var ctx = c.getContext("2d"); ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size); var h = size * scale, w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, (size - w) / 2, (size - h) / 2 + size * 0.04, w, h); return c.toDataURL("image/jpeg", 0.9); };
     state.pc.items = []; state.pc.review = null;
@@ -1688,7 +2419,7 @@ function runPhotoReview(){
   var pc = state.pc; if (!pc.items.length) return;
   pc.busy = true; pc.error = null; render();
   Promise.all(pc.items.map(function(it){ return shrinkForAi(it.url); })).then(function(photos){
-    return fetch("/api/photos/review", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({photos:photos, product: tr(PM[state.pid].name), channel: pc.channel})});
+    return fetch("/api/photos/review", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({photos:photos, product: PM[state.pid] ? tr(PM[state.pid].name) : "", channel: pc.channel})});
   }).then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
     .then(function(j){ pc.review = j; }).catch(function(e){ pc.error = e.message; })
     .then(function(){ pc.busy = false; if (state.route === "photos") render(); });
@@ -1772,15 +2503,18 @@ function addImported(res){
   res.items.forEach(function(it){
     var id = "imp" + (++impSeq), l = it.listing, a = it.audit;
     var first = function(x){ return String(x || "").split(/[،,·|]| - /)[0].trim(); };
-    var p = {id:id, sku: it.sku || it.ref || id, sym:"box", color:"#8C6A3F", category:l.category,
+    var p = {id:id, ws: state.ws, sku: it.sku || it.ref || id, sym:"box", color:"#8C6A3F", category:l.category,
       name:[it.name || l.titleEn || l.titleAr, l.titleAr || it.name || l.titleEn], ch:[CH[l.channel] ? l.channel : "noon"],
       score:a.score, target:Math.min(95, a.score + 30), imgs:l.images.length, rating:it.rating || 0, rev:it.reviews || 0,
       br:a.breakdown, issues:a.issues.map(function(i){ return i.key; }), issueDetails:a.issues, themes:[], quotes:[],
       image:it.image || null, url:it.url || null, imported:true, listing:l, newTitle:l.titleEn,
       st:{headAr:first(l.titleAr), headEn:first(l.titleEn), bAr:(l.bulletsAr || []).slice(0,4).join("\n"), bEn:(l.bulletsEn || []).slice(0,4).join("\n"), oAr:"هدية مثالية", oEn:"The perfect gift", kit:0}};
     P.unshift(p); PM[id] = p; n++;
+    record({type:"import", product:id, label: (res.source && res.source.platform) || "file"});
   });
   state.src = "imported"; state.chan = "all";
+  if (!state.pid || !PM[state.pid] || PM[state.pid].ws !== state.ws) state.pid = WP()[0] ? WP()[0].id : null;
+  commit(state.ws, wsEvents().slice(-n));
   return n;
 }
 function importDone(res, label){
@@ -1817,21 +2551,421 @@ function importCard(){
   '</div>';
 }
 
+/* ---------- Brand DNA: client workspaces, genome store, learning ---------- */
+var STORE_KEY = "basira-store-v2";
+var BD = {workspaces:[], genomes:{}, events:{}, serverVer:{}};
+(function initStore(){
+  var local = null;
+  try { local = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch(e){}
+  if (local && local.workspaces && local.genomes){
+    BD.workspaces = local.workspaces; BD.genomes = local.genomes; BD.events = local.events || {};
+    if (local.sets) state.sets = local.sets;
+    state.ws = local.ws && local.genomes[local.ws] ? local.ws : local.workspaces[0].id;
+  } else {
+    var d = sampleData(); BD.workspaces = d.workspaces; BD.genomes = d.genomes; BD.events = d.events; state.ws = "layali";
+  }
+  if (!PM[state.pid] || PM[state.pid].ws !== state.ws) state.pid = (P.filter(function(p){ return p.ws === state.ws; })[0] || {}).id || null;
+})();
+function wsInfo(id){ id = id || state.ws; return BD.workspaces.filter(function(w){ return w.id === id; })[0] || BD.workspaces[0]; }
+function genome(){ return BD.genomes[state.ws] || (BD.genomes[state.ws] = newGenome(state.ws, {name: wsInfo().name})); }
+function wsEvents(){ return BD.events[state.ws] || (BD.events[state.ws] = []); }
+function WP(){ return P.filter(function(p){ return (p.ws || "layali") === state.ws; }); }
+function persist(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ws: state.ws, workspaces: BD.workspaces, genomes: BD.genomes, events: BD.events, sets: state.sets})); } catch(e){}
+}
+var saveTimer, pendingEv = {};
+function commit(ws, evs){
+  ws = ws || state.ws;
+  if (evs && evs.length) (pendingEv[ws] = pendingEv[ws] || []).push.apply(pendingEv[ws], evs);
+  persist();
+  clearTimeout(saveTimer); saveTimer = setTimeout(function(){ pushServer(ws); }, 400);
+}
+function apiJson(url, opts){
+  return fetch(url, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); });
+}
+function pushServer(ws){
+  if (!state.api || !state.api.store) return;
+  var evs = pendingEv[ws] || []; pendingEv[ws] = [];
+  apiJson("/api/brand/"+ws, {method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({genome: BD.genomes[ws], baseVersion: BD.serverVer[ws]})})
+    .then(function(j){ BD.serverVer[ws] = j.version; })
+    .catch(function(e){ if (e.status === 409) reloadFromServer(ws); else toast(e.message); });
+  if (evs.length) apiJson("/api/brand/"+ws+"/events", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({events: evs})}).catch(function(){});
+}
+function loadFromServer(){
+  apiJson("/api/workspaces").then(function(list){
+    state.api.store = true; BD.workspaces = list;
+    return Promise.all(list.map(function(w){
+      return Promise.all([apiJson("/api/brand/"+w.id), apiJson("/api/brand/"+w.id+"/events")]).then(function(x){ BD.genomes[w.id] = x[0]; BD.serverVer[w.id] = x[0].version; BD.events[w.id] = x[1]; });
+    }));
+  }).then(function(){ if (!BD.genomes[state.ws]) state.ws = BD.workspaces[0].id; persist(); render(); }).catch(function(){});
+}
+function reloadFromServer(ws){
+  apiJson("/api/brand/"+ws).then(function(g){ BD.genomes[ws] = g; BD.serverVer[ws] = g.version; persist(); render(); toast(t("bdReloaded")); }).catch(function(){});
+}
+
+/* every piece of feedback goes through the learner */
+function record(ev){
+  ev.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  ev.at = ev.at || new Date().toISOString(); ev.ws = state.ws;
+  var changes = learn(genome(), ev);
+  wsEvents().push(ev);
+  return changes;
+}
+function recordAll(evs){ var all = []; evs.forEach(function(e){ all = all.concat(record(e)); }); commit(state.ws, evs); return all; }
+function dsc(x){ var d = describe(x); return [d.en, d.ar]; }
+function learnedNote(changes){
+  var g = genome(), seen = {};
+  // A promotion outranks a reinforcement of the same trait in one batch.
+  var rank = {promoted:3, retired:2, candidate:1, reinforced:1}, best = {};
+  changes.forEach(function(c){ if (rank[c.type] && (!best[c.trait] || rank[c.type] > rank[best[c.trait].type])) best[c.trait] = c; });
+  return Object.keys(best).map(function(k){ var c = best[k], x = g.traits.filter(function(y){ return y.id === c.trait; })[0]; if (!x) return null;
+    var raw = strength(x).raw; if ((c.type === "candidate" || c.type === "reinforced") && (raw < 1 || x.status !== "candidate")) return null;
+    return {type: c.type === "reinforced" ? "candidate" : c.type, d: dsc(x), n: Math.min(3, Math.round(raw * 100) / 100)}; }).filter(Boolean);
+}
+function learnedBlock(items){
+  return '<div class="learned"><b>'+t("learnedT")+'</b>'+(items && items.length ? items.map(function(i){ return '<div><span class="tag '+(i.type === "promoted" ? "good" : i.type === "retired" ? "bad" : "warn")+'">'+t(i.type === "promoted" ? "learnedPromoted" : i.type === "retired" ? "learnedRetired" : "learnedCandidate")+'</span> '+esc(tr(i.d))+(i.type === "candidate" && i.n ? ' <span class="note">('+tf("bdSignals", {n:i.n})+')</span>' : "")+'</div>'; }).join("") : '<span class="note">'+t("learnedNone")+'</span>')+'</div>';
+}
+function kindLabel(k){ return t({brandbook:"evBook", declared:"evBook", manual:"evYou", analysis:"evAi", edit:"mem_edit", approve:"mem_approve", reject:"mem_reject"}[k] || "mem_edit"); }
+function evText(x){
+  var e = evidenceSummary(x), parts = [];
+  if (e.brandbook || e.declared) parts.push(t("evBook"));
+  if (e.manual) parts.push(t("evYou"));
+  if (e.analysis) parts.push(t("evAi"));
+  if (e.edit) parts.push(e.edit+" "+t("evEdits"));
+  if (e.approve) parts.push(e.approve+" "+t("evApprovals"));
+  if (e.reject) parts.push(e.reject+" "+t("evRejects"));
+  if (e.against) parts.push(e.against+" "+t("evAgainst"));
+  return parts.join(" · ");
+}
+function shortDate(at){ try { return new Date(at).toLocaleDateString(state.lang === "ar" ? "ar" : "en-GB", {day:"numeric", month:"short"}); } catch(e){ return ""; } }
+
+/* client workspaces */
+function wsLogo(id){
+  var g = BD.genomes[id], idn = (g && g.identity) || {}, bg = (idn.palette || []).filter(function(c){ return c.role === "background"; })[0];
+  var w = wsInfo(id);
+  return '<i class="wl" style="background:'+(bg ? bg.hex : "#3A4A45")+'">'+(idn.logo ? '<img src="'+esc(idn.logo)+'" alt="">' : esc((w.name || "?").charAt(0)))+'</i>';
+}
+function wsBlock(){
+  var g = genome(), w = wsInfo(), n = g.traits.filter(function(x){ return x.status === "active"; }).length;
+  return '<div class="ws-wrap"><button type="button" class="ws" id="ws-btn" aria-expanded="'+state.wsMenu+'">'+wsLogo(w.id)+'<div><b>'+esc(tr([w.name, w.nameAr || w.name]))+'</b><small>'+tf("wsRules", {n:n})+'</small></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></button>'+
+    (state.wsMenu ? '<div class="ws-menu"><small>'+t("wsClients")+'</small>'+BD.workspaces.map(function(x){ return '<button type="button" data-ws="'+x.id+'" aria-current="'+(x.id === state.ws)+'">'+wsLogo(x.id)+'<span>'+esc(tr([x.name, x.nameAr || x.name]))+'</span></button>'; }).join("")+
+      '<div class="ws-new"><input id="ws-new" placeholder="'+t("wsNewPh")+'" aria-label="'+t("wsNew")+'" value="'+esc(state.wsNewName || "")+'"><button type="button" id="ws-create" class="btn btn-sm btn-primary">'+t("wsCreate")+'</button></div></div>' : "")+'</div>';
+}
+function wsSelect(){ return '<select id="ws-pick" class="ws-pick" aria-label="'+t("wsClients")+'">'+BD.workspaces.map(function(x){ return '<option value="'+x.id+'"'+(x.id === state.ws ? " selected" : "")+'>'+esc(tr([x.name, x.nameAr || x.name]))+'</option>'; }).join("")+'</select>'; }
+function switchWs(id){
+  if (!BD.genomes[id] && !wsInfo(id)) return;
+  state.ws = id; state.wsMenu = false; state.src = "all"; state.slide = 1;
+  state.pid = (WP()[0] || {}).id || null;
+  persist();
+  if (state.route === "listing" || state.route === "studio") go("overview"); else render();
+}
+function createWs(){
+  var name = (state.wsNewName || "").trim(); if (!name) return;
+  state.wsNewName = "";
+  if (state.api && state.api.store){
+    apiJson("/api/workspaces", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({name:name})})
+      .then(function(w){ BD.workspaces.push(w); return apiJson("/api/brand/"+w.id).then(function(g){ BD.genomes[w.id] = g; BD.serverVer[w.id] = g.version; switchWs(w.id); go("brand"); }); })
+      .catch(function(e){ toast(e.message); });
+    return;
+  }
+  var id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30) || "client";
+  while (BD.genomes[id]) id += "-2";
+  BD.workspaces.push({id:id, name:name}); BD.genomes[id] = newGenome(id, {name:name}); BD.events[id] = [];
+  switchWs(id); go("brand");
+}
+function vNoProducts(){
+  return '<div class="card noprod"><h2>'+t("noProducts")+'</h2><p class="note">'+t("noProductsSub")+'</p><div class="cp-actions"><a class="btn btn-primary" href="#catalog">'+t("goImport")+'</a><a class="btn btn-ghost" href="#brand">'+t("goBrand")+'</a></div></div>';
+}
+
+/* Brand Consistency Score: the genome's traits used as tests */
+function slideContent(p, sl){
+  var tp = templateById(sl.tpl), v = Object.assign({}, tp.sample, sl.fields), texts = [], chars = 0, lm = state.langMode;
+  tp.fields.forEach(function(fd){
+    var val = v[fd.key]; if (val == null || val === "") return;
+    if ((fd.lang === "ar" && lm === "en") || (fd.lang === "en" && lm === "ar")) return;
+    var text = String(val);
+    // Arabic text is rendered with the chosen digits, so check what the slide will show.
+    if (fd.lang === "ar" || (!fd.lang && /[\u0600-\u06FF]/.test(text))) text = digits(text);
+    if (fd.type === "rows") text = text.split("\n").map(function(r){ return r.split("|").map(function(c){ return c.trim(); }).filter(function(c){ return c && !/^(yes|no|نعم|لا)$/i.test(c) && ICON_NAMES.indexOf(c) < 0; }).join(" "); }).join("\n");
+    texts.push({text:text, lang: fd.lang || (/[؀-ۿ]/.test(text) ? "ar" : "en"), role: /^(head|title|quote)/.test(fd.key) ? "headline" : "body"});
+    chars += text.replace(/\s+/g, " ").trim().length;
+  });
+  var c = ctxFor(p, sl);
+  return {texts:texts, kit:c.kit, template:sl.tpl, language:lm, logo:!!c.logo, chars:chars};
+}
+function slideCheck(p, sl){ return check(genome(), slideContent(p, sl), {channel:p.ch[0], category:catOf(p), lang: state.langMode === "en" ? "en" : "ar", template: sl.tpl}); }
+function scoreCard(r, id){
+  var head = '<div class="card-h"><h2>'+t("bcs")+'</h2><span class="tag">'+t("beta")+'</span></div>';
+  if (r.score == null) return '<div class="card bscore" id="'+id+'">'+head+'<p class="note">'+t("bcsNone")+'</p></div>';
+  return '<div class="card bscore" id="'+id+'">'+head+
+    '<div class="bs-top"><b class="bs-num" style="color:'+scoreColor(r.score)+'">'+r.score+'</b><span class="note">/100 · '+tf("bcsChecked", {n:r.checked})+'</span></div>'+
+    DIMS.map(function(d){ var v = r.dims[d]; return '<div class="hbar" style="grid-template-columns:110px 1fr 40px"><span>'+t("dim_"+d)+'</span><span class="tr">'+(v == null ? "" : '<i style="--w:'+v+'%;--c:'+scoreColor(v)+'"></i>')+'</span><span class="mono">'+(v == null ? "—" : v+"%")+'</span></div>'; }).join("")+
+    (r.violations.length ? '<div class="bs-v">'+r.violations.map(function(v){ return '<div class="bs-row"><span class="dotb"></span><div><b>'+esc(tr(dsc(v.trait)))+'</b>'+(v.detail ? ' <span class="mono note">'+esc(v.detail)+'</span>' : "")+'<span class="note">'+evText(v.trait)+'</span></div></div>'; }).join("")+'</div>' : '<p class="note" style="color:var(--good);margin-top:8px">'+t("bcsAllGood")+'</p>')+
+  '</div>';
+}
+
+/* copywriter: drafts in the brand's voice; edits teach the genome */
+var SAMPLE_COPY = {
+  oud: {current:{titleEn:"Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume", titleAr:"", bulletsEn:["Long lasting","Best gift for men and women"], bulletsAr:[]},
+        draft:{titleEn:"Oud Al Layl Luxury Eau de Parfum 100ml", titleAr:"عطر عود الليل الفاخر ١٠٠ مل", bulletsEn:["Smoked Cambodian oud with saffron and amber","Lasts up to 12 hours on skin","Luxury gift box included"], bulletsAr:["عود كمبودي مدخّن مع الزعفران والعنبر","ثبات حتى ١٢ ساعة على البشرة","تغليف فاخر جاهز للإهداء"]}},
+  abaya: {current:{titleEn:"Linen Abaya Sand", titleAr:"عباية كتان · رملي", bulletsEn:["Linen"], bulletsAr:[]},
+        draft:{titleEn:"Linen Abaya in Sand, Relaxed Fit with Side Pockets, Perfect for Summer!", titleAr:"عباية كتان رملية بقصة واسعة وجيوب جانبية", bulletsEn:["100% linen that breathes in Gulf summers","Relaxed cut: order your usual size","Side pockets","140 cm length"], bulletsAr:["كتان 100% يتنفس في صيف الخليج","قصة واسعة: اطلبي مقاسك المعتاد","جيوب جانبية","طول 140 سم"]}},
+  coffee: {current:{titleEn:"Saudi Coffee with Cardamom 500g", titleAr:"قهوة سعودية بالهيل ٥٠٠ جم", bulletsEn:["Boosts immunity","Fresh"], bulletsAr:["يقوي المناعة"]},
+        draft:{titleEn:"Best Saudi Coffee with Cardamom 500g, Light Roast", titleAr:"قهوة سعودية بالهيل ٥٠٠ جم · تحميص فاتح", bulletsEn:["Khawlani beans, light roast","20% cardamom, finely ground","Brew in a dallah for 10 minutes"], bulletsAr:["بن خولاني بتحميص فاتح","هيل ٢٠٪ مطحون ناعم","تُحضّر في الدلة خلال ١٠ دقائق"]}}
+};
+function copyCurrentOf(p){
+  if (p.copyNow) return p.copyNow;
+  if (p.listing) return {titleEn:p.listing.titleEn || "", titleAr:p.listing.titleAr || "", bulletsEn:(p.listing.bulletsEn || []).slice(), bulletsAr:(p.listing.bulletsAr || []).slice()};
+  if (SAMPLE_COPY[p.id]) return SAMPLE_COPY[p.id].current;
+  return {titleEn:p.name[0], titleAr:p.name[1] !== p.name[0] ? p.name[1] : "", bulletsEn:[], bulletsAr:[]};
+}
+function copyContent(e){
+  var x = [{text:e.titleEn, lang:"en", role:"title"}, {text:e.titleAr, lang:"ar", role:"title"}];
+  (e.bulletsEn || []).forEach(function(b){ x.push({text:b, lang:"en", role:"body"}); });
+  (e.bulletsAr || []).forEach(function(b){ x.push({text:b, lang:"ar", role:"body"}); });
+  return {texts: x.filter(function(y){ return y.text && String(y.text).trim(); })};
+}
+function copyCheck(p, e){ return check(genome(), copyContent(e), {channel:p.ch[0], category:catOf(p), lang:"ar"}); }
+function copyCard(p){
+  var cs = state.copy[p.id], cur = copyCurrentOf(p), ok = state.api && state.api.ai, sample = SAMPLE_COPY[p.id];
+  var head = '<div class="card copy"><div class="card-h"><h2>'+t("copyT")+'</h2>'+(cs && cs.draft ? '<span class="tag brand">'+t(cs.source === "ai" ? "copyAiTag" : "copySampleTag")+'</span>' : "")+'</div>';
+  if (!cs || !cs.draft){
+    var col = function(title, bullets, dir, lbl){ return '<div dir="'+dir+'"><span class="note">'+lbl+'</span><b>'+esc(title || "—")+'</b>'+(bullets.length ? '<ul>'+bullets.map(function(b){ return '<li>'+esc(b)+'</li>'; }).join("")+'</ul>' : "")+'</div>'; };
+    return head+'<span class="note">'+t("copyCurrent")+'</span><div class="cur">'+col(cur.titleEn, cur.bulletsEn || [], "ltr", "EN")+col(cur.titleAr, cur.bulletsAr || [], "rtl", "AR")+'</div>'+
+      (cs && cs.learned ? learnedBlock(cs.learned) : "")+
+      '<div class="cp-actions">'+(ok ? '<button type="button" class="btn btn-primary" id="cp-write"'+(cs && cs.busy ? " disabled" : "")+'>'+t(cs && cs.busy ? "copyWriting" : "copyWrite")+'</button>' : "")+
+      (sample ? '<button type="button" class="btn btn-ghost" id="cp-sample">'+t("copySample")+'</button>' : "")+(ok ? "" : '<span class="note">'+t("copyNeeds")+'</span>')+(cs && cs.error ? '<span class="err">'+esc(cs.error)+'</span>' : "")+'</div></div>';
+  }
+  var e = cs.edit;
+  return head+'<p class="note">'+t("copyEditHint")+'</p><div class="cp-grid"><div class="cp-fields">'+
+    '<div class="field"><label for="cp-te">'+t("titleEnS")+'</label><input id="cp-te" dir="ltr" data-cp="titleEn" value="'+esc(e.titleEn || "")+'"></div>'+
+    '<div class="field"><label for="cp-ta">'+t("titleArS")+'</label><input id="cp-ta" dir="rtl" data-cp="titleAr" value="'+esc(e.titleAr || "")+'"></div>'+
+    '<div class="form-grid"><div class="field"><label for="cp-be">'+t("bulletsEnS")+'</label><textarea id="cp-be" rows="5" dir="ltr" data-cp="bulletsEn">'+esc((e.bulletsEn || []).join("\n"))+'</textarea></div>'+
+    '<div class="field"><label for="cp-ba">'+t("bulletsArS")+'</label><textarea id="cp-ba" rows="5" dir="rtl" data-cp="bulletsAr">'+esc((e.bulletsAr || []).join("\n"))+'</textarea></div></div>'+
+    (cs.changes && cs.changes.length ? '<div><span class="note">'+t("copyChanges")+'</span><ul class="chg">'+cs.changes.map(function(c){ return '<li>'+esc(tr([c.en, c.ar]))+'</li>'; }).join("")+'</ul></div>' : "")+
+    '</div>'+scoreCard(copyCheck(p, e), "cpscore")+'</div>'+
+    '<div class="cp-actions"><button type="button" class="btn btn-primary" id="cp-approve">'+t("copyApprove")+'</button><button type="button" class="btn btn-ghost" id="cp-discard">'+t("copyDiscard")+'</button></div></div>';
+}
+function writeCopyFor(pid){
+  var p = PM[pid]; if (!p) return;
+  state.copy[pid] = {busy:true}; render();
+  var cur = copyCurrentOf(p), lf = p.listing || Object.assign({category:catOf(p)}, cur);
+  apiJson("/api/copy", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({
+    product: tr(p.name), channel: p.ch[0], category: catOf(p), listing: cur,
+    issues: openIssues(p).map(function(k){ return ISSUES[k] ? ISSUES[k].t[0] + ": " + ISSUES[k].d[0] : k; }),
+    missingKeywords: keywordCoverage(lf).items.filter(function(i){ return !i.inAr && !i.inEn; }).slice(0, 6),
+    brief: exprFor(p).brief })})
+    .then(function(j){ var d = {titleEn:j.titleEn, titleAr:j.titleAr, bulletsEn:j.bulletsEn, bulletsAr:j.bulletsAr}; state.copy[pid] = {draft:d, edit:JSON.parse(JSON.stringify(d)), changes:j.changes, source:"ai"}; })
+    .catch(function(e){ state.copy[pid] = {error:e.message}; })
+    .then(function(){ if (state.route === "listing" && state.pid === pid) render(); });
+}
+var TEXT_ISSUES = {noArabicTitle:"titleAr", enTitle:"titleAr", enBullets:"bulletsAr", mt:"titleAr", keywordStuffing:"titleEn", titleTooShort:"titleEn", fewBullets:"bulletsEn", noBullets:"bulletsEn", claim:"bulletsEn"};
+function approveCopy(pid){
+  var p = PM[pid], cs = state.copy[pid]; if (!p || !cs || !cs.draft) return;
+  var d = cs.draft, e = cs.edit, ctx = {channel:p.ch[0], category:catOf(p), lang:"ar"}, evs = [];
+  var asText = function(v){ return Array.isArray(v) ? v.map(function(x){ return String(x).trim(); }).filter(Boolean).join("\n") : String(v || "").trim(); };
+  [["titleEn","title","en"],["titleAr","title","ar"],["bulletsEn","body","en"],["bulletsAr","body","ar"]].forEach(function(f){
+    var b = asText(d[f[0]]), a = asText(e[f[0]]);
+    if (b !== a) evs.push({type:"edit", product:pid, field:f[0], role:f[1], before:b, after:a, ctx:Object.assign({}, ctx, {lang:f[2]})});
+  });
+  var finalCopy = {titleEn:asText(e.titleEn), titleAr:asText(e.titleAr), bulletsEn:asText(e.bulletsEn).split("\n").filter(Boolean), bulletsAr:asText(e.bulletsAr).split("\n").filter(Boolean)};
+  var n = evs.length;
+  evs.push({type:"approve", product:pid, edits:n, label:t("copyT"), content:copyContent(finalCopy), exemplar:{titleEn:finalCopy.titleEn, titleAr:finalCopy.titleAr}, ctx:ctx});
+  var changes = recordAll(evs);
+  p.copyNow = finalCopy;
+  if (p.listing){
+    Object.assign(p.listing, finalCopy);
+    var r = auditListing(p.listing); p.score = r.score; p.br = r.breakdown; p.issues = r.issues.map(function(i){ return i.key; }); p.issueDetails = r.issues;
+  } else {
+    var before = p.issues.length;
+    p.issues = p.issues.filter(function(k){ var f = TEXT_ISSUES[k]; return !(f && (Array.isArray(finalCopy[f]) ? finalCopy[f].length : finalCopy[f])); });
+    p.score = Math.min(p.target, p.score + 7 * (before - p.issues.length));
+  }
+  state.copy[pid] = {learned: learnedNote(changes)};
+  render(); toast(t("copyApproved"));
+}
+
+/* Product Memory: what happened to this listing */
+function fieldLabel(f){
+  var map = {titleEn:"titleEnS", titleAr:"titleArS", bulletsEn:"bulletsEnS", bulletsAr:"bulletsArS"};
+  if (map[f]) return t(map[f]);
+  var parts = String(f || "").split("."), tp = templateById(parts[0]);
+  if (tp){ var fd = tp.fields.filter(function(x){ return x.key === parts[1]; })[0]; return tr(tp.name) + (fd ? " · " + tr(fd.label) : ""); }
+  return f || "";
+}
+function memoryCard(p){
+  var evs = wsEvents().filter(function(e){ return e.product === p.id; }).slice(-12).reverse();
+  var cut = function(s){ s = String(s || "").replace(/\s+/g, " "); return s.length > 48 ? s.slice(0, 46) + "…" : s; };
+  return '<div class="card"><div class="card-h"><h2>'+t("memory")+'</h2><small>'+t("memorySub")+'</small></div>'+
+    (evs.length ? '<div class="mem">'+evs.map(function(e){
+      var txt = e.type === "edit" ? t("mem_edit")+' '+esc(fieldLabel(e.field))+': <span class="del">'+esc(cut(e.before))+'</span> → <span class="ins">'+esc(cut(e.after))+'</span>'
+        : e.type === "approve" ? t("mem_approve")+' · '+esc(e.label || "")+(e.edits ? ' · '+e.edits+' '+t("edits") : "")
+        : e.type === "reject" ? t("mem_reject")+': '+(e.reasons || []).map(function(r){ return t("r_"+r); }).join(", ")
+        : e.type === "removeSlide" ? t("mem_removeSlide")+' «'+esc(e.label || e.template || "")+'»'
+        : e.type === "import" ? t("mem_import")+' · '+esc(e.label || "")
+        : e.type === "kit" ? t("mem_kit") : esc(e.type);
+      return '<div class="mem-i"><span class="mono">'+shortDate(e.at)+'</span><span dir="auto">'+txt+(e.sample ? ' <span class="tag">'+t("bdSample")+'</span>' : "")+'</span></div>';
+    }).join("")+'</div>' : '<p class="note">'+t("memEmpty")+'</p>')+'</div>';
+}
+
+/* Brand DNA page */
+function spark(trend){
+  if (trend.length < 2) return "";
+  var w = 220, h = 48, max = Math.max.apply(null, trend.map(function(x){ return x.edits; })) || 1;
+  var pts = trend.map(function(x, i){ return [4 + i * (w - 8) / (trend.length - 1), 6 + (h - 12) * (1 - x.edits / max)]; });
+  var last = pts[pts.length - 1];
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+trend.map(function(x){ return x.edits; }).join(", ")+'"><polyline points="'+pts.map(function(p){ return p[0].toFixed(1)+","+p[1].toFixed(1); }).join(" ")+'" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+last[0]+'" cy="'+last[1]+'" r="3.5" fill="var(--brand)"/></svg>';
+}
+function scopeChips(x){ var sc = x.scope || {}, out = []; ["channel","category","lang","template"].forEach(function(k){ (sc[k] || []).forEach(function(v){ out.push('<span class="tag">'+esc(k === "category" ? t("cat_"+v) : k === "channel" && CH[v] ? CH[v].n : v)+'</span>'); }); }); return out.join(""); }
+function traitRow(x){
+  var pct = Math.round(x.st.s * 100), why = state.bd.why === x.id, kindCls = x.origin === "learned" ? "good" : x.origin === "analysis" ? "warn" : "brand";
+  return '<div class="trait"><div class="tr-main"><b dir="auto">'+esc(tr(dsc(x)))+'</b><div class="tr-meta"><span class="tag '+kindCls+'">'+t("origin_"+x.origin)+'</span>'+scopeChips(x)+'<span class="note">'+evText(x)+'</span></div></div>'+
+    '<span class="sbar" title="confidence"><i style="--w:'+pct+'%;--c:'+scoreColor(pct)+'"></i>'+pct+'%</span>'+
+    '<div class="tr-act"><button type="button" class="btn btn-ghost btn-sm" data-bd-why="'+x.id+'" aria-expanded="'+why+'">'+t("bdWhy")+'</button><button type="button" class="btn btn-ghost btn-sm" data-bd-status="'+x.id+'|'+(x.status === "active" ? "off" : "active")+'">'+t(x.status === "active" ? "bdOff" : "bdOn")+'</button></div>'+
+    (why ? '<ul class="evl">'+(x.evidence || []).slice(-8).reverse().map(function(e){ return '<li><span class="mono">'+shortDate(e.at)+'</span><span class="'+(e.sign > 0 ? "plus" : "minus")+'">'+(e.sign > 0 ? "+" : "−")+(e.w != null && e.w !== 1 ? e.w : 1)+'</span><span>'+kindLabel(e.kind)+(e.note ? ' · <span dir="auto">'+esc(e.note)+'</span>' : "")+'</span></li>'; }).join("")+'</ul>' : "")+
+  '</div>';
+}
+function candRow(x){
+  var n = Math.min(3, x.st.raw);
+  return '<div class="trait cand"><div class="tr-main"><b dir="auto">'+esc(tr(dsc(x)))+'</b><span class="note">'+evText(x)+'</span><div class="prog"><i style="width:'+Math.round(n / 3 * 100)+'%"></i></div><span class="note">'+tf("bdSignals", {n: Math.round(n * 100) / 100})+'</span></div>'+
+    '<div class="tr-act"><button type="button" class="btn btn-primary btn-sm" data-bd-status="'+x.id+'|active">'+t("bdAccept")+'</button><button type="button" class="btn btn-ghost btn-sm" data-bd-status="'+x.id+'|off">'+t("bdDismiss")+'</button></div></div>';
+}
+var RULE_TYPES = ["avoidWord","preferWord","maxHeadline","textDensity","noExclamation","noEmoji","numerals","logo","palette","bilingual","voice","visual"];
+function ruleForm(){
+  var ty = state.bd.ruleType || "avoidWord", val = "";
+  if (ty === "avoidWord" || ty === "preferWord" || ty === "voice" || ty === "visual") val = '<input id="ar-val" dir="auto">';
+  else if (ty === "maxHeadline" || ty === "textDensity") val = '<input id="ar-val" type="number" min="5" value="'+(ty === "maxHeadline" ? 40 : 120)+'">';
+  else if (ty === "numerals") val = '<select id="ar-val"><option value="arabic">١٢</option><option value="western">12</option></select>';
+  else if (ty === "bilingual") val = '<select id="ar-val"><option value="both">AR + EN</option><option value="ar">AR</option><option value="en">EN</option></select>';
+  return '<div class="card"><div class="card-h"><h2>'+t("bdAddRule")+'</h2></div><div class="form-grid">'+
+    '<div class="field"><label for="ar-type">'+t("bdRuleType")+'</label><select id="ar-type">'+RULE_TYPES.map(function(r){ return '<option value="'+r+'"'+(r === ty ? " selected" : "")+'>'+t("rt_"+r)+'</option>'; }).join("")+'</select></div>'+
+    (val ? '<div class="field"><label for="ar-val">'+t("bdRuleValue")+'</label>'+val+'</div>' : "")+
+    '<div class="field"><label for="ar-scope">'+t("bdRuleScope")+'</label><select id="ar-scope"><option value="">'+t("bdAllProducts")+'</option>'+AUDIT_CATEGORIES.map(function(c){ return '<option value="'+c+'">'+t("cat_"+c)+'</option>'; }).join("")+'</select></div>'+
+    '</div><div class="cp-actions"><button type="button" class="btn btn-primary btn-sm" id="ar-add">'+t("bdAdd")+'</button></div></div>';
+}
+function addRuleFromForm(){
+  var ty = document.getElementById("ar-type").value, ve = document.getElementById("ar-val"), v = ve ? ve.value.trim() : "", sc = document.getElementById("ar-scope").value;
+  var params = {};
+  if (ty === "avoidWord" || ty === "preferWord"){ if (!v) return; params = {word:v, lang: /[؀-ۿ]/.test(v) ? "ar" : "en"}; }
+  else if (ty === "voice" || ty === "visual"){ if (!v) return; params = {text:v, textAr:v}; }
+  else if (ty === "maxHeadline") params = {chars: Math.max(5, +v || 40)};
+  else if (ty === "textDensity") params = {maxChars: Math.max(10, +v || 120)};
+  else if (ty === "numerals") params = {style:v};
+  else if (ty === "bilingual") params = {mode:v};
+  else if (ty === "logo") params = {required:true};
+  declare(genome(), {type:ty, params:params, scope: sc ? {category:[sc]} : {}}, "manual");
+  commit(); render(); toast(t("bdAdded"));
+}
+function readLogo(file){
+  if (file.size > 1.5 * 1024 * 1024){ state.bd.error = "The logo must be under 1.5 MB"; render(); return; }
+  var fr = new FileReader();
+  fr.onload = function(){ var g = genome(); g.identity.logo = String(fr.result); touch(g, "logo"); commit(); paletteFrom([g.identity.logo]); };
+  fr.readAsDataURL(file);
+}
+function paletteFrom(urls){
+  Promise.all(urls.map(function(u){ return loadImg(u).then(function(im){ var c = canvasFor(im, 240); return extractPalette(c.getContext("2d").getImageData(0, 0, c.width, c.height).data, c.width, c.height, 5); }).catch(function(){ return []; }); }))
+    .then(function(all){
+      var found = state.bd.extracted || [];
+      [].concat.apply([], all).forEach(function(c){ if (!found.some(function(f){ return colourDistance(f.hex, c.hex) < 12; })) found.push(c); });
+      state.bd.extracted = found.slice(0, 10); render();
+    });
+}
+function readBrandImages(files){
+  var reads = files.filter(function(f){ return f.size < 15 * 1024 * 1024; }).map(function(f){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result)); }; fr.onerror = function(){ res(null); }; fr.readAsDataURL(f); }); });
+  Promise.all(reads).then(function(urls){
+    urls = urls.filter(Boolean);
+    paletteFrom(urls);
+    return Promise.all(urls.map(function(u){ return loadImg(u).then(function(im){ var c = canvasFor(im, 1200), o = document.createElement("canvas"); o.width = c.width; o.height = c.height; var x = o.getContext("2d"); x.fillStyle = "#FFFFFF"; x.fillRect(0, 0, o.width, o.height); x.drawImage(c, 0, 0); return o.toDataURL("image/jpeg", 0.86); }).catch(function(){ return null; }); }));
+  }).then(function(small){ state.bd.images = (state.bd.images || []).concat(small.filter(Boolean)).slice(-6); render(); });
+}
+function runBrandAnalysis(){
+  var b = state.bd, g = genome();
+  b.busy = true; b.error = null; render();
+  apiJson("/api/brand/analyze", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({name: g.identity.name || wsInfo().name, url: b.url || undefined, pdf: b.pdf || undefined, images: b.images || [], texts: String(b.texts || "").split("\n").filter(Boolean)})})
+    .then(function(j){ b.proposals = j.proposals.map(function(p){ p.on = true; return p; }); b.aiPalette = j.palette; b.logoPos = j.logoPos; b.sources = j.sources; })
+    .catch(function(e){ b.error = e.message; })
+    .then(function(){ b.busy = false; if (state.route === "brand") render(); });
+}
+function acceptProposals(){
+  var b = state.bd, g = genome(), kind = (b.sources || []).indexOf("brand book") > -1 ? "brandbook" : "analysis";
+  (b.proposals || []).filter(function(p){ return p.on; }).forEach(function(p){ declare(g, {type:p.type, params:p.params, scope:p.scope || {}}, kind, undefined, p.note); });
+  if (b.logoPos && g.identity.logo) g.identity.logoPos = b.logoPos;
+  if (!(g.identity.palette || []).length && (b.aiPalette || []).length){ g.identity.palette = b.aiPalette.map(function(c){ return {hex:c.hex, role:c.role}; }); touch(g, "palette"); }
+  b.proposals = null; commit(); render(); toast(t("bdAdded"));
+}
+function vBrand(){
+  var g = genome(), idn = g.identity, b = state.bd, ok = state.api && state.api.ai, p = PM[state.pid];
+  var traits = g.traits.map(function(x){ return Object.assign({}, x, {st: strength(x)}); });
+  var active = traits.filter(function(x){ return x.status === "active"; }).sort(function(a, c){ return c.st.s - a.st.s; });
+  var learnedN = active.filter(function(x){ return x.origin === "learned"; }).length;
+  var cands = traits.filter(function(x){ return x.status === "candidate" && x.st.raw >= 1; }).sort(function(a, c){ return c.st.raw - a.st.raw; }).slice(0, 6);
+  var offs = traits.filter(function(x){ return x.status === "off" || x.status === "retired"; });
+  var trend = editTrend(g), last = g.log[0];
+  var fp = FONT_PAIRS[idn.fonts] || FONT_PAIRS.kufi;
+  var briefCtx = {channel: b["bp-ch"] || (p ? p.ch[0] : "noon"), category: b["bp-cat"] || (p ? catOf(p) : "fragrance"), lang:"ar"};
+  return '<div class="head"><div><h1>'+t("brand")+'</h1><p>'+esc(tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]))+' · '+t("bdSub")+'</p></div><span class="tag">'+t("bdVersion")+' '+g.version+(last ? ' · '+shortDate(last.at) : "")+'</span></div>'+
+  '<div class="kpis bd-kpis">'+
+    '<div class="kpi"><small>'+t("bdActive")+'</small><b>'+active.length+'</b><span>'+(active.length - learnedN)+' '+t("bdFromBook")+' · <span class="up">'+learnedN+'</span> '+t("bdLearnedN")+'</span></div>'+
+    '<div class="kpi"><small>'+t("bdLearning")+'</small><b>'+cands.length+'</b><span>'+t("bdLearningSub").split(".")[0]+'</span></div>'+
+    '<div class="kpi kpi-wide"><small>'+t("bdEdits")+'</small>'+(trend.length ? '<div class="kpi-spark"><b dir="ltr">'+trend[0].edits+' → '+trend[trend.length - 1].edits+'</b>'+spark(trend)+'</div>' : '<b>—</b>')+'<span>'+t("bdEditsSub")+(wsEvents().some(function(e){ return e.sample; }) ? ' · <span class="tag">'+t("bdSample")+'</span>' : "")+'</span></div>'+
+  '</div>'+
+  '<div class="grid2 bd-grid">'+
+    '<div style="display:grid;gap:18px;align-content:start">'+
+      (cands.length ? '<div class="card"><div class="card-h"><h2>'+t("bdLearning")+'</h2></div><p class="note" style="margin-bottom:6px">'+t("bdLearningSub")+'</p>'+cands.map(candRow).join("")+'</div>' : "")+
+      '<div class="card"><div class="card-h"><h2>'+t("bdRules")+'</h2><small>'+active.length+'</small></div>'+
+        DIMS.map(function(d){ var list = active.filter(function(x){ return TRAIT_TYPES[x.type] && TRAIT_TYPES[x.type].dim === d; }); return '<div class="dimh">'+t("dim_"+d)+'</div>'+(list.length ? list.map(traitRow).join("") : '<p class="note">'+t("bdNoRules")+'</p>'); }).join("")+
+        (offs.length ? '<div class="dimh">'+t("bdOffList")+'</div>'+offs.map(traitRow).join("") : "")+
+      '</div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("bdBrief")+'</h2></div><p class="note" style="margin-bottom:10px">'+t("bdBriefSub")+'</p>'+
+        '<div class="form-grid" style="margin-bottom:10px"><select class="sel" id="bp-ch" aria-label="'+t("channel")+'">'+Object.keys(CH).map(function(c){ return '<option value="'+c+'"'+(c === briefCtx.channel ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("")+'</select><select class="sel" id="bp-cat" aria-label="'+t("category")+'">'+AUDIT_CATEGORIES.map(function(c){ return '<option value="'+c+'"'+(c === briefCtx.category ? " selected" : "")+'>'+t("cat_"+c)+'</option>'; }).join("")+'</select></div>'+
+        '<pre class="brief" dir="ltr">'+esc(express(g, briefCtx).brief)+'</pre></div>'+
+    '</div>'+
+    '<div style="display:grid;gap:18px;align-content:start">'+
+      '<div class="card bd-id"><div class="card-h"><h2>'+t("bdIdentity")+'</h2></div>'+
+        '<div class="logo-box" style="background:'+((idn.palette || []).filter(function(c){ return c.role === "background"; })[0] || {hex:"var(--surface-2)"}).hex+'">'+(idn.logo ? '<img src="'+esc(idn.logo)+'" alt="'+t("bdLogo")+'">' : '<span class="note">'+t("bdLogo")+'</span>')+'</div>'+
+        '<div class="cp-actions" style="margin-top:8px"><label class="btn btn-ghost btn-sm" for="bd-logo">'+t("bdUploadLogo")+'</label><input type="file" id="bd-logo" class="vh" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div>'+
+        '<div class="form-grid" style="margin-top:12px"><div class="field"><label for="bd-n">'+t("bdName")+'</label><input id="bd-n" data-id="name" value="'+esc(idn.name || "")+'"></div><div class="field"><label for="bd-na">'+t("bdNameAr")+'</label><input id="bd-na" dir="rtl" data-id="nameAr" value="'+esc(idn.nameAr || "")+'"></div></div>'+
+        '<div class="dimh">'+t("bdPalette")+'</div><div class="pal">'+(idn.palette || []).map(function(c, i){ return '<div class="pal-row"><input type="color" value="'+c.hex+'" data-pal-i="'+i+'" aria-label="'+c.hex+'"><span class="mono">'+c.hex+'</span><select data-pal-role="'+i+'" aria-label="role">'+["background","primary","accent","text"].map(function(r){ return '<option value="'+r+'"'+(r === c.role ? " selected" : "")+'>'+t("role_"+r)+'</option>'; }).join("")+'</select><button type="button" class="btn btn-ghost btn-sm" data-pal-del="'+i+'" aria-label="'+t("remove")+'">×</button></div>'; }).join("")+'</div>'+
+        '<div class="cp-actions"><button type="button" class="btn btn-ghost btn-sm" id="pal-add">+ '+t("bdAddColour")+'</button></div>'+
+        '<div class="form-grid" style="margin-top:12px"><div class="field"><label for="bd-fonts">'+t("bdFonts")+'</label><select id="bd-fonts">'+Object.keys(FONT_PAIRS).map(function(k){ return '<option value="'+k+'"'+(k === idn.fonts ? " selected" : "")+'>'+tr(FONT_PAIRS[k].name)+'</option>'; }).join("")+'</select></div>'+
+        '<div class="field"><label for="bd-logopos">'+t("bdLogoPos")+'</label><select id="bd-logopos">'+LOGO_POSITIONS.map(function(k){ return '<option value="'+k+'"'+(k === idn.logoPos ? " selected" : "")+'>'+t("pos_"+k.replace("-", "_"))+'</option>'; }).join("")+'</select></div></div>'+
+        '<div class="font-prev"><span style="font-family:\''+fp.ar+'\',sans-serif" dir="rtl">عود الليل ١٢</span><span style="font-family:\''+fp.latin+'\',sans-serif">Oud Al Layl</span></div>'+
+        (p ? '<div class="bd-prev">'+pv('data-pid="'+p.id+'" data-idx="'+Math.min(1, setOf(p).length - 1)+'"')+'</div>' : "")+
+      '</div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("bdTeach")+'</h2></div><p class="note" style="margin-bottom:10px">'+t("bdTeachSub")+'</p>'+
+        '<div class="field"><label for="bd-url">'+t("bdSite")+'</label><input id="bd-url" dir="ltr" inputmode="url" data-bdf="url" value="'+esc(b.url || "")+'" placeholder="https://"></div>'+
+        '<div class="form-grid" style="margin-top:10px"><div class="field"><span class="lbl">'+t("bdBook")+'</span><div class="file"><label class="btn btn-ghost btn-sm" for="bd-pdf">'+t("bdChooseOne")+'</label><input type="file" id="bd-pdf" class="vh" accept="application/pdf"><span class="note">'+esc(b.pdfName || "")+'</span></div></div>'+
+        '<div class="field"><span class="lbl">'+t("bdImages")+'</span><div class="file"><label class="btn btn-ghost btn-sm" for="bd-imgs">'+t("bdChoose")+'</label><input type="file" id="bd-imgs" class="vh" accept="image/png,image/jpeg,image/webp" multiple>'+(b.images || []).map(function(u){ return '<span class="ph-thumb"><img src="'+u+'" alt=""></span>'; }).join("")+'</div></div></div>'+
+        (b.extracted && b.extracted.length ? '<div class="dimh">'+t("bdExtracted")+'</div><div class="xpal">'+b.extracted.map(function(c){ return '<button type="button" class="xsw" data-pal-use="'+c.hex+'" title="'+t("bdUse")+' '+c.hex+'"><i style="background:'+c.hex+'"></i><span class="mono">'+c.hex+'</span></button>'; }).join("")+'</div>' : "")+
+        '<div class="field" style="margin-top:10px"><label for="bd-texts">'+t("bdTexts")+'</label><textarea id="bd-texts" rows="3" dir="auto" data-bdf="texts">'+esc(b.texts || "")+'</textarea></div>'+
+        '<div class="cp-actions"><button type="button" class="btn btn-primary" id="bd-analyse"'+(ok && !b.busy ? "" : " disabled")+'>'+t(b.busy ? "bdAnalysing" : "bdAnalyse")+'</button>'+(ok ? "" : '<span class="note">'+t("bdAnalyseNeeds")+'</span>')+'</div>'+
+        (b.error ? '<p class="err">'+esc(b.error)+'</p>' : "")+
+        (b.proposals ? '<div class="dimh">'+t("bdProposals")+'</div><div class="props">'+b.proposals.map(function(pp, i){ return '<label class="check"><input type="checkbox" data-prop="'+i+'"'+(pp.on ? " checked" : "")+'><span dir="auto">'+esc(tr(dsc(pp)))+' <span class="note">· '+esc(pp.note || "")+'</span></span></label>'; }).join("")+'</div>'+
+          ((b.aiPalette || []).length ? '<div class="xpal">'+b.aiPalette.map(function(c){ return '<button type="button" class="xsw" data-pal-use="'+c.hex+'"><i style="background:'+c.hex+'"></i><span class="mono">'+c.hex+'</span></button>'; }).join("")+'</div>' : "")+
+          '<div class="cp-actions"><button type="button" class="btn btn-primary btn-sm" id="bd-accept">'+t("bdAddSelected")+'</button></div>' : "")+
+      '</div>'+
+      ruleForm()+
+      '<div class="card"><div class="card-h"><h2>'+t("bdLog")+'</h2></div><div class="logl">'+g.log.filter(function(l){ return l.type !== "candidate"; }).slice(0, 12).map(function(l){ return '<div><span class="mono">'+shortDate(l.at)+'</span><span><b>'+t("log_"+l.type)+'</b> <span dir="auto">'+esc(l.note || "")+'</span>'+(l.type === "approved" && l.edits != null ? ' · '+l.edits+' '+t("edits") : "")+'</span></div>'; }).join("")+'</div></div>'+
+    '</div>'+
+  '</div>';
+}
+
 /* ---------- router ---------- */
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit"].indexOf(h) > -1) state.route = h;
+  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit","brand"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
 function render(scroll){
   renderSide();
   var r = state.route;
-  view.innerHTML = r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : vOverview();
+  if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
+  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : r === "brand" ? vBrand() : vOverview();
   hydrate(view);
-  document.title = "Basira · " + t(r === "listing" ? "catalog" : r);
+  document.title = "Basira · " + t(r === "listing" || r === "empty" ? "catalog" : r);
   if (scroll){
     window.scrollTo(0,0);
     view.classList.remove("enter"); void view.offsetWidth; view.classList.add("enter");
@@ -1853,12 +2987,27 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest(".sitem"))){ state.slide = +el.dataset.slide; render(); return; }
   if ((el = e.target.closest("[data-lm]"))){ state.langMode = el.dataset.lm; render(); return; }
   if ((el = e.target.closest("[data-num]"))){ state.num = el.dataset.num; render(); return; }
-  if ((el = e.target.closest("[data-kit]"))){ state.kitBy[state.pid] = +el.dataset.kit; render(); return; }
+  if ((el = e.target.closest("[data-kit]"))){ var kn = +el.dataset.kit; state.kitBy[state.pid] = kn; if (kn >= 0 && brandKit() && !state.kitWarned[state.pid]){ state.kitWarned[state.pid] = 1; recordAll([{type:"kit", onBrand:false, product:state.pid, label: KITS[kn].id}]); } render(); return; }
+  if ((el = e.target.closest("#ws-btn"))){ state.wsMenu = !state.wsMenu; renderSide(); return; }
+  if ((el = e.target.closest("[data-ws]"))){ switchWs(el.dataset.ws); return; }
+  if ((el = e.target.closest("#ws-create"))){ createWs(); return; }
+  if ((el = e.target.closest("[data-bd-status]"))){ var bs = el.dataset.bdStatus.split("|"); setStatus(genome(), bs[0], bs[1]); commit(); render(); return; }
+  if ((el = e.target.closest("[data-bd-why]"))){ state.bd.why = state.bd.why === el.dataset.bdWhy ? null : el.dataset.bdWhy; render(); return; }
+  if ((el = e.target.closest("[data-pal-del]"))){ var gp = genome(); gp.identity.palette.splice(+el.dataset.palDel, 1); touch(gp, "palette"); commit(); render(); return; }
+  if ((el = e.target.closest("#pal-add"))){ var ga = genome(); ga.identity.palette.push({hex:"#888888", role:"accent"}); touch(ga, "palette"); commit(); render(); return; }
+  if ((el = e.target.closest("[data-pal-use]"))){ var gu = genome(); if (!gu.identity.palette.some(function(c){ return c.hex === el.dataset.palUse; })){ gu.identity.palette.push({hex:el.dataset.palUse, role: gu.identity.palette.length ? "accent" : "background"}); touch(gu, "palette"); commit(); } render(); return; }
+  if ((el = e.target.closest("#bd-analyse"))){ runBrandAnalysis(); return; }
+  if ((el = e.target.closest("#bd-accept"))){ acceptProposals(); return; }
+  if ((el = e.target.closest("#ar-add"))){ addRuleFromForm(); return; }
+  if ((el = e.target.closest("#cp-write"))){ writeCopyFor(state.pid); return; }
+  if ((el = e.target.closest("#cp-sample"))){ var sc0 = SAMPLE_COPY[state.pid]; state.copy[state.pid] = {draft: JSON.parse(JSON.stringify(sc0.draft)), edit: JSON.parse(JSON.stringify(sc0.draft)), source:"sample"}; render(); return; }
+  if ((el = e.target.closest("#cp-approve"))){ approveCopy(state.pid); return; }
+  if ((el = e.target.closest("#cp-discard"))){ delete state.copy[state.pid]; render(); return; }
   if ((el = e.target.closest("[data-src]"))){ state.src = el.dataset.src; render(); return; }
   if ((el = e.target.closest("[data-tgroup]"))){ state.tgroup = el.dataset.tgroup; render(); return; }
   if ((el = e.target.closest("[data-add]"))){ var pa = PM[state.pid], sa = setOf(pa); sa.push({tpl:el.dataset.add, fields:{}}); state.slide = sa.length - 1; if (state.gen[pa.id]) state.gen[pa.id].phase = "idle"; toast(t("added")+" "+tr(pa.name)); go("studio-"+pa.id); return; }
   if ((el = e.target.closest("[data-move]"))){ var sm = setOf(PM[state.pid]), a = state.slide, b = a + (+el.dataset.move); if (b >= 0 && b < sm.length){ var tmp = sm[a]; sm[a] = sm[b]; sm[b] = tmp; state.slide = b; } render(); return; }
-  if ((el = e.target.closest("[data-remove]"))){ var sr = setOf(PM[state.pid]); if (sr.length > 1){ sr.splice(+el.dataset.remove, 1); state.slide = Math.max(0, state.slide - 1); } render(); return; }
+  if ((el = e.target.closest("[data-remove]"))){ var pr = PM[state.pid], sr = setOf(pr); if (sr.length > 1){ var gone = sr.splice(+el.dataset.remove, 1)[0]; state.slide = Math.max(0, state.slide - 1); recordAll([{type:"removeSlide", product:pr.id, template:gone.tpl, label: tr(templateById(gone.tpl).name), ctx:{channel:pr.ch[0], category:catOf(pr)}}]); } render(); return; }
   if ((el = e.target.closest("#imp-sample"))){ importCsvText(SAMPLE_CSV, "sample-noon-export.csv"); return; }
   if ((el = e.target.closest("[data-reply]"))){ runReply(el.dataset.reply); return; }
   if ((el = e.target.closest("#pc-sample"))){ samplePhotos().then(render); return; }
@@ -1873,7 +3022,10 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("#send"))){ sendAppr(state.pid); return; }
   if ((el = e.target.closest("#rev-go"))){ runAnalyse(); return; }
   if ((el = e.target.closest("[data-approve]"))){ approve(el.dataset.approve); return; }
-  if ((el = e.target.closest("[data-changes]"))){ var it = findQ(el.dataset.changes); it.status = "changes"; render(); toast(t("requested")); return; }
+  if ((el = e.target.closest("[data-changes]"))){ var it = findQ(el.dataset.changes); it.status = "asking"; it.reasons = []; render(); return; }
+  if ((el = e.target.closest("[data-reason]"))){ var rp2 = el.dataset.reason.split("|"), iq = findQ(rp2[0]), ix = iq.reasons.indexOf(rp2[1]); if (ix > -1) iq.reasons.splice(ix, 1); else iq.reasons.push(rp2[1]); render(); return; }
+  if ((el = e.target.closest("[data-cancelfb]"))){ findQ(el.dataset.cancelfb).status = "pending"; render(); return; }
+  if ((el = e.target.closest("[data-sendfb]"))){ sendFeedback(el.dataset.sendfb); return; }
 });
 document.addEventListener("submit", function(e){ if (e.target.id === "imp-form"){ e.preventDefault(); runImport(); } });
 document.addEventListener("error", function(e){ var el = e.target; if (el && el.tagName === "IMG" && el.dataset && el.dataset.fallback != null){ var b = document.createElement("b"); b.className = "ini"; b.textContent = el.dataset.fallback; el.replaceWith(b); } }, true);
@@ -1891,12 +3043,27 @@ document.addEventListener("input", function(e){
   if (el.id === "imp-url"){ state.imp.url = el.value; return; }
   if (el.dataset && el.dataset.pf){ state.pf[el.dataset.pf] = el.value === "" ? 0 : +el.value; document.getElementById("pf-out").innerHTML = pfResults(); return; }
   if (el.dataset && el.dataset.fee){ var fk = el.dataset.fee.split("."), fv = el.value === "" ? 0 : +el.value; state.pf.fees[fk[0]][fk[1]] = fk[1] === "referral" || fk[1] === "payment" ? fv / 100 : fv; document.getElementById("pf-out").innerHTML = pfResults(); return; }
-  if (el.dataset && el.dataset.sf){ var sp = PM[state.pid], ss = setOf(sp)[state.slide]; ss.fields[el.dataset.sf] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; repaint(sp.id, state.slide); }
+  if (el.dataset && el.dataset.sf){ var sp = PM[state.pid], ss = setOf(sp)[state.slide]; ss.fields[el.dataset.sf] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; repaint(sp.id, state.slide); var bsc = document.getElementById("bscore"); if (bsc) bsc.outerHTML = scoreCard(slideCheck(sp, ss), "bscore"); persist(); return; }
+  if (el.dataset && el.dataset.cp){ var cs = state.copy[state.pid]; if (cs){ var key = el.dataset.cp; cs.edit[key] = /^bullets/.test(key) ? el.value.split("\n") : el.value; var cps = document.getElementById("cpscore"); if (cps) cps.outerHTML = scoreCard(copyCheck(PM[state.pid], cs.edit), "cpscore"); } return; }
+  if (el.dataset && el.dataset.id){ var gi = genome(); gi.identity[el.dataset.id] = el.value; persist(); return; }
+  if (el.dataset && el.dataset.bdf){ state.bd[el.dataset.bdf] = el.value; return; }
+  if (el.id === "ws-new"){ state.wsNewName = el.value; return; }
 });
 document.addEventListener("change", function(e){
   if (e.target.id === "sort"){ state.sort = e.target.value; render(); }
   if (e.target.id === "pick"){ go("studio-"+e.target.value); }
   if (e.target.id === "pick-t"){ state.pid = e.target.value; render(); }
+  if (e.target.id === "ws-pick"){ switchWs(e.target.value); }
+  if (e.target.dataset && e.target.dataset.id){ var gid = genome(); touch(gid, e.target.dataset.id); commit(); render(); }
+  if (e.target.dataset && e.target.dataset.palI != null && e.target.dataset.palI !== undefined && e.target.type === "color"){ var gc = genome(); gc.identity.palette[+e.target.dataset.palI].hex = e.target.value.toUpperCase(); touch(gc, "palette"); commit(); render(); }
+  if (e.target.dataset && e.target.dataset.palRole != null){ var gr = genome(); gr.identity.palette[+e.target.dataset.palRole].role = e.target.value; touch(gr, "palette"); commit(); render(); }
+  if (e.target.id === "bd-fonts" || e.target.id === "bd-logopos"){ var gf = genome(); gf.identity[e.target.id === "bd-fonts" ? "fonts" : "logoPos"] = e.target.value; touch(gf, e.target.id === "bd-fonts" ? "fonts" : "logo position"); commit(); render(); }
+  if (e.target.dataset && e.target.dataset.prop != null){ var pp = (state.bd.proposals || [])[+e.target.dataset.prop]; if (pp) pp.on = e.target.checked; }
+  if (e.target.id === "ar-type"){ state.bd.ruleType = e.target.value; render(); }
+  if (e.target.id === "bp-ch" || e.target.id === "bp-cat"){ state.bd[e.target.id] = e.target.value; render(); }
+  if (e.target.id === "bd-logo" && e.target.files && e.target.files[0]){ readLogo(e.target.files[0]); }
+  if (e.target.id === "bd-imgs" && e.target.files){ readBrandImages(Array.prototype.slice.call(e.target.files, 0, 6)); }
+  if (e.target.id === "bd-pdf" && e.target.files && e.target.files[0]){ var pf = e.target.files[0]; if (pf.size > 20 * 1024 * 1024){ state.bd.error = "The PDF is larger than 20 MB"; render(); return; } var pr2 = new FileReader(); pr2.onload = function(){ state.bd.pdf = String(pr2.result); state.bd.pdfName = pf.name; render(); }; pr2.readAsDataURL(pf); }
   if (e.target.id === "pc-channel"){ state.pc.channel = e.target.value; render(); }
   if (e.target.id === "pf-country"){ state.pf.country = e.target.value; render(); }
   if (e.target.id === "pc-file" && e.target.files){
@@ -1933,7 +3100,7 @@ function runServerGen(pid){
   ensureDataImage(p).then(function(image){
     return Promise.all(set.map(function(sl){
       var c = ctxFor(p, sl);
-      return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({template:sl.tpl, fields:sl.fields, image:image, language:c.language, numerals:c.numerals, kit:c.kit, brand:c.brand})})
+      return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({template:sl.tpl, fields:sl.fields, image:image, language:c.language, numerals:c.numerals, kit:c.kit, brand:c.brand, logo:c.logo, fonts:c.fonts})})
         .then(function(r){ return r.ok ? r.blob() : r.json().then(function(j){ throw new Error(j.error || r.status); }); });
     }));
   }).then(function(blobs){
@@ -1959,13 +3126,33 @@ function runGen(pid){
 function sendAppr(pid){
   var g = state.gen[pid]; if (!g || g.phase !== "done") return;
   g.phase = "sent";
-  var p = PM[pid], iss = openIssues(p)[0] || p.issues[0];
-  state.queue.unshift({id:"q"+Date.now(), pid:pid, by:"Sara", status:"pending", issue:iss});
-  render(); toast(t("sent"));
+  var p = PM[pid], iss = openIssues(p)[0] || p.issues[0], set = setOf(p), evs = [], maxChars = 0;
+  set.forEach(function(sl){
+    var tp = templateById(sl.tpl), cur = Object.assign({}, tp.sample, sl.fields);
+    tp.fields.forEach(function(fd){
+      if (fd.type === "rows") return;
+      var b = sl.orig[fd.key], a = cur[fd.key];
+      if (b != null && a != null && String(b) !== String(a)) evs.push({type:"edit", product:pid, field: sl.tpl+"."+fd.key, role: /^(head|title|quote)/.test(fd.key) ? "headline" : "body", before:String(b), after:String(a), ctx:{channel:p.ch[0], category:catOf(p), lang: fd.lang || "en", template: sl.tpl}});
+    });
+    sl.orig = cur;
+    maxChars = Math.max(maxChars, slideContent(p, sl).chars);
+  });
+  var changes = evs.length ? recordAll(evs) : [];
+  state.queue.unshift({id:"q"+Date.now(), pid:pid, by:"Sara", status:"pending", issue:iss, edits: evs.length, chars: maxChars, learned: learnedNote(changes)});
+  persist(); render(); toast(t("sent"));
+}
+function sendFeedback(id){
+  var it = findQ(id), p = PM[it.pid];
+  var changes = recordAll([{type:"reject", product:p.id, reasons: it.reasons.slice(), label: t("slidesN"), ctx:{channel:p.ch[0], category:catOf(p), chars: it.chars || 0}}]);
+  it.status = "changes"; it.learned = learnedNote(changes); render(); toast(t("requested"));
 }
 function findQ(id){ return state.queue.filter(function(q){ return q.id === id; })[0]; }
 function approve(id){
-  var it = findQ(id); it.status = "publishing"; render();
+  var it = findQ(id); it.status = "publishing";
+  var p0 = PM[it.pid], set0 = setOf(p0), b0 = set0.filter(function(x){ return x.tpl === "benefit"; })[0] || set0[1] || set0[0];
+  var ex0 = b0 ? Object.assign({}, templateById(b0.tpl).sample, b0.fields) : {};
+  it.learned = learnedNote(recordAll([{type:"approve", product:p0.id, edits: it.edits || 0, label: set0.length+" "+t("slidesN"), content: b0 ? slideContent(p0, b0) : null, exemplar: {template: b0 && b0.tpl, headAr: ex0.headAr, headEn: ex0.headEn}, ctx:{channel:p0.ch[0], category:catOf(p0), lang:"ar", template: b0 && b0.tpl}}]));
+  render();
   setTimeout(function(){
     it.status = "live"; var p = PM[it.pid]; p.score = p.target; p.fixed = true; p.imgs = Math.max(p.imgs, 4);
     if (state.route === "approvals") render(); else renderSide();
@@ -1985,7 +3172,7 @@ addEventListener("hashchange", route);
 if (/^https?:$/.test(location.protocol)){
   fetch("/api/health").then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
     if (!j || !j.ok) return;
-    state.api = j; render();
+    state.api = j; render(); loadFromServer();
     fetch("/api/connectors").then(function(r){ return r.ok ? r.json() : null; }).then(function(c){ if (c){ state.connectors = c; if (state.route === "catalog") render(); } }).catch(function(){});
   }).catch(function(){});
 }

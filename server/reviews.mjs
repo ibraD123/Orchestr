@@ -129,7 +129,7 @@ export async function draftReply(input) {
     fallbacks: "default",
     output_config: { effort: "low", format: betaZodOutputFormat(ReplyDraft) },
     system: REPLY_SYSTEM,
-    messages: [{ role: "user", content: `Brand: ${String(input.brand || "the store").slice(0, 80)}\nProduct: ${String(input.product || "").slice(0, 200)}\n\nReview:\n${review}` }]
+    messages: [{ role: "user", content: `Brand: ${String(input.brand || "the store").slice(0, 80)}\nProduct: ${String(input.product || "").slice(0, 200)}${input.brief ? "\n\nBrand DNA (follow its voice and rules):\n" + String(input.brief).slice(0, 8000) : ""}\n\nReview:\n${review}` }]
   });
   if (response.stop_reason === "refusal") fail("The model declined to reply to this review", 422);
   if (!response.parsed_output) fail("The model returned an unreadable reply", 502);

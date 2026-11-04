@@ -1,6 +1,6 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { normaliseSpec, slideDocument, toNumerals, renderSlide, closeRenderer, rendererAvailable, probeImage } from "../server/render.mjs";
+import { normaliseSpec, slideDocument, toNumerals, renderSlide, closeRenderer, rendererAvailable, probeImage, browserForTests } from "../server/render.mjs";
 
 const PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 after(() => closeRenderer());
@@ -46,4 +46,23 @@ test("measures a rendered main image", { timeout: 60000 }, async (t) => {
   assert.equal(m.width, 1200);
   assert.ok(m.whiteShare > 0.95, String(m.whiteShare));
   assert.ok(Math.abs(m.fill - 0.75) < 0.02, String(m.fill));
+});
+
+test("brand logo and font pair reach the slide", () => {
+  const logo = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>');
+  const spec = normaliseSpec({ template: "benefit", image: PX, fonts: "naskh", logo: { src: logo, pos: "top-start" }, brand: "LAYALI" });
+  const html = slideDocument(spec);
+  assert.match(html, /class="logo top-start"/);
+  assert.ok(!html.includes('class="brand"'), "logo replaces the brand name");
+  const style = html.match(/<div class="bz"[^>]*style="([^"]*)"/)[1];
+  assert.match(style, /--fa:'Amiri'/);
+  assert.match(style, /--fb:'Readex Pro'/);
+  assert.throws(() => normaliseSpec({ template: "benefit", image: PX, logo: { src: "https://x.test/logo.png" } }), /logo/);
+});
+
+test("recovers when Chromium dies between requests", { timeout: 60000 }, async (t) => {
+  if (!(await rendererAvailable())) return t.skip("Chromium not available");
+  await (await browserForTests()).close();
+  const png = await renderSlide({ template: "cover", image: PX });
+  assert.equal(png.subarray(1, 4).toString(), "PNG");
 });

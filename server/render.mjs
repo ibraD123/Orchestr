@@ -3,7 +3,7 @@
 // page is captured as a marketplace-ready PNG.
 import { readFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
-import { TEMPLATE_CSS, TEMPLATE_IDS, templateById, templateHTML } from "./templates.mjs";
+import { TEMPLATE_CSS, TEMPLATE_IDS, TEMPLATE_FONTS, LOGO_POSITIONS, templateById, templateHTML } from "./templates.mjs";
 import { measurePixels, borderColour } from "./photo-metrics.mjs";
 // Source passed into the page, which can't import modules.
 const MEASURE_SRC = `(function(){ ${borderColour}\nreturn ${measurePixels}; })()`;
@@ -34,6 +34,10 @@ function fontCss() {
     fontFace("Bricolage Grotesque", "bricolage-grotesque", "bricolage-grotesque-latin-700-normal.woff2", 700, LATIN_RANGE),
     fontFace("Bricolage Grotesque", "bricolage-grotesque", "bricolage-grotesque-latin-800-normal.woff2", 800, LATIN_RANGE),
     fontFace("Readex Pro", "readex-pro", "readex-pro-arabic-600-normal.woff2", 600, AR_RANGE),
+    fontFace("Amiri", "amiri", "amiri-arabic-400-normal.woff2", 400, AR_RANGE),
+    fontFace("Amiri", "amiri", "amiri-latin-400-normal.woff2", 400, LATIN_RANGE),
+    fontFace("Amiri", "amiri", "amiri-arabic-700-normal.woff2", 700, AR_RANGE),
+    fontFace("Amiri", "amiri", "amiri-latin-700-normal.woff2", 700, LATIN_RANGE),
     fontFace("Readex Pro", "readex-pro", "readex-pro-latin-600-normal.woff2", 600, LATIN_RANGE)
   ].join("\n");
   return FONT_CSS;
@@ -48,6 +52,7 @@ export function toNumerals(text, numerals) {
 
 
 const COLOR = /^#[0-9a-fA-F]{3,8}$/;
+const LOGO_URL = /^data:image\/(?:(?:png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+|svg\+xml(?:;utf8)?,[^"<>]+)$/;
 const IMAGE_DATA_URL = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 
 // Old request shape ({ kind, headlineAr, ... }) maps onto templates.
@@ -80,8 +85,14 @@ export function normaliseSpec(input) {
     if (val == null) continue;
     fields[fd.key] = String(Array.isArray(val) ? val.join("\n") : val).slice(0, fd.type === "rows" || fd.type === "lines" ? 1200 : 160);
   }
+  let logo = null;
+  if (s.logo && s.logo.src) {
+    if (typeof s.logo.src !== "string" || !LOGO_URL.test(s.logo.src)) fail("logo.src must be a PNG, JPEG, WebP or SVG data URL");
+    if (s.logo.src.length > 3_000_000) fail("logo is larger than 2 MB");
+    logo = { src: s.logo.src, pos: LOGO_POSITIONS.indexOf(s.logo.pos) > -1 ? s.logo.pos : "top-end" };
+  }
   return {
-    template: tpl.id, image: s.image, fields, kit,
+    template: tpl.id, image: s.image, fields, kit, logo, fonts: TEMPLATE_FONTS[s.fonts] ? s.fonts : "kufi",
     language: ["ar", "en", "both"].includes(s.language) ? s.language : "both",
     numerals: s.numerals === "western" ? "western" : "arabic",
     brand: String(s.brand || "").trim().slice(0, 24)
@@ -90,7 +101,7 @@ export function normaliseSpec(input) {
 
 /** Build the standalone HTML document for one slide. */
 export function slideDocument(spec) {
-  const html = templateHTML(spec.template, spec.fields, { image: spec.image, kit: spec.kit || undefined, language: spec.language, numerals: spec.numerals, brand: spec.brand });
+  const html = templateHTML(spec.template, spec.fields, { image: spec.image, kit: spec.kit || undefined, language: spec.language, numerals: spec.numerals, brand: spec.brand, logo: spec.logo, fonts: spec.fonts });
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${fontCss()}
 html,body{margin:0;width:${SLIDE_WIDTH}px;height:${SLIDE_HEIGHT}px;overflow:hidden}
@@ -106,23 +117,39 @@ async function browser() {
       const candidates = [process.env.CHROMIUM_PATH, "/opt/pw-browsers/chromium", chromium.executablePath()].filter(Boolean);
       const executablePath = candidates.find((p) => existsSync(p));
       if (!executablePath) throw new Error("Chromium not found. Set CHROMIUM_PATH or run: npx playwright-core install chromium");
-      return chromium.launch({ executablePath, args: ["--no-sandbox", "--font-render-hinting=none"] });
+      const b = await chromium.launch({ executablePath, args: ["--no-sandbox", "--font-render-hinting=none"] });
+      // If Chromium crashes or is closed, launch a fresh one on the next request instead of failing forever.
+      b.on("disconnected", () => { browserPromise = null; });
+      return b;
     })();
     browserPromise.catch(() => { browserPromise = null; });
   }
-  return browserPromise;
+  const b = await browserPromise;
+  if (!b.isConnected()) { browserPromise = null; return browser(); }
+  return b;
+}
+
+/** Open a page, retrying once with a fresh browser if the old one died between requests. */
+async function newPage(opts) {
+  try { return await (await browser()).newPage(opts); }
+  catch (e) {
+    if (!/closed|disconnected|crash/i.test(e.message)) throw e;
+    browserPromise = null;
+    return (await browser()).newPage(opts);
+  }
 }
 
 /** Render one slide to a PNG buffer. */
 export async function renderSlide(input) {
   const spec = normaliseSpec(input);
-  const b = await browser();
-  const page = await b.newPage({ viewport: { width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
+  const page = await newPage({ viewport: { width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
   try {
     // Block every network request: the document is fully self-contained.
     await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
     await page.setContent(slideDocument(spec), { waitUntil: "load" });
-    await page.evaluate(() => document.fonts.ready);
+    // Load every embedded face before the screenshot: fonts.ready alone can resolve before
+    // the browser has started loading the faces a slide uses.
+    await page.evaluate(() => Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready));
     return await page.screenshot({ type: "png", clip: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
   } finally {
     await page.close();
@@ -134,8 +161,7 @@ export async function renderSlide(input) {
  * apply to main images. Samples a ring of pixels around the border.
  */
 export async function probeImage(dataUrl) {
-  const b = await browser();
-  const page = await b.newPage();
+  const page = await newPage();
   try {
     await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
     return await page.evaluate(async ({ src, fn }) => {
@@ -158,6 +184,8 @@ export async function probeImage(dataUrl) {
 export async function rendererAvailable() {
   try { await browser(); return true; } catch { return false; }
 }
+
+export const browserForTests = () => browser();
 
 export async function closeRenderer() {
   if (browserPromise) { const b = await browserPromise.catch(() => null); browserPromise = null; if (b) await b.close(); }

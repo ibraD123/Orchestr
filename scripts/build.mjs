@@ -9,12 +9,13 @@ const read = (p) => readFileSync(new URL(p, root), "utf8");
 // Shared modules (audit, templates, CSV import, keywords) run on the server and inline in the app.
 // Each module runs in its own scope; only its exports become names in the page script.
 const inline = (p, n) => {
-  const src = read(p);
+  // Shared modules import each other only by relative path; inline, those names are already in scope.
+  const src = read(p).replace(/^import .* from "\.\/[\w-]+\.mjs";$/gm, "");
   const names = [...src.matchAll(/^export (?:const|let|function|async function|class) (\w+)/gm)].map((m) => m[1]);
   const v = `__shared${n}`;
   return `var ${v} = (function(){\n${src.replace(/^export /gm, "")}\nreturn { ${names.join(", ")} };\n})();\nvar ${names.map((x) => `${x} = ${v}.${x}`).join(", ")};`;
 };
-const shared = ["server/audit.mjs", "server/templates.mjs", "server/catalog-csv.mjs", "server/keywords.mjs", "server/economics.mjs", "server/photo-metrics.mjs"].map((p, i) => inline(p, i)).join("\n");
+const shared = ["server/audit.mjs", "server/templates.mjs", "server/catalog-csv.mjs", "server/keywords.mjs", "server/economics.mjs", "server/photo-metrics.mjs", "server/brand-dna.mjs", "server/brand-seed.mjs"].map((p, i) => inline(p, i)).join("\n");
 
 const pages = { "landing.html": "index.html", "app.html": "app.html" };
 mkdirSync(new URL("dist/", root), { recursive: true });
