@@ -222,6 +222,32 @@ Basira — это замкнутый цикл для агентства, а не
 
 Остальные российские: GuruSeller (SEO-аудит на 100 баллов), EGGHEADS (сводка до 1 000 отзывов WB), OneScreen (аналитика и ИИ-агенты с действиями через API под контролем человека). У площадок есть встроенные инструменты: на WB «Анализ внимания», на Ozon отзывы в платной подписке.
 
+## 6а. Масштаб компаний (оборот)
+
+Обе компании частные и выручку не публикуют. Ниже оценки агрегаторов, а не отчётность.
+
+**ZonGuru (Helix):**
+- выручка $2–4,4 млн в год: GetLatka — ~$2,2 млн (оценка на сентябрь 2025), Datanyze — $4,4 млн, ZoomInfo — «до $5 млн»; выброс LeadIQ ($50–100 млн) не похож на правду;
+- 18–22 сотрудника;
+- основана в 2016, 4 года росла без инвестиций в плюс, в 2022 взяла посевной раунд у StageDotO (оценки суммы расходятся: от $0,5 до 2,4 млн);
+- трафик сайта ~19–21 тыс. визитов в месяц в конце 2025: для известного когда-то набора инструментов это мало;
+- в 2026 ZonGuru перестала продавать исследовательский набор и оставила только Helix, то есть ставит компанию на этот продукт;
+- «5 000+ брендов и $200M+ выручки» на их сайте — это выручка клиентов, а не их собственная.
+
+**AMZ One Step (Listing Optimization AI):**
+- выручка агентства ~$5,3 млн в год по ZoomInfo и RocketReach (2025); основатель в интервью говорит о «нескольких миллионах» («multiple seven figures»);
+- 150+ человек (по словам основателя), студии в Канаде, США, Великобритании и Китае;
+- основано в 2017, Эдмонтон, Канада;
+- выручку самого Listing Optimization AI не нашёл нигде.
+
+**Грубая прикидка выручки Listing Optimization AI (моя, не данные).** Страница цен заявляет «2 400+ брендов и агентств» и «10 000+ селлеров пробовали».
+- Если бы все 2 400 платили минимальный тариф $97, было бы ~$2,8 млн в год. Это потолок, а не оценка.
+- Реалистично платят сотни, а не тысячи, то есть продукт, скорее всего, приносит меньше $1 млн в год.
+
+**Что это значит для нас.** Оба ближайших конкурента — маленькие компании с выручкой в единицы миллионов долларов и командами от 20 человек (продукт) до 150 (агентство с продуктом). Крупного игрока, который занял бы нишу «контент для агентств», нет ни в США, ни у нас в регионе.
+
+Источники: [GetLatka: ZonGuru](https://getlatka.com/companies/zonguru.com), [Datanyze](https://www.datanyze.com/companies/zonguru/400583432), [ZoomInfo: ZonGuru](https://www.zoominfo.com/c/zonguru-pte-ltd/400583432), [PitchBook](https://pitchbook.com/profiles/company/467592-04), [CB Insights](https://www.cbinsights.com/company/zonguru/financials), [LeadIQ](https://leadiq.com/c/zonguru/5e8db16d03157faf177508f2), [Starter Story](https://www.starterstory.com/amazon-based-toolset), [Teaser Club: StageDotO](https://teaserclub.com/investors/stagedoto), [трафик ZonGuru](https://aitools-main-fajlzj.laravel.cloud/tools/zonguru/statistics), [ZoomInfo: AMZ One Step](https://www.zoominfo.com/c/amz-one-step/461464720), [RocketReach](https://rocketreach.co/amz-one-step-profile_b47e7ec2fc50d13c), [Forbes Councils: Kamaljit Singh](https://councils.forbes.com/profile/Kamaljit-Singh-CEO-Founder-AMZ-One-Step/f461ae83-b73a-435a-9f50-34c4c7a4f658), [интервью Kamaljit Singh](https://www.inspiredinsider.com/kamaljit-singh-interview/2/), [тарифы Listing Optimization AI](https://listingoptimization.ai/pricing).
+
 ## 7. Что взять, по приоритету
 
 1. **Главный экран «что делать сейчас»** (Helix):
