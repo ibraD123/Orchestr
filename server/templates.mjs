@@ -272,3 +272,26 @@ export function templateHTML(id, fields, ctx) {
   const fonts = TEMPLATE_FONTS[ctx.fonts] || TEMPLATE_FONTS.kufi;
   return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' + logo + brand + body + "</div>";
 }
+
+/**
+ * A generated scene as a full-bleed background with the headline typeset over it: the fallback
+ * when an image model could not draw the text exactly (see server/slidegen.mjs).
+ * @param {{ background: string, headAr?, headEn?, kit, language, numerals, fonts, logo?, brand? }} ctx
+ */
+export function sceneHTML(ctx) {
+  const kit = Object.assign({ bg: "#2A1A0E", fg: "#F2C88A", accent: "#F4E9D8" }, ctx.kit || {});
+  const lang = ctx.language || "both", ar = lang !== "en", en = lang !== "ar";
+  const num = lang === "en" ? "western" : ctx.numerals || "arabic";
+  const fonts = TEMPLATE_FONTS[ctx.fonts] || TEMPLATE_FONTS.kufi;
+  // Long headlines drop a size so they fit the calm top third of the scene in two lines at most.
+  const big = String(ar ? ctx.headAr || "" : ctx.headEn || "").length > 18 ? "h2" : "h1";
+  const head = (ar && ctx.headAr ? '<div class="' + big + '" dir="rtl" style="line-height:1.3">' + esc(arDigits(ctx.headAr, num)) + "</div>" : "") +
+    (en && ctx.headEn ? '<div class="' + (ar ? "sub" : big + " en") + '" dir="ltr">' + esc(ctx.headEn) + "</div>" : "");
+  const logo = ctx.logo && ctx.logo.src ? '<img class="logo ' + (LOGO_POSITIONS.indexOf(ctx.logo.pos) > -1 ? ctx.logo.pos : "top-end") + '" src="' + esc(ctx.logo.src) + '" alt="">' : "";
+  const brand = !logo && ctx.brand ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
+  return '<div class="bz" dir="' + (ar ? "rtl" : "ltr") + '" style="--bg:' + kit.bg + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' +
+    '<img src="' + esc(ctx.background) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' +
+    '<div style="position:absolute;inset:0 0 auto 0;height:820px;background:linear-gradient(to bottom,color-mix(in srgb,var(--bg) 82%,transparent) 55%,transparent)"></div>' +
+    logo + brand + '<div class="stack" style="top:190px">' + head + "</div></div>";
+}
+

@@ -35,7 +35,9 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/report.mjs` | Before/after report for the client as an A4 HTML document under the agency's logo (PDF on the server, print in the browser), shared with the app |
 | `server/billing.mjs` | Plans, monthly usage metering (fixes, renders, AI calls), plan expiry, shared with the app |
 | `server/payments.mjs` | Moyasar Invoices API: hosted checkout in SAR (Mada, cards, Apple Pay) and invoice verification |
-| `server/imagegen.mjs` | On-model photos through an external image model, with modest-styling prompts |
+| `server/imagegen.mjs` | Image model adapters (OpenAI image edits, Gemini image generation, a generic JSON contract) for generated slides and on-model photos |
+| `server/textcheck.mjs` | Which slides an image model may draw whole, the prompt, and the letter-by-letter comparison of approved and read-back text, shared with the app |
+| `server/slidegen.mjs` | Generated slides with a guarantee: Claude reads the text back blind, digits and Arabic joining are checked, the product colour is compared; up to 3 tries, then the scene without text with the headline typeset over it |
 | `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |
@@ -93,6 +95,7 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `PATCH /api/workspaces/:ws` | `{ consentTraining }` | Records the client's consent to anonymised use |
 | `GET /api/workspaces/:ws/export` | | Everything stored for the client, as a JSON download (PDPL access request) |
 | `DELETE /api/workspaces/:ws` | | Deletes the client with its genome, events and exports (PDPL erasure) |
+| `POST /api/slides/generate` | `{ template, fields, image, kit, language, numerals, fonts, logo, brand, product, category, visual }` | `{ mode: generated \| scene \| typeset, reason, image: data URL, attempts[{ ok, reasons, readback, fidelity }] }`. Lists, tables and the main image are always typeset |
 | `POST /api/imagegen/onmodel` | `{ image: data URL, product, category, look, cover, setting, count, visual }` | `{ images[data URL], prompt }` |
 
 Usage metering: an `approve` event counts as one fix; `/api/render`, exports and generated photos count renders; Claude and image-model calls count AI. When the month's fixes are used, AI drafting and photo generation answer 402; approvals, exports and learning keep working. There are no user accounts yet: one server is one agency, so put it behind your own sign-in before giving it a public address.
@@ -128,7 +131,10 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `PUBLIC_URL` | | The server's public https address. Export image links use it, so marketplaces can fetch the images; without it the links in upload files stay empty |
 | `MOYASAR_SECRET_KEY` | | Moyasar secret key for online payments (Mada, cards, Apple Pay) |
 | `MOYASAR_API` | `https://api.moyasar.com/v1` | Moyasar API base |
-| `IMAGE_API_URL`, `IMAGE_API_KEY` | | Image model for on-model photos. The request is `POST { prompt, negative_prompt, image, width, height, num_images }` with a Bearer key, the answer `{ images: [{ url } \| { b64_json }] }`; a provider with another API gets a small adapter in `server/imagegen.mjs` |
+| `IMAGE_PROVIDER` | | `openai` (image edits, default model `gpt-image-1`), `gemini` (default model `gemini-3-pro-image-preview`) or `generic`. Generated slides also need `ANTHROPIC_API_KEY` for the text check |
+| `IMAGE_API_KEY` | | Key for the image provider |
+| `IMAGE_MODEL` | | Override the provider's model name (check it when the key arrives: these adapters have not been called live) |
+| `IMAGE_API_URL` | | Endpoint for `generic` (`POST { prompt, negative_prompt, image, width, height, num_images }` → `{ images: [{ url } \| { b64_json }] }`); overrides the endpoint for the other two |
 
 ## Marketplace connectors
 

@@ -25,6 +25,10 @@ services:
         sync: false
       - key: MOYASAR_SECRET_KEY
         sync: false
+      - key: IMAGE_PROVIDER
+        sync: false
+      - key: IMAGE_MODEL
+        sync: false
       - key: IMAGE_API_URL
         sync: false
       - key: IMAGE_API_KEY

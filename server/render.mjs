@@ -4,9 +4,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { TEMPLATE_CSS, TEMPLATE_IDS, TEMPLATE_FONTS, LOGO_POSITIONS, templateById, templateHTML } from "./templates.mjs";
-import { measurePixels, borderColour } from "./photo-metrics.mjs";
+import { measurePixels, borderColour, colourDiff, dominantColours, colourFidelity } from "./photo-metrics.mjs";
 // Source passed into the page, which can't import modules.
 const MEASURE_SRC = `(function(){ ${borderColour}\nreturn ${measurePixels}; })()`;
+const FIDELITY_SRC = `(function(){ ${borderColour}\n${colourDiff}\n${dominantColours}\nreturn ${colourFidelity}; })()`;
 
 const require = createRequire(import.meta.url);
 export const SLIDE_WIDTH = 1600;
@@ -189,6 +190,42 @@ export async function renderPdf(html) {
     await page.setContent(String(html).replace("<head>", () => `<head><style>${fontCss()}</style>`), { waitUntil: "load" });
     await page.evaluate(() => Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready));
     return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+  } finally { await page.close(); }
+}
+
+/** Render ready-made slide HTML (a .bz root, e.g. sceneHTML) to a 1600 × 2000 PNG with the brand fonts. */
+export async function renderHtml(bodyHtml) {
+  const page = await newPage({ viewport: { width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
+  try {
+    await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
+    await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>${fontCss()}\nhtml,body{margin:0;width:${SLIDE_WIDTH}px;height:${SLIDE_HEIGHT}px;overflow:hidden}\n${TEMPLATE_CSS}</style></head><body>${bodyHtml}</body></html>`, { waitUntil: "load" });
+    await page.evaluate(() => Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready));
+    return await page.screenshot({ type: "png", clip: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
+  } finally { await page.close(); }
+}
+
+/** Fit any image to a 1600 × 2000 PNG (cover crop, centred): image models return their own sizes. */
+export async function fitSlideImage(dataUrl) {
+  return renderHtml(`<img src="${dataUrl}" alt="" style="position:absolute;inset:0;width:${SLIDE_WIDTH}px;height:${SLIDE_HEIGHT}px;object-fit:cover">`);
+}
+
+/** Colour fidelity of a generated image against the product photo, decoded in Chromium. */
+export async function imageFidelity(originalDataUrl, generatedDataUrl) {
+  const page = await newPage();
+  try {
+    await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
+    return await page.evaluate(async ({ a, b, fn }) => {
+      const fidelity = new Function("return " + fn)();
+      const pixels = async (src) => {
+        const img = new Image(); img.src = src; await img.decode();
+        const scale = Math.min(1, 320 / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.naturalWidth * scale)); c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0, c.width, c.height);
+        return { data: ctx.getImageData(0, 0, c.width, c.height).data, width: c.width, height: c.height };
+      };
+      return fidelity(await pixels(a), await pixels(b));
+    }, { a: originalDataUrl, b: generatedDataUrl, fn: FIDELITY_SRC });
   } finally { await page.close(); }
 }
 

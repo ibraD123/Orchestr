@@ -224,7 +224,7 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .canvas .prod img{width:62%;height:70%;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.25))}
 .sitem .canvas .prod img,.ba .canvas .prod img{filter:none}
 .renders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.renders a{display:grid;gap:6px;text-decoration:none;font-size:12.5px;color:var(--ink-2)}
+.renders a{display:grid;gap:6px;text-decoration:none;font-size:12.5px;color:var(--ink-2);justify-items:start}
 .renders img{width:100%;aspect-ratio:4/5;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:var(--surface-2)}
 @media (max-width:560px){.renders{grid-template-columns:1fr 1fr}}
 .file{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -920,10 +920,154 @@ function templateHTML(id, fields, ctx) {
   return '<div class="bz" dir="' + dir + '" style="--bg:' + (bg === "#FFFFFF" ? "#FFFFFF" : kit.bg) + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' + logo + brand + body + "</div>";
 }
 
-return { SLIDE_W, SLIDE_H, TEMPLATE_GROUPS, TPL_ICONS, ICON_NAMES, TEMPLATES, TEMPLATE_IDS, TEMPLATE_FONTS, LOGO_POSITIONS, templateById, TEMPLATE_CSS, templateHTML };
+/**
+ * A generated scene as a full-bleed background with the headline typeset over it: the fallback
+ * when an image model could not draw the text exactly (see server/slidegen.mjs).
+ * @param {{ background: string, headAr?, headEn?, kit, language, numerals, fonts, logo?, brand? }} ctx
+ */
+function sceneHTML(ctx) {
+  const kit = Object.assign({ bg: "#2A1A0E", fg: "#F2C88A", accent: "#F4E9D8" }, ctx.kit || {});
+  const lang = ctx.language || "both", ar = lang !== "en", en = lang !== "ar";
+  const num = lang === "en" ? "western" : ctx.numerals || "arabic";
+  const fonts = TEMPLATE_FONTS[ctx.fonts] || TEMPLATE_FONTS.kufi;
+  // Long headlines drop a size so they fit the calm top third of the scene in two lines at most.
+  const big = String(ar ? ctx.headAr || "" : ctx.headEn || "").length > 18 ? "h2" : "h1";
+  const head = (ar && ctx.headAr ? '<div class="' + big + '" dir="rtl" style="line-height:1.3">' + esc(arDigits(ctx.headAr, num)) + "</div>" : "") +
+    (en && ctx.headEn ? '<div class="' + (ar ? "sub" : big + " en") + '" dir="ltr">' + esc(ctx.headEn) + "</div>" : "");
+  const logo = ctx.logo && ctx.logo.src ? '<img class="logo ' + (LOGO_POSITIONS.indexOf(ctx.logo.pos) > -1 ? ctx.logo.pos : "top-end") + '" src="' + esc(ctx.logo.src) + '" alt="">' : "";
+  const brand = !logo && ctx.brand ? '<div class="brand">' + esc(ctx.brand) + "</div>" : "";
+  return '<div class="bz" dir="' + (ar ? "rtl" : "ltr") + '" style="--bg:' + kit.bg + ";--fg:" + kit.fg + ";--ac:" + kit.accent + ";--fa:" + fonts[0] + ";--fl:" + fonts[1] + ";--fb:" + fonts[2] + '">' +
+    '<img src="' + esc(ctx.background) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' +
+    '<div style="position:absolute;inset:0 0 auto 0;height:820px;background:linear-gradient(to bottom,color-mix(in srgb,var(--bg) 82%,transparent) 55%,transparent)"></div>' +
+    logo + brand + '<div class="stack" style="top:190px">' + head + "</div></div>";
+}
+
+
+return { SLIDE_W, SLIDE_H, TEMPLATE_GROUPS, TPL_ICONS, ICON_NAMES, TEMPLATES, TEMPLATE_IDS, TEMPLATE_FONTS, LOGO_POSITIONS, templateById, TEMPLATE_CSS, templateHTML, sceneHTML };
 })();
-var SLIDE_W = __shared1.SLIDE_W, SLIDE_H = __shared1.SLIDE_H, TEMPLATE_GROUPS = __shared1.TEMPLATE_GROUPS, TPL_ICONS = __shared1.TPL_ICONS, ICON_NAMES = __shared1.ICON_NAMES, TEMPLATES = __shared1.TEMPLATES, TEMPLATE_IDS = __shared1.TEMPLATE_IDS, TEMPLATE_FONTS = __shared1.TEMPLATE_FONTS, LOGO_POSITIONS = __shared1.LOGO_POSITIONS, templateById = __shared1.templateById, TEMPLATE_CSS = __shared1.TEMPLATE_CSS, templateHTML = __shared1.templateHTML;
+var SLIDE_W = __shared1.SLIDE_W, SLIDE_H = __shared1.SLIDE_H, TEMPLATE_GROUPS = __shared1.TEMPLATE_GROUPS, TPL_ICONS = __shared1.TPL_ICONS, ICON_NAMES = __shared1.ICON_NAMES, TEMPLATES = __shared1.TEMPLATES, TEMPLATE_IDS = __shared1.TEMPLATE_IDS, TEMPLATE_FONTS = __shared1.TEMPLATE_FONTS, LOGO_POSITIONS = __shared1.LOGO_POSITIONS, templateById = __shared1.templateById, TEMPLATE_CSS = __shared1.TEMPLATE_CSS, templateHTML = __shared1.templateHTML, sceneHTML = __shared1.sceneHTML;
 var __shared2 = (function(){
+// Generated slides: which slides an image model may draw whole, what to ask it for, and how to
+// check the text it drew against the approved text, letter by letter.
+// Pure functions: the server pipeline (server/slidegen.mjs) uses them, and the app inlines them.
+
+
+// Slides with structured or long text are always typeset: tables, lists, size charts, specs.
+const TYPESET_ONLY = ["cover", "details", "compare", "icons", "trust", "sizechart", "steps", "inbox", "dimensions", "notes"];
+const GEN_LIMITS = { ar: 40, en: 60, items: 4 };
+
+const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+const toArabicDigits = (s) => String(s).replace(/[0-9]/g, (d) => AR_DIGITS[d]);
+const toWesternDigits = (s) => String(s).replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)));
+const HAS_AR = /[؀-ۿ]/;
+
+/**
+ * The text a slide shows, in the slide's languages, with the brand's digits applied to Arabic.
+ * @returns {Array<{ key, text, lang }>}
+ */
+function slideTexts(templateId, fields, { language = "both", numerals = "arabic" } = {}) {
+  const tpl = templateById(templateId);
+  if (!tpl) return [];
+  const v = Object.assign({}, tpl.sample, fields || {});
+  const ar = language !== "en", en = language !== "ar";
+  const out = [];
+  for (const fd of tpl.fields) {
+    const raw = String(v[fd.key] == null ? "" : v[fd.key]).trim();
+    if (!raw) continue;
+    const lang = fd.lang || (HAS_AR.test(raw) ? "ar" : "en");
+    if ((lang === "ar" && !ar) || (lang === "en" && !en)) continue;
+    const text = lang === "ar" ? (numerals === "arabic" ? toArabicDigits(raw) : toWesternDigits(raw)) : raw;
+    out.push({ key: fd.key, text, lang, type: fd.type });
+  }
+  return out;
+}
+
+/**
+ * Generate the whole slide with an image model, or typeset it.
+ * @returns {{ mode: "generate"|"typeset", reason, texts }}
+ */
+function planSlide(templateId, fields, opts) {
+  const texts = slideTexts(templateId, fields, opts);
+  if (!templateById(templateId)) return { mode: "typeset", reason: "unknown", texts };
+  if (TYPESET_ONLY.includes(templateId)) return { mode: "typeset", reason: templateId === "cover" ? "mainImage" : "structured", texts };
+  if (texts.some((t) => t.type === "lines" || t.type === "rows")) return { mode: "typeset", reason: "structured", texts };
+  if (texts.length > GEN_LIMITS.items) return { mode: "typeset", reason: "tooMuchText", texts };
+  if (texts.some((t) => t.text.length > (t.lang === "ar" ? GEN_LIMITS.ar : GEN_LIMITS.en))) return { mode: "typeset", reason: "tooMuchText", texts };
+  return { mode: "generate", reason: "short", texts };
+}
+
+/** Prompt for a slide drawn whole: scene, the product from the reference photo, and the exact text. */
+function slidePrompt({ templateId, texts, product, category, kit, visual, numerals, withText = true }) {
+  const tpl = templateById(templateId) || { name: ["Slide"], question: [""] };
+  const colours = kit ? `Use the brand colours: background ${kit.bg}, text ${kit.fg}, accent ${kit.accent || kit.ac || kit.fg}.` : "";
+  const lines = [
+    `Vertical 4:5 e-commerce infographic slide for an online marketplace listing (${tpl.name[0]}: ${tpl.question[0]}).`,
+    `The product is ${product || "the product in the reference image"}${category ? ` (${category})` : ""}.`,
+    "Use the reference photo for the product and keep it exactly as it is: same shape, colour, label, proportions and details. Do not redraw or restyle the product.",
+    "Premium, clean composition with soft natural light; the product is the hero and clearly visible.",
+    colours,
+    visual ? `Brand visual style: ${visual}` : ""
+  ];
+  if (withText) {
+    lines.push("Render ONLY the following text, exactly as written, character for character, and nothing else:");
+    for (const t of texts) {
+      lines.push(t.lang === "ar"
+        ? `- Arabic, right to left, letters properly joined, ${numerals === "arabic" ? "Arabic-Indic digits" : "Western digits"}: «${t.text}»`
+        : `- English: "${t.text}"`);
+    }
+    lines.push("Arabic text first and largest; English smaller underneath. Large, legible, high-contrast typography, kept well inside the frame with generous margins.");
+  } else {
+    lines.push("Do NOT render any text, letters, numbers, logos or watermarks. Leave the top third of the image as calm, uncluttered space in the background colour for a headline added later.");
+  }
+  lines.push("No other words, no fake brand names, no watermarks, no UI elements.");
+  return lines.filter(Boolean).join("\n");
+}
+
+/** Normalise for comparison: keep letters and digits exactly, drop marks that do not change the word. */
+function normaliseText(s) {
+  return String(s || "")
+    .normalize("NFC")
+    .replace(/[ً-ْٰ]/g, "") // harakat (the approved copy carries none)
+    .replace(/ـ/g, "") // tatweel
+    .replace(/[​-‏؜⁦-⁩﻿]/g, "") // zero-width and direction marks
+    .replace(/[«»“”"'’‘.,،:;!?؟·•\-–—()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Compare the approved text with what was read back from the image.
+ * Every approved line must appear exactly; text that was not asked for counts against the image.
+ * @param {Array<{ text, lang }>} expected
+ * @param {string[]} found  overlay text read from the image
+ */
+function compareTexts(expected, found) {
+  const joined = normaliseText((found || []).join(" "));
+  let rest = " " + joined + " ";
+  const items = (expected || []).map((e) => {
+    const want = normaliseText(e.text);
+    if (!want) return { text: e.text, lang: e.lang, ok: true };
+    if (rest.includes(" " + want + " ")) {
+      rest = rest.replace(" " + want + " ", "  ");
+      return { text: e.text, lang: e.lang, ok: true };
+    }
+    // Same words with the other digit style: the numerals rule failed, not the words.
+    const otherDigits = HAS_AR.test(e.text) && /[0-9٠-٩]/.test(e.text) ? [toArabicDigits(want), toWesternDigits(want)].find((x) => x !== want && rest.includes(" " + x + " ")) : null;
+    if (otherDigits) { rest = rest.replace(" " + otherDigits + " ", "  "); return { text: e.text, lang: e.lang, ok: false, issue: "digits" }; }
+    return { text: e.text, lang: e.lang, ok: false, issue: "missing" };
+  });
+  const extra = rest.replace(/\s+/g, " ").trim();
+  const extraLetters = (extra.match(/[\p{L}\p{N}]/gu) || []).length;
+  const issues = items.filter((i) => !i.ok).map((i) => ({ type: i.issue, text: i.text }));
+  if (extraLetters > 2) issues.push({ type: "extra", text: extra });
+  return { ok: issues.length === 0, items, extra: extraLetters > 2 ? extra : "", issues };
+}
+
+return { TYPESET_ONLY, GEN_LIMITS, slideTexts, planSlide, slidePrompt, normaliseText, compareTexts };
+})();
+var TYPESET_ONLY = __shared2.TYPESET_ONLY, GEN_LIMITS = __shared2.GEN_LIMITS, slideTexts = __shared2.slideTexts, planSlide = __shared2.planSlide, slidePrompt = __shared2.slidePrompt, normaliseText = __shared2.normaliseText, compareTexts = __shared2.compareTexts;
+var __shared3 = (function(){
 // Catalog file import (Noon, Amazon, Salla and Zid catalog exports, or any spreadsheet saved as CSV).
 // Pure functions with no imports: the server uses this module directly, and
 // scripts/build.mjs inlines it into the app so files can be audited in the browser.
@@ -1016,8 +1160,8 @@ function listingsFromCSV(text, { channel = "noon", category, limit = 500 } = {})
 
 return { parseCSV, mapColumns, listingsFromCSV };
 })();
-var parseCSV = __shared2.parseCSV, mapColumns = __shared2.mapColumns, listingsFromCSV = __shared2.listingsFromCSV;
-var __shared3 = (function(){
+var parseCSV = __shared3.parseCSV, mapColumns = __shared3.mapColumns, listingsFromCSV = __shared3.listingsFromCSV;
+var __shared4 = (function(){
 // Search-term coverage: which common Gulf marketplace searches a listing's title and bullets cover.
 // Pure functions with no imports: inlined into the app by scripts/build.mjs.
 // The lists are a starting set per category; real search volumes come from marketplace data.
@@ -1053,8 +1197,8 @@ function keywordCoverage(listing) {
 
 return { KEYWORDS, normaliseArabic, keywordCoverage };
 })();
-var KEYWORDS = __shared3.KEYWORDS, normaliseArabic = __shared3.normaliseArabic, keywordCoverage = __shared3.keywordCoverage;
-var __shared4 = (function(){
+var KEYWORDS = __shared4.KEYWORDS, normaliseArabic = __shared4.normaliseArabic, keywordCoverage = __shared4.keywordCoverage;
+var __shared5 = (function(){
 // Unit economics per sales channel. Pure functions with no imports: inlined into the app by scripts/build.mjs.
 // Fee defaults are typical starting points, not quotes: every seller should enter the numbers from their own fee sheet.
 
@@ -1128,8 +1272,8 @@ function compareChannels(product, channels) {
 
 return { COUNTRIES, CHANNEL_DEFAULTS, unitEconomics, compareChannels };
 })();
-var COUNTRIES = __shared4.COUNTRIES, CHANNEL_DEFAULTS = __shared4.CHANNEL_DEFAULTS, unitEconomics = __shared4.unitEconomics, compareChannels = __shared4.compareChannels;
-var __shared5 = (function(){
+var COUNTRIES = __shared5.COUNTRIES, CHANNEL_DEFAULTS = __shared5.CHANNEL_DEFAULTS, unitEconomics = __shared5.unitEconomics, compareChannels = __shared5.compareChannels;
+var __shared6 = (function(){
 // Pixel-level photo checks and background removal on raw RGBA data.
 // Pure functions with no imports: the server runs them inside Chromium on decoded images,
 // and scripts/build.mjs inlines them into the app so photos are checked in the browser.
@@ -1299,8 +1443,8 @@ function colourFidelity(orig, gen, { tolerance = 45 } = {}) {
 
 return { borderColour, measurePixels, removeBackground, fitBox, mainImageChecks, colourDiff, dominantColours, colourFidelity };
 })();
-var borderColour = __shared5.borderColour, measurePixels = __shared5.measurePixels, removeBackground = __shared5.removeBackground, fitBox = __shared5.fitBox, mainImageChecks = __shared5.mainImageChecks, colourDiff = __shared5.colourDiff, dominantColours = __shared5.dominantColours, colourFidelity = __shared5.colourFidelity;
-var __shared6 = (function(){
+var borderColour = __shared6.borderColour, measurePixels = __shared6.measurePixels, removeBackground = __shared6.removeBackground, fitBox = __shared6.fitBox, mainImageChecks = __shared6.mainImageChecks, colourDiff = __shared6.colourDiff, dominantColours = __shared6.dominantColours, colourFidelity = __shared6.colourFidelity;
+var __shared7 = (function(){
 // Brand DNA: an evidence-weighted brand genome.
 //
 // A genome is a set of traits. Every trait is used twice: the expression compiler turns it into
@@ -1792,8 +1936,8 @@ function editTrend(g) {
 
 return { DIMS, TRAIT_TYPES, FONT_PAIRS, LEARN, normaliseWord, stem, tokens, colourDistance, contrast, kitFromPalette, extractPalette, newGenome, traitKey, describe, strength, evidenceSummary, addEvidence, touch, setStatus, declare, observeEdit, REJECT_REASONS, observeReject, learn, activeTraits, exemplars, express, check, editTrend };
 })();
-var DIMS = __shared6.DIMS, TRAIT_TYPES = __shared6.TRAIT_TYPES, FONT_PAIRS = __shared6.FONT_PAIRS, LEARN = __shared6.LEARN, normaliseWord = __shared6.normaliseWord, stem = __shared6.stem, tokens = __shared6.tokens, colourDistance = __shared6.colourDistance, contrast = __shared6.contrast, kitFromPalette = __shared6.kitFromPalette, extractPalette = __shared6.extractPalette, newGenome = __shared6.newGenome, traitKey = __shared6.traitKey, describe = __shared6.describe, strength = __shared6.strength, evidenceSummary = __shared6.evidenceSummary, addEvidence = __shared6.addEvidence, touch = __shared6.touch, setStatus = __shared6.setStatus, declare = __shared6.declare, observeEdit = __shared6.observeEdit, REJECT_REASONS = __shared6.REJECT_REASONS, observeReject = __shared6.observeReject, learn = __shared6.learn, activeTraits = __shared6.activeTraits, exemplars = __shared6.exemplars, express = __shared6.express, check = __shared6.check, editTrend = __shared6.editTrend;
-var __shared7 = (function(){
+var DIMS = __shared7.DIMS, TRAIT_TYPES = __shared7.TRAIT_TYPES, FONT_PAIRS = __shared7.FONT_PAIRS, LEARN = __shared7.LEARN, normaliseWord = __shared7.normaliseWord, stem = __shared7.stem, tokens = __shared7.tokens, colourDistance = __shared7.colourDistance, contrast = __shared7.contrast, kitFromPalette = __shared7.kitFromPalette, extractPalette = __shared7.extractPalette, newGenome = __shared7.newGenome, traitKey = __shared7.traitKey, describe = __shared7.describe, strength = __shared7.strength, evidenceSummary = __shared7.evidenceSummary, addEvidence = __shared7.addEvidence, touch = __shared7.touch, setStatus = __shared7.setStatus, declare = __shared7.declare, observeEdit = __shared7.observeEdit, REJECT_REASONS = __shared7.REJECT_REASONS, observeReject = __shared7.observeReject, learn = __shared7.learn, activeTraits = __shared7.activeTraits, exemplars = __shared7.exemplars, express = __shared7.express, check = __shared7.check, editTrend = __shared7.editTrend;
+var __shared8 = (function(){
 // Sample workspaces for the demo: two clients of one agency.
 // Layali's genome is not hand-written: it is built by replaying a realistic history of edits,
 // rejections and approvals through the learner, so every rule carries real evidence.
@@ -1877,8 +2021,8 @@ function sampleData() {
 
 return { SAMPLE_WORKSPACES, sampleData };
 })();
-var SAMPLE_WORKSPACES = __shared7.SAMPLE_WORKSPACES, sampleData = __shared7.sampleData;
-var __shared8 = (function(){
+var SAMPLE_WORKSPACES = __shared8.SAMPLE_WORKSPACES, sampleData = __shared8.sampleData;
+var __shared9 = (function(){
 // Rule-based copy cleanup: apply the brand's checkable rules to existing titles and bullets
 // without an AI model. Used by bulk processing before (or instead of) AI drafts.
 // Pure functions: inlined into the app by scripts/build.mjs (the import line is dropped there).
@@ -2002,8 +2146,8 @@ function cleanupCopy(copy, g, ctx) {
 
 return { trimAtSeparator, trimHeadline, cleanupCopy };
 })();
-var trimAtSeparator = __shared8.trimAtSeparator, trimHeadline = __shared8.trimHeadline, cleanupCopy = __shared8.cleanupCopy;
-var __shared9 = (function(){
+var trimAtSeparator = __shared9.trimAtSeparator, trimHeadline = __shared9.trimHeadline, cleanupCopy = __shared9.cleanupCopy;
+var __shared10 = (function(){
 // Before/after results from marketplace sales reports.
 // Reads Amazon Business Reports (Detail Page Sales and Traffic by Child Item), Noon and other
 // exports by matching common column names, and compares products that were changed with those
@@ -2098,8 +2242,8 @@ function compareResults({ before, after, changed, rows, changedAt }) {
 
 return { parseSalesReport, compareResults };
 })();
-var parseSalesReport = __shared9.parseSalesReport, compareResults = __shared9.compareResults;
-var __shared10 = (function(){
+var parseSalesReport = __shared10.parseSalesReport, compareResults = __shared10.compareResults;
+var __shared11 = (function(){
 // Plans, usage metering and payments.
 // Plans mirror the landing page. A "fix" is one product whose copy or slides were approved.
 // Payments use Moyasar (Saudi Arabia: Mada, cards, Apple Pay) through its Invoices API:
@@ -2161,8 +2305,8 @@ function billingConfigured(env = process.env) { return Boolean(env.MOYASAR_SECRE
 
 return { PLANS, VAT_SA, monthKey, newAccount, recordUsage, effectivePlan, applyPayment, usageStatus, invoiceAmount, billingConfigured };
 })();
-var PLANS = __shared10.PLANS, VAT_SA = __shared10.VAT_SA, monthKey = __shared10.monthKey, newAccount = __shared10.newAccount, recordUsage = __shared10.recordUsage, effectivePlan = __shared10.effectivePlan, applyPayment = __shared10.applyPayment, usageStatus = __shared10.usageStatus, invoiceAmount = __shared10.invoiceAmount, billingConfigured = __shared10.billingConfigured;
-var __shared11 = (function(){
+var PLANS = __shared11.PLANS, VAT_SA = __shared11.VAT_SA, monthKey = __shared11.monthKey, newAccount = __shared11.newAccount, recordUsage = __shared11.recordUsage, effectivePlan = __shared11.effectivePlan, applyPayment = __shared11.applyPayment, usageStatus = __shared11.usageStatus, invoiceAmount = __shared11.invoiceAmount, billingConfigured = __shared11.billingConfigured;
+var __shared12 = (function(){
 // Marketplace upload files built from approved fixes.
 // Pure functions: the server packs them into the export ZIP, and the app can build them too.
 //
@@ -2252,8 +2396,8 @@ function exportReadme(channel, count, opts) {
 
 return { EXPORT_CHANNELS, exportFiles, exportReadme };
 })();
-var EXPORT_CHANNELS = __shared11.EXPORT_CHANNELS, exportFiles = __shared11.exportFiles, exportReadme = __shared11.exportReadme;
-var __shared12 = (function(){
+var EXPORT_CHANNELS = __shared12.EXPORT_CHANNELS, exportFiles = __shared12.exportFiles, exportReadme = __shared12.exportReadme;
+var __shared13 = (function(){
 // Minimal ZIP writer (stored entries, UTF-8 names). PNGs are already compressed, so storing is fine.
 // Works on Uint8Array, so the same code runs on the server and inlined in the app (scripts/build.mjs).
 const CRC = new Uint32Array(256).map((_, n) => {
@@ -2323,8 +2467,8 @@ function readZip(buf) {
 
 return { crc32, makeZip, readZip };
 })();
-var crc32 = __shared12.crc32, makeZip = __shared12.makeZip, readZip = __shared12.readZip;
-var __shared13 = (function(){
+var crc32 = __shared13.crc32, makeZip = __shared13.makeZip, readZip = __shared13.readZip;
+var __shared14 = (function(){
 // Before/after results report as one self-contained HTML document (A4).
 // The server prints it to PDF with Chromium; the app shows the same document and can print it
 // without a server. Pure: inlined into the app by scripts/build.mjs.
@@ -2447,7 +2591,7 @@ ${svg}
 
 return { reportHTML };
 })();
-var reportHTML = __shared13.reportHTML;
+var reportHTML = __shared14.reportHTML;
 /* ---------- strings ---------- */
 var S = {
   overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
@@ -3009,13 +3153,14 @@ function vStudio(){
       tp.fields.map(function(fd){ return fieldInput(fd, sl.fields[fd.key] != null ? sl.fields[fd.key] : (tp.sample[fd.key] || "")); }).join("")+
       '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+(bk ? '<button type="button" data-kit="-1" aria-pressed="'+(kitIdx === -1)+'" aria-label="'+t("brandKitName")+'" title="'+t("brandKitName")+'" class="sw-brand"><i style="background:'+bk.bg+'"></i><i style="background:'+bk.fg+'"></i></button>' : "")+KITS.map(function(k,j){ return '<button type="button" data-kit="'+j+'" aria-pressed="'+(kitIdx === j)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div>'+(tp.kit ? '<span class="note">'+t("seasonalKit")+'</span>' : "")+'</div>'+
       (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(sn,j){ var c = j < g.step ? "done" : j === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(sn)+'</div>'; }).join("")+'</div>' : "")+
+      '<label class="toggle"><input type="checkbox" id="x-ai-slides"'+(state.aiSlides ? " checked" : "")+(state.api && state.api.slideGen ? "" : " disabled")+'><span><span>'+t("aiSlides")+'</span><br><span class="note">'+t(state.api && state.api.slideGen ? "aiSlidesNote" : "aiSlidesNeeds")+'</span></span></label>'+
       '<div style="display:grid;gap:8px">'+
         '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? tf("generateN", {n:set.length}) : t("regenerate"))+'</button>'+
         '<button type="button" class="btn btn-ghost" id="send"'+(g.phase === "done" ? "" : " disabled")+'>'+(g.phase === "sent" ? t("sent")+" ✓" : t("sendAppr"))+'</button>'+
       '</div>'+
     '</div>'+
   '</div>'+
-  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span></a>'; }).join("")+'</div></div>' : "");
+  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span>'+(o.mode ? '<span class="tag'+(o.mode === "generated" ? " good" : "")+'">'+t("mode_"+o.mode)+(o.reason && o.mode !== "generated" ? " · "+t("why_"+o.reason) : "")+(o.tries ? " · "+tf("attemptsN", {n:o.tries}) : "")+'</span>' : "")+'</a>'; }).join("")+'</div></div>' : "");
 }
 
 function vTemplates(){
@@ -3679,7 +3824,11 @@ Object.assign(S, {
   omRef:["Reference photo","الصورة المرجعية"], omRefNone:["Add the product photo in Studio or on this page first.","أضف صورة المنتج في الاستوديو أو في هذه الصفحة أولاً."],
   omGo:["Generate","ولّد"], omBusy:["Generating…","جارٍ التوليد…"], omNeeds:["Needs an image model on the server: set IMAGE_API_URL and IMAGE_API_KEY.","يحتاج نموذج صور على الخادم: اضبط IMAGE_API_URL و IMAGE_API_KEY."],
   omCheckOwn:["Check a photo made elsewhere","افحص صورة وُلّدت في مكان آخر"], colourOk:["Colour matches the product ({s})","اللون يطابق المنتج ({s})"], colourBad:["Colour differs from the product ({s}): don't use","اللون مختلف عن المنتج ({s}): لا تستخدمها"], checking:["Checking colour…","جارٍ فحص اللون…"],
-  addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"]
+  addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"],
+  aiSlides:["Draw slides with the image model","ارسم الشرائح بنموذج الصور"], aiSlidesNote:["Every Arabic letter is read back and checked; up to 3 tries, then the headline is typeset over the scene. Lists and tables stay typeset.","يُقرأ كل حرف عربي ويُطابق؛ حتى ٣ محاولات، ثم يُكتب العنوان فوق المشهد. القوائم والجداول تبقى مكتوبة بالقالب."],
+  aiSlidesNeeds:["Needs an image model (IMAGE_PROVIDER, IMAGE_API_KEY) and ANTHROPIC_API_KEY on the server.","يحتاج نموذج صور (IMAGE_PROVIDER و IMAGE_API_KEY) و ANTHROPIC_API_KEY على الخادم."],
+  mode_generated:["AI · text checked","ذكاء · النص مُدقَّق"], mode_scene:["AI scene + typeset headline","مشهد بالذكاء + عنوان بالقالب"], mode_typeset:["Typeset","بالقالب"],
+  why_structured:["lists and tables","قوائم وجداول"], why_tooMuchText:["long text","نص طويل"], why_mainImage:["main image","الصورة الرئيسية"], why_generationFailed:["AI failed the check","لم يجتز الذكاء الفحص"], why_textFailed:["text failed the check","لم يجتز النص الفحص"], attemptsN:["tries: {n}","محاولات: {n}"]
 });
 Object.assign(ICONS, {
   batch:'<path d="M4 7h9M4 12h9M4 17h5"/><path d="M14 16l2.5 2.5L21 14"/>',
@@ -4129,6 +4278,7 @@ document.addEventListener("change", function(e){
   if (el.id === "x-exp-ch"){ state.batch.channel = el.value; state.batch.exp = null; state.batch.pub = null; render(); return; }
   if (el.id === "x-mk"){ state.batch.market = el.value; return; }
   if (el.id === "x-om-count"){ state.om.count = +el.value; return; }
+  if (el.id === "x-ai-slides"){ state.aiSlides = el.checked; if (state.gen[state.pid]) state.gen[state.pid].phase = "idle"; render(); return; }
   if (el.id === "x-changed"){ render(); return; }
   if (el.dataset && el.dataset.xconsent){ setConsent(el.dataset.xconsent, el.checked); return; }
   if ((el.id === "x-rep-before" || el.id === "x-rep-after") && el.files && el.files[0]){
@@ -4318,7 +4468,29 @@ function runServerGen(pid){
   }).catch(function(err){ g.phase = "error"; g.error = err.message; })
   .then(function(){ clearInterval(tick); if (state.route === "studio" && state.pid === pid) render(); });
 }
+function runAiGen(pid){
+  var p = PM[pid], set = setOf(p).slice(), g = state.gen[pid] = {phase:"run", step:0, server:true}; render();
+  var tick = setInterval(function(){ if (g.step < 3){ g.step++; if (state.route === "studio" && state.pid === pid) render(); } }, 900);
+  var visual = activeTraits(genome(), {channel:p.ch[0], category:catOf(p)}).filter(function(x){ return x.type === "visual"; }).map(function(x){ return x.params.text; }).join("; ");
+  ensureDataImage(p).then(function(image){
+    var out = [];
+    // One slide at a time: each can take several model calls.
+    return set.reduce(function(chain, sl){
+      return chain.then(function(){
+        var c = ctxFor(p, sl);
+        return post("/api/slides/generate", {template:sl.tpl, fields:sl.fields, image:image, kit:c.kit, language:c.language, numerals:c.numerals, fonts:c.fonts, logo:c.logo, brand:c.brand, product:tr(p.name), category:catOf(p), visual:visual})
+          .then(function(r){ return fetch(r.image).then(function(x){ return x.blob(); }).then(function(b){ out.push({url:URL.createObjectURL(b), tpl:sl.tpl, mode:r.mode, reason:r.reason, tries:r.attempts.length}); }); });
+      });
+    }, Promise.resolve()).then(function(){ return out; });
+  }).then(function(out){
+    (state.renders[pid] || []).forEach(function(o){ URL.revokeObjectURL(o.url); });
+    state.renders[pid] = out; g.step = 4; g.phase = "done";
+    refreshAccount();
+  }).catch(function(err){ g.phase = "error"; g.error = err.message; })
+  .then(function(){ clearInterval(tick); if (state.route === "studio" && state.pid === pid) render(); });
+}
 function runGen(pid){
+  if (state.api && state.api.slideGen && state.aiSlides) return runAiGen(pid);
   if (state.api && state.api.render) return runServerGen(pid);
   var g = state.gen[pid] = {phase:"run", step:0}; render();
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;

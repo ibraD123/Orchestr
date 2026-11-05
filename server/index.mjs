@@ -18,7 +18,9 @@ import { makeZip } from "./zip.mjs";
 import { reportHTML } from "./report.mjs";
 import { PLANS, newAccount, recordUsage, usageStatus, invoiceAmount, billingConfigured, applyPayment } from "./billing.mjs";
 import { createCheckout, verifyCheckout } from "./payments.mjs";
-import { generateOnModel, imageGenConfigured } from "./imagegen.mjs";
+import { generateOnModel, imageGenConfigured, imageProvider } from "./imagegen.mjs";
+import { generateSlide, slideGenConfigured } from "./slidegen.mjs";
+import { templateById } from "./templates.mjs";
 import { amazonPublish, amazonConfig, amazonConfigured } from "./connectors/amazon.mjs";
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
 
@@ -201,7 +203,8 @@ const routes = {
     const c = amazonConfig();
     return {
       ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: aiConfigured() ? MODEL : null,
-      imageGen: imageGenConfigured(), billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId),
+      imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, slideGen: slideGenConfigured(),
+      billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId),
       publicUrl: Boolean(process.env.PUBLIC_URL)
     };
   },
@@ -269,6 +272,16 @@ const routes = {
     return { ...v, account: accountView(after) };
   },
 
+  // A slide drawn whole by the image model, shown only after its text is read back and matches (server/slidegen.mjs).
+  "POST /api/slides/generate": async (body) => {
+    if (!templateById(body.template)) fail("Unknown slide template");
+    if (!slideGenConfigured()) fail("Generated slides need an image model (IMAGE_PROVIDER, IMAGE_API_KEY) and ANTHROPIC_API_KEY for the text check", 503);
+    await guardPlan();
+    const r = await generateSlide(body);
+    await meter("ai", r.attempts.length);
+    await meter("renders", 1);
+    return r;
+  },
   "POST /api/imagegen/onmodel": async (body) => {
     await guardPlan();
     const r = await generateOnModel(body);

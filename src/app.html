@@ -216,7 +216,7 @@ tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)
 .canvas .prod img{width:62%;height:70%;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.25))}
 .sitem .canvas .prod img,.ba .canvas .prod img{filter:none}
 .renders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.renders a{display:grid;gap:6px;text-decoration:none;font-size:12.5px;color:var(--ink-2)}
+.renders a{display:grid;gap:6px;text-decoration:none;font-size:12.5px;color:var(--ink-2);justify-items:start}
 .renders img{width:100%;aspect-ratio:4/5;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:var(--surface-2)}
 @media (max-width:560px){.renders{grid-template-columns:1fr 1fr}}
 .file{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -1059,13 +1059,14 @@ function vStudio(){
       tp.fields.map(function(fd){ return fieldInput(fd, sl.fields[fd.key] != null ? sl.fields[fd.key] : (tp.sample[fd.key] || "")); }).join("")+
       '<div class="field"><span class="lbl">'+t("brandKit")+'</span><div class="sw" role="group">'+(bk ? '<button type="button" data-kit="-1" aria-pressed="'+(kitIdx === -1)+'" aria-label="'+t("brandKitName")+'" title="'+t("brandKitName")+'" class="sw-brand"><i style="background:'+bk.bg+'"></i><i style="background:'+bk.fg+'"></i></button>' : "")+KITS.map(function(k,j){ return '<button type="button" data-kit="'+j+'" aria-pressed="'+(kitIdx === j)+'" aria-label="'+k.id+'"><i style="background:'+k.bg+'"></i><i style="background:'+k.fg+'"></i></button>'; }).join("")+'</div>'+(tp.kit ? '<span class="note">'+t("seasonalKit")+'</span>' : "")+'</div>'+
       (g.phase !== "idle" ? '<div class="steps">'+stepNames.map(function(sn,j){ var c = j < g.step ? "done" : j === g.step && g.phase === "run" ? "run" : ""; return '<div class="'+c+'"><i></i>'+t(sn)+'</div>'; }).join("")+'</div>' : "")+
+      '<label class="toggle"><input type="checkbox" id="x-ai-slides"'+(state.aiSlides ? " checked" : "")+(state.api && state.api.slideGen ? "" : " disabled")+'><span><span>'+t("aiSlides")+'</span><br><span class="note">'+t(state.api && state.api.slideGen ? "aiSlidesNote" : "aiSlidesNeeds")+'</span></span></label>'+
       '<div style="display:grid;gap:8px">'+
         '<button type="button" class="btn btn-primary" id="gen"'+(g.phase === "run" ? " disabled" : "")+'>'+(g.phase === "idle" ? tf("generateN", {n:set.length}) : t("regenerate"))+'</button>'+
         '<button type="button" class="btn btn-ghost" id="send"'+(g.phase === "done" ? "" : " disabled")+'>'+(g.phase === "sent" ? t("sent")+" ✓" : t("sendAppr"))+'</button>'+
       '</div>'+
     '</div>'+
   '</div>'+
-  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span></a>'; }).join("")+'</div></div>' : "");
+  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span>'+(o.mode ? '<span class="tag'+(o.mode === "generated" ? " good" : "")+'">'+t("mode_"+o.mode)+(o.reason && o.mode !== "generated" ? " · "+t("why_"+o.reason) : "")+(o.tries ? " · "+tf("attemptsN", {n:o.tries}) : "")+'</span>' : "")+'</a>'; }).join("")+'</div></div>' : "");
 }
 
 function vTemplates(){
@@ -1729,7 +1730,11 @@ Object.assign(S, {
   omRef:["Reference photo","الصورة المرجعية"], omRefNone:["Add the product photo in Studio or on this page first.","أضف صورة المنتج في الاستوديو أو في هذه الصفحة أولاً."],
   omGo:["Generate","ولّد"], omBusy:["Generating…","جارٍ التوليد…"], omNeeds:["Needs an image model on the server: set IMAGE_API_URL and IMAGE_API_KEY.","يحتاج نموذج صور على الخادم: اضبط IMAGE_API_URL و IMAGE_API_KEY."],
   omCheckOwn:["Check a photo made elsewhere","افحص صورة وُلّدت في مكان آخر"], colourOk:["Colour matches the product ({s})","اللون يطابق المنتج ({s})"], colourBad:["Colour differs from the product ({s}): don't use","اللون مختلف عن المنتج ({s}): لا تستخدمها"], checking:["Checking colour…","جارٍ فحص اللون…"],
-  addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"]
+  addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"],
+  aiSlides:["Draw slides with the image model","ارسم الشرائح بنموذج الصور"], aiSlidesNote:["Every Arabic letter is read back and checked; up to 3 tries, then the headline is typeset over the scene. Lists and tables stay typeset.","يُقرأ كل حرف عربي ويُطابق؛ حتى ٣ محاولات، ثم يُكتب العنوان فوق المشهد. القوائم والجداول تبقى مكتوبة بالقالب."],
+  aiSlidesNeeds:["Needs an image model (IMAGE_PROVIDER, IMAGE_API_KEY) and ANTHROPIC_API_KEY on the server.","يحتاج نموذج صور (IMAGE_PROVIDER و IMAGE_API_KEY) و ANTHROPIC_API_KEY على الخادم."],
+  mode_generated:["AI · text checked","ذكاء · النص مُدقَّق"], mode_scene:["AI scene + typeset headline","مشهد بالذكاء + عنوان بالقالب"], mode_typeset:["Typeset","بالقالب"],
+  why_structured:["lists and tables","قوائم وجداول"], why_tooMuchText:["long text","نص طويل"], why_mainImage:["main image","الصورة الرئيسية"], why_generationFailed:["AI failed the check","لم يجتز الذكاء الفحص"], why_textFailed:["text failed the check","لم يجتز النص الفحص"], attemptsN:["tries: {n}","محاولات: {n}"]
 });
 Object.assign(ICONS, {
   batch:'<path d="M4 7h9M4 12h9M4 17h5"/><path d="M14 16l2.5 2.5L21 14"/>',
@@ -2179,6 +2184,7 @@ document.addEventListener("change", function(e){
   if (el.id === "x-exp-ch"){ state.batch.channel = el.value; state.batch.exp = null; state.batch.pub = null; render(); return; }
   if (el.id === "x-mk"){ state.batch.market = el.value; return; }
   if (el.id === "x-om-count"){ state.om.count = +el.value; return; }
+  if (el.id === "x-ai-slides"){ state.aiSlides = el.checked; if (state.gen[state.pid]) state.gen[state.pid].phase = "idle"; render(); return; }
   if (el.id === "x-changed"){ render(); return; }
   if (el.dataset && el.dataset.xconsent){ setConsent(el.dataset.xconsent, el.checked); return; }
   if ((el.id === "x-rep-before" || el.id === "x-rep-after") && el.files && el.files[0]){
@@ -2368,7 +2374,29 @@ function runServerGen(pid){
   }).catch(function(err){ g.phase = "error"; g.error = err.message; })
   .then(function(){ clearInterval(tick); if (state.route === "studio" && state.pid === pid) render(); });
 }
+function runAiGen(pid){
+  var p = PM[pid], set = setOf(p).slice(), g = state.gen[pid] = {phase:"run", step:0, server:true}; render();
+  var tick = setInterval(function(){ if (g.step < 3){ g.step++; if (state.route === "studio" && state.pid === pid) render(); } }, 900);
+  var visual = activeTraits(genome(), {channel:p.ch[0], category:catOf(p)}).filter(function(x){ return x.type === "visual"; }).map(function(x){ return x.params.text; }).join("; ");
+  ensureDataImage(p).then(function(image){
+    var out = [];
+    // One slide at a time: each can take several model calls.
+    return set.reduce(function(chain, sl){
+      return chain.then(function(){
+        var c = ctxFor(p, sl);
+        return post("/api/slides/generate", {template:sl.tpl, fields:sl.fields, image:image, kit:c.kit, language:c.language, numerals:c.numerals, fonts:c.fonts, logo:c.logo, brand:c.brand, product:tr(p.name), category:catOf(p), visual:visual})
+          .then(function(r){ return fetch(r.image).then(function(x){ return x.blob(); }).then(function(b){ out.push({url:URL.createObjectURL(b), tpl:sl.tpl, mode:r.mode, reason:r.reason, tries:r.attempts.length}); }); });
+      });
+    }, Promise.resolve()).then(function(){ return out; });
+  }).then(function(out){
+    (state.renders[pid] || []).forEach(function(o){ URL.revokeObjectURL(o.url); });
+    state.renders[pid] = out; g.step = 4; g.phase = "done";
+    refreshAccount();
+  }).catch(function(err){ g.phase = "error"; g.error = err.message; })
+  .then(function(){ clearInterval(tick); if (state.route === "studio" && state.pid === pid) render(); });
+}
 function runGen(pid){
+  if (state.api && state.api.slideGen && state.aiSlides) return runAiGen(pid);
   if (state.api && state.api.render) return runServerGen(pid);
   var g = state.gen[pid] = {phase:"run", step:0}; render();
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
