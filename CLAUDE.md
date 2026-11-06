@@ -8,6 +8,7 @@ AI product content intelligence for e-commerce agencies selling on Amazon, Noon,
 
 - Whenever the user asks what stage the project is at, what's missing, what to do next, or how far along a pipeline stage is: read `ROADMAP.md`, check the statuses against the code, and answer from it.
 - When a feature lands or changes, update its row in `ROADMAP.md` (and the "Обновлено" date) in the same commit.
+- When the user asks what was saved or postponed for later, answer from the «Отложено на потом» section of `ROADMAP.md`. When the user asks to save an idea for later, add a row there (and a document in `docs/` if it needs detail).
 
 ## Working on the code
 
