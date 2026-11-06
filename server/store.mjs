@@ -15,7 +15,8 @@ export function safeName(s) { return String(s || "").normalize("NFKD").replace(/
 
 export class StoreError extends Error { constructor(message, status = 400) { super(message); this.status = status; } }
 
-export function createStore(dir) {
+/** @param {{ seed?: boolean }} opts  seed: add the two sample clients on first use (agencies); brands start with their own brand only */
+export function createStore(dir, { seed = true } = {}) {
   const wsFile = join(dir, "workspaces.json");
   const wsDir = (id) => {
     if (!ID.test(id)) throw new StoreError("Unknown workspace", 404);
@@ -35,6 +36,7 @@ export function createStore(dir) {
   async function ensureSeeded() {
     const list = await readJson(wsFile, null);
     if (list) return list;
+    if (!seed) { await writeJson(wsFile, []); return []; }
     const d = sampleData();
     for (const w of d.workspaces) {
       await writeJson(join(wsDir(w.id), "genome.json"), d.genomes[w.id]);

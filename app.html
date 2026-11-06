@@ -471,6 +471,38 @@ th.ck-cell,td.ck-cell{width:44px;padding-inline-end:0}.ck-cell label{display:gri
 @media (max-width:640px){.om-grid{grid-template-columns:1fr}.om-ref{max-width:180px}}
 .omgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.omgrid figure{margin:0;display:grid;gap:6px;justify-items:start}.omgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.omgrid .tag{white-space:normal}
 label.is-off{opacity:.45;pointer-events:none}
+/* accounts: sign-in screen, account type, team */
+.shell.booting .view{visibility:hidden}
+.shell.is-auth{grid-template-columns:1fr}
+.shell.is-auth .side,.shell.is-auth .mobile-nav,.shell.is-auth .search,.shell.is-auth .me{display:none}
+.auth{display:grid;place-items:center;min-height:calc(100vh - 150px);min-height:calc(100dvh - 150px)}
+.auth-card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px;display:grid;gap:18px;box-shadow:var(--shadow)}
+.auth-card h1{font-size:clamp(22px,2.4vw,27px);font-weight:700}
+.auth-card .sub{color:var(--ink-2);margin-top:6px}
+.auth-mark{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:17px}.auth-mark svg{width:28px;height:28px}.auth-mark small{font-family:var(--font-body);font-weight:400;color:var(--ink-3);font-size:13px}
+.auth-card .seg button{height:34px;font-size:13.5px}
+.auth-card .btn-primary{width:100%;height:42px}
+.auth-alt{font-size:13px;color:var(--ink-2);text-align:center}.auth-alt button{border:0;background:none;color:var(--brand);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.mode-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;font-size:13.5px;background:var(--bg)}
+.mode-opt input{width:17px;height:17px;margin-top:2px;accent-color:var(--brand);flex:none}
+.mode-opt>span{display:grid;gap:2px;min-width:0}
+.mode-opt:has(input:checked){border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+.mode-opt:has(input:disabled){cursor:default;opacity:.7}
+@media (max-width:560px){.mode-opts{grid-template-columns:1fr}.auth-card{padding:20px;border-radius:14px}.auth{place-items:start center}}
+.me{position:relative}
+button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13px}
+.me-menu{position:absolute;inset-inline-end:0;top:calc(100% + 8px);z-index:30;min-width:240px;max-width:300px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px;display:grid;gap:4px}
+.me-menu b{font-size:14px}.me-menu .note{overflow-wrap:anywhere}
+.me-menu hr{border:0;border-top:1px solid var(--line);margin:8px 0 4px;width:100%}
+.me-menu a,.me-menu button{display:block;text-align:start;border:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);text-decoration:none;padding:7px 8px;border-radius:8px;cursor:pointer}
+.me-menu a:hover,.me-menu button:hover{background:var(--surface-2)}
+.member{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.member .avatar{display:grid}
+.member .note{overflow-wrap:anywhere}
+.member .exp-row{justify-content:flex-end}
+.invite-box{display:grid;gap:8px;margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-2)}
+.invite-box input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;width:100%;min-width:0;font-family:var(--font-mono);font-size:12.5px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -494,7 +526,7 @@ label.is-off{opacity:.45;pointer-events:none}
       <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" autocomplete="off"></label>
       <div class="top-end">
         <div class="lang" role="group" aria-label="Language"><button type="button" id="lang-en" data-lang="en" aria-pressed="true">EN</button><button type="button" id="lang-ar" data-lang="ar" aria-pressed="false">ع</button></div>
-        <span class="avatar" aria-hidden="true">SA</span>
+        <div class="me" id="me"><span class="avatar" aria-hidden="true">SA</span></div>
       </div>
     </header>
     <nav class="mobile-nav" id="mnav" aria-label="Sections"></nav>
@@ -2816,7 +2848,7 @@ function digits(s){ return state.num === "ar" ? String(s).replace(/\d/g, functio
 function scoreColor(s){ return s < 50 ? "var(--bad)" : s < 70 ? "var(--saffron)" : "var(--good)"; }
 function sbar(s){ return '<span class="sbar"><i style="--w:'+s+'%;--c:'+scoreColor(s)+'"></i>'+s+'</span>'; }
 function sym(p, cls, extra){ return '<svg class="'+(cls||"")+'" viewBox="0 0 120 170" style="color:'+p.color+';'+(extra||"")+'" aria-hidden="true"><use href="#'+p.sym+'"/></svg>'; }
-function tf(k, o){ return t(k).replace(/\{(\w+)\}/g, function(m, x){ return o[x] != null ? o[x] : m; }); }
+function tf(k, o){ return tm(k).replace(/\{(\w+)\}/g, function(m, x){ return o[x] != null ? o[x] : m; }); }
 function thumb(p){ return p.image ? '<img src="'+esc(p.image)+'" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="'+esc((tr(p.name)||"?").trim().charAt(0))+'">' : sym(p); }
 function photoOf(p){ return state.photos[p.id] || null; }
 function prodImg(p){ var ph = photoOf(p); return ph ? '<img src="'+ph+'" alt="">' : sym(p); }
@@ -2851,7 +2883,7 @@ var ICONS = {
   templates:'<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/>'
 };
 function navHTML(mobile){
-  var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
+  var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
   return ["overview","brand","audit","catalog","batch","photos","reviews","templates","studio","approvals","results","profit","settings"].map(function(k){
     var href = k === "studio" ? (state.pid ? "studio-"+state.pid : "catalog") : k;
@@ -2867,15 +2899,16 @@ function renderSide(){
     '<nav class="navl" aria-label="Sections">'+navHTML(false)+'</nav>'+
     '<div class="side-foot">'+usageMeter()+'<a href="./">'+t("site")+'</a></div>';
   document.getElementById("mnav").innerHTML = wsSelect() + navHTML(true);
+  renderMe();
 }
 
 /* ---------- views ---------- */
 function vOverview(){
   var P = WP();
-  if (!P.length) return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+esc(wsInfo().name)+'</p></div></div>'+vNoProducts();
+  if (!P.length) return '<div class="head"><div><h1>'+esc(helloText())+'</h1><p>'+esc(wsInfo().name)+'</p></div></div>'+vNoProducts();
   var avg = Math.round(P.reduce(function(a,p){ return a+p.score; },0)/P.length);
   var low = P.filter(function(p){ return p.score < 60; }).length;
-  var pend = state.queue.filter(function(q){ return q.status === "pending"; }).length;
+  var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
   var revs = P.reduce(function(a,p){ return a+p.rev; },0);
   var agg = {}; P.forEach(function(p){ p.themes.forEach(function(th){ if (!th[2]) agg[th[0]] = (agg[th[0]]||0) + th[1]*p.rev; }); });
   var tot = Object.keys(agg).reduce(function(a,k){ return a+agg[k]; },0);
@@ -2883,7 +2916,7 @@ function vOverview(){
   var maxT = top.length ? top[0][1] : 1;
   var first = P.slice().sort(function(a,b){ return a.score-b.score; }).slice(0,4);
   var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, ps.length ? Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length) : 0, ps.length]; }).filter(function(c){ return c[2]; });
-  return '<div class="head"><div><h1>'+t("hello")+'</h1><p>'+esc(tf("ovSub2", {name: tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), n: P.length}))+'</p></div><span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span></div>'+
+  return '<div class="head"><div><h1>'+esc(helloText())+'</h1><p>'+esc(tf("ovSub2", {name: tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), n: P.length}))+'</p></div>'+(!signedInUser() || wsInfo().sample ? '<span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span>' : "")+'</div>'+
   '<div class="kpis">'+
     '<div class="kpi"><small>'+t("avgScore")+'</small><b>'+avg+'</b><span>'+tf("fixedThisMonth", {n:approvedThisMonth()})+'</span></div>'+
     '<div class="kpi"><small>'+t("needFix")+'</small><b>'+low+'</b><span>/ '+P.length+'</span></div>'+
@@ -3177,8 +3210,10 @@ function vTemplates(){
   }).join("")+'</div>';
 }
 
+/** Approvals for the brand being worked on; another client's never show here. */
+function wsQueue(){ return state.queue.filter(function(q){ return PM[q.pid] && PM[q.pid].ws === state.ws; }); }
 function vApprovals(){
-  var q = state.queue;
+  var q = wsQueue();
   return '<div class="head"><div><h1>'+t("approvals")+'</h1><p>'+t("apprSub")+'</p></div></div>'+
   (q.length ? '<div style="display:grid;gap:12px">'+q.map(function(it){ var p = PM[it.pid], iss = ISSUES[it.issue];
     var stTag = it.status === "pending" ? '<span class="tag warn">'+t("pending")+'</span>' : it.status === "approved" ? '<span class="tag good"><span class="dot"></span>'+t("approvedReady")+'</span>' : '<span class="tag">'+t("changesReq")+'</span>';
@@ -3392,7 +3427,7 @@ function genome(){ return BD.genomes[state.ws] || (BD.genomes[state.ws] = newGen
 function wsEvents(){ return BD.events[state.ws] || (BD.events[state.ws] = []); }
 function WP(){ return P.filter(function(p){ return (p.ws || "layali") === state.ws; }); }
 function persist(){
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ws: state.ws, workspaces: BD.workspaces, genomes: BD.genomes, events: BD.events, sets: state.sets})); } catch(e){}
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({acct: state.me && state.me.account ? state.me.account.id : null, ws: state.ws, workspaces: BD.workspaces, genomes: BD.genomes, events: BD.events, sets: state.sets})); } catch(e){}
 }
 var saveTimer, pendingEv = {};
 function commit(ws, evs){
@@ -3402,7 +3437,7 @@ function commit(ws, evs){
   clearTimeout(saveTimer); saveTimer = setTimeout(function(){ pushServer(ws); }, 400);
 }
 function apiJson(url, opts){
-  return fetch(url, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); });
+  return fetch(url, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ if (r.status === 401 && state.api && state.api.auth && !state.needAuth && url.indexOf("/api/auth/") !== 0) showAuth(); var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); });
 }
 function pushServer(ws){
   if (!state.api || !state.api.store) return;
@@ -3413,12 +3448,24 @@ function pushServer(ws){
   if (evs.length) apiJson("/api/brand/"+ws+"/events", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({events: evs})}).then(function(){ if (evs.some(function(e){ return e.type === "approve"; })) refreshAccount(); }).catch(function(){});
 }
 function loadFromServer(){
-  apiJson("/api/workspaces").then(function(list){
-    state.api.store = true; BD.workspaces = list;
+  var shell = document.querySelector(".shell"); shell.classList.add("booting");
+  return apiJson("/api/workspaces").then(function(list){
+    // An account always has at least one brand to work on.
+    if (!list.length) return post("/api/workspaces", {name: (state.me && state.me.account && state.me.account.name) || "My brand"}).then(function(w){ return [w]; });
+    return list;
+  }).then(function(list){
+    state.api.store = true;
+    var gs = {}, evs = {}, ver = {};
     return Promise.all(list.map(function(w){
-      return Promise.all([apiJson("/api/brand/"+w.id), apiJson("/api/brand/"+w.id+"/events")]).then(function(x){ BD.genomes[w.id] = x[0]; BD.serverVer[w.id] = x[0].version; BD.events[w.id] = x[1]; });
-    }));
-  }).then(function(){ if (!BD.genomes[state.ws]) state.ws = BD.workspaces[0].id; persist(); render(); }).catch(function(){});
+      return Promise.all([apiJson("/api/brand/"+w.id), apiJson("/api/brand/"+w.id+"/events")]).then(function(x){ gs[w.id] = x[0]; ver[w.id] = x[0].version; evs[w.id] = x[1]; });
+    })).then(function(){
+      // Swap in one step, so nothing renders a half-loaded account.
+      BD.workspaces = list; BD.genomes = gs; BD.events = evs; BD.serverVer = ver;
+      if (!list.some(function(w){ return w.id === state.ws; })) state.ws = list[0].id;
+      if (!PM[state.pid] || PM[state.pid].ws !== state.ws) state.pid = (WP()[0] || {}).id || null;
+      persist(); render();
+    });
+  }).catch(function(){}).then(function(){ shell.classList.remove("booting"); });
 }
 function reloadFromServer(ws){
   apiJson("/api/brand/"+ws).then(function(g){ BD.genomes[ws] = g; BD.serverVer[ws] = g.version; persist(); render(); toast(t("bdReloaded")); }).catch(function(){});
@@ -3468,11 +3515,13 @@ function wsLogo(id){
 }
 function wsBlock(){
   var g = genome(), w = wsInfo(), n = g.traits.filter(function(x){ return x.status === "active"; }).length;
+  // A single brand has nothing to switch between: its own brand, no client menu.
+  if (isBrand() && BD.workspaces.length < 2) return '<div class="ws-wrap"><div class="ws">'+wsLogo(w.id)+'<div><b>'+esc(tr([w.name, w.nameAr || w.name]))+'</b><small>'+tf("wsRules", {n:n})+'</small></div></div></div>';
   return '<div class="ws-wrap"><button type="button" class="ws" id="ws-btn" aria-expanded="'+state.wsMenu+'">'+wsLogo(w.id)+'<div><b>'+esc(tr([w.name, w.nameAr || w.name]))+'</b><small>'+tf("wsRules", {n:n})+'</small></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></button>'+
-    (state.wsMenu ? '<div class="ws-menu"><small>'+t("wsClients")+'</small>'+BD.workspaces.map(function(x){ return '<button type="button" data-ws="'+x.id+'" aria-current="'+(x.id === state.ws)+'">'+wsLogo(x.id)+'<span>'+esc(tr([x.name, x.nameAr || x.name]))+'</span></button>'; }).join("")+
-      '<div class="ws-new"><input id="ws-new" placeholder="'+t("wsNewPh")+'" aria-label="'+t("wsNew")+'" value="'+esc(state.wsNewName || "")+'"><button type="button" id="ws-create" class="btn btn-sm btn-primary">'+t("wsCreate")+'</button></div></div>' : "")+'</div>';
+    (state.wsMenu ? '<div class="ws-menu"><small>'+t(isBrand() ? "wsBrands" : "wsClients")+'</small>'+BD.workspaces.map(function(x){ return '<button type="button" data-ws="'+x.id+'" aria-current="'+(x.id === state.ws)+'">'+wsLogo(x.id)+'<span>'+esc(tr([x.name, x.nameAr || x.name]))+'</span></button>'; }).join("")+
+      (isBrand() ? "" : '<div class="ws-new"><input id="ws-new" placeholder="'+t("wsNewPh")+'" aria-label="'+t("wsNew")+'" value="'+esc(state.wsNewName || "")+'"><button type="button" id="ws-create" class="btn btn-sm btn-primary">'+t("wsCreate")+'</button></div>')+'</div>' : "")+'</div>';
 }
-function wsSelect(){ return '<select id="ws-pick" class="ws-pick" aria-label="'+t("wsClients")+'">'+BD.workspaces.map(function(x){ return '<option value="'+x.id+'"'+(x.id === state.ws ? " selected" : "")+'>'+esc(tr([x.name, x.nameAr || x.name]))+'</option>'; }).join("")+'</select>'; }
+function wsSelect(){ if (isBrand() && BD.workspaces.length < 2) return ""; return '<select id="ws-pick" class="ws-pick" aria-label="'+t("wsClients")+'">'+BD.workspaces.map(function(x){ return '<option value="'+x.id+'"'+(x.id === state.ws ? " selected" : "")+'>'+esc(tr([x.name, x.nameAr || x.name]))+'</option>'; }).join("")+'</select>'; }
 function switchWs(id){
   if (!BD.genomes[id] && !wsInfo(id)) return;
   state.ws = id; state.wsMenu = false; state.src = "all"; state.slide = 1;
@@ -3495,7 +3544,7 @@ function createWs(){
   switchWs(id); go("brand");
 }
 function vNoProducts(){
-  return '<div class="card noprod"><h2>'+t("noProducts")+'</h2><p class="note">'+t("noProductsSub")+'</p><div class="cp-actions"><a class="btn btn-primary" href="#catalog">'+t("goImport")+'</a><a class="btn btn-ghost" href="#brand">'+t("goBrand")+'</a></div></div>';
+  return '<div class="card noprod"><h2>'+tm("noProducts")+'</h2><p class="note">'+t("noProductsSub")+'</p><div class="cp-actions"><a class="btn btn-primary" href="#catalog">'+t("goImport")+'</a><a class="btn btn-ghost" href="#brand">'+t("goBrand")+'</a></div></div>';
 }
 
 /* Brand Consistency Score: the genome's traits used as tests */
@@ -4067,7 +4116,7 @@ function vResults(){
     '<div class="card"><div class="upl">'+uplSlot("before")+uplSlot("after")+'</div>'+
       '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost btn-sm" id="x-rep-sample">'+t("sampleReports")+'</button><span class="note">'+t("reportHint")+'</span></div>'+
       (r.error ? '<p class="err">'+esc(r.error)+'</p>' : "")+
-      '<div class="field" style="margin-top:12px"><label for="x-changed">'+t("changedL")+'</label><textarea id="x-changed" rows="3" dir="ltr">'+esc(changedList().join("\n"))+'</textarea><span class="note">'+t("changedHint")+'</span></div>'+
+      '<div class="field" style="margin-top:12px"><label for="x-changed">'+t("changedL")+'</label><textarea id="x-changed" rows="3" dir="ltr">'+esc(changedList().join("\n"))+'</textarea><span class="note">'+tm("changedHint")+'</span></div>'+
     '</div>';
   if (!res) return out+'<p class="note">'+t("needBoth")+'</p>';
   var c = res.changed, k = res.control;
@@ -4078,11 +4127,11 @@ function vResults(){
     '<div class="kpi"><small>'+t("convControl")+'</small><b>'+(res.hasControl ? fmtPts(k.convPts) : "—")+'</b><span>'+(res.hasControl ? fmtConv(k.before.conv)+' → '+fmtConv(k.after.conv)+' · '+k.count : "")+'</span></div>'+
   '</div>';
   var lang = r.lang || state.lang;
-  out += '<div class="card"><div class="card-h"><h2>'+t("reportPreview")+'</h2><small>'+t("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
+  out += '<div class="card"><div class="card-h"><h2>'+tm("reportPreview")+'</h2><small>'+tm("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
     '<div class="exp-row"><div class="field" style="margin:0"><label for="x-period">'+t("periodL")+'</label><input id="x-period" value="'+esc(r.period || "")+'"></div>'+
       '<div class="field" style="margin:0"><span class="lbl">'+t("reportLang")+'</span><div class="seg" role="group"><button type="button" data-xrl="en" aria-pressed="'+(lang === "en")+'">English</button><button type="button" data-xrl="ar" aria-pressed="'+(lang === "ar")+'">العربية</button></div></div>'+
       '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button>'+(saver ? '<button type="button" class="btn btn-ghost" id="x-rep-html">'+t("reportHtml")+'</button>' : "")+'</div>'+
-    '<iframe id="x-rep-frame" class="rep-frame" title="'+t("reportPreview")+'"></iframe></div>';
+    '<iframe id="x-rep-frame" class="rep-frame" title="'+tm("reportPreview")+'"></iframe></div>';
   return out;
 }
 var lastReport = "";
@@ -4109,7 +4158,7 @@ function planCards(){
     var cur = a.plan === p.id, btn;
     if (p.priceSar == null) btn = '<a class="btn btn-ghost btn-sm" href="./#start">'+t("contactSales")+'</a>';
     else btn = '<button type="button" class="btn '+(cur ? "btn-ghost" : "btn-primary")+' btn-sm" data-xplan="'+p.id+'"'+(billing ? "" : " disabled")+'>'+t(cur ? "renew" : "upgrade")+'</button>';
-    return '<div class="plan'+(cur ? " cur" : "")+'"><b>'+esc(tr(p.name))+'</b>'+(p.priceSar == null ? '<b class="price">'+t("customL")+'</b>' : '<b class="price">'+p.priceSar+' <small>'+t("perMonth")+'</small></b><span class="note">'+tf("withVat", {v:(p.amountWithVat / 100).toFixed(2)})+'</span>')+
+    return '<div class="plan'+(cur ? " cur" : "")+'"><b>'+esc(tr(p.name))+(p.id === (isBrand() ? "seller" : "agency") ? ' <span class="tag good">'+t("planFits")+'</span>' : "")+'</b>'+(p.priceSar == null ? '<b class="price">'+t("customL")+'</b>' : '<b class="price">'+p.priceSar+' <small>'+t("perMonth")+'</small></b><span class="note">'+tf("withVat", {v:(p.amountWithVat / 100).toFixed(2)})+'</span>')+
       (p.fixes ? '<span>'+tf("fixesL", {n:p.fixes})+' · '+tf("clientsL", {n:p.clients})+'</span>' : "")+btn+'</div>';
   }).join("")+'</div>'+(state.api ? (billing ? "" : '<p class="note">'+t("payNeeds")+'</p>') : '<p class="note">'+t("payServer")+'</p>');
 }
@@ -4120,11 +4169,11 @@ function vSettings(){
     return '<div class="wsrow"><div style="min-width:0"><b>'+esc(nm)+'</b>'+(w0.sample ? ' <span class="tag">'+t("sampleTag")+'</span>' : "")+
       '<label class="toggle" style="margin-top:8px"><input type="checkbox" data-xconsent="'+w0.id+'"'+(w0.consentTraining ? " checked" : "")+'><span><span>'+t("consentL")+'</span><br><span class="note">'+t("consentHint")+'</span></span></label></div>'+
       '<div class="exp-row" style="justify-content:flex-end">'+(state.api && state.api.store ? '<a class="btn btn-ghost btn-sm" href="/api/workspaces/'+w0.id+'/export" download>'+t("dlData")+'</a>' : '<button type="button" class="btn btn-ghost btn-sm" data-xdl="'+w0.id+'">'+t("dlData")+'</button>')+
-        '<button type="button" class="btn btn-ghost btn-sm" data-xdel="'+w0.id+'">'+t("delClient")+'</button></div>'+
+        (isBrand() && BD.workspaces.length < 2 ? "" : '<button type="button" class="btn btn-ghost btn-sm" data-xdel="'+w0.id+'">'+tm("delClient")+'</button>')+'</div>'+
       (ask ? '<div class="confirm"><span>'+esc(tf("delConfirm", {name:nm}))+'</span><div class="exp-row"><button type="button" class="btn btn-danger btn-sm" data-xdelyes="'+w0.id+'">'+t("delYes")+'</button><button type="button" class="btn btn-ghost btn-sm" data-xdelno="1">'+t("cancel")+'</button></div></div>' : "")+
     '</div>';
   }).join("");
-  return '<div class="head"><div><h1>'+t("settings")+'</h1><p>'+t("setSub")+'</p></div></div>'+
+  return '<div class="head"><div><h1>'+t("settings")+'</h1><p>'+tm("setSub")+'</p></div></div>'+
     '<div class="card"><div class="card-h"><h2>'+t("planT")+'</h2><small>'+(a.local ? t("usageLocal") : "")+'</small></div>'+
       '<p>'+t("currentPlan")+': <b>'+esc(tr(a.planName))+'</b>'+(a.paidUntil ? ' · <span class="note">'+tf("paidUntil", {d:shortDate(a.paidUntil)})+'</span>' : "")+'</p>'+
       (a.expired ? '<p class="err">'+t("expiredNote")+'</p>' : "")+
@@ -4133,16 +4182,17 @@ function vSettings(){
       (a.over ? '<p class="err">'+t("overLimit")+'</p>' : "")+
       '<div style="margin-top:14px">'+planCards()+'</div>'+
     '</div>'+
-  '<div class="grid2 even">'+
-    '<div class="card"><div class="card-h"><h2>'+t("agencyT")+'</h2><small>'+t("agencyHint")+'</small></div><div class="stack">'+
-      '<div class="field"><label for="x-ag-name">'+t("agencyName")+'</label><input id="x-ag-name" data-xag="name" value="'+esc(ag.name || "")+'"></div>'+
+  '<div class="grid2 even">'+accountCard()+teamCard()+'</div>'+
+  '<div'+(signedInUser() ? "" : ' class="grid2 even"')+'>'+
+    '<div class="card"><div class="card-h"><h2>'+tm("agencyT")+'</h2><small>'+tm("agencyHint")+'</small></div><div class="stack">'+
+      '<div class="field"><label for="x-ag-name">'+tm("agencyName")+'</label><input id="x-ag-name" data-xag="name" value="'+esc(ag.name || "")+'"></div>'+
       '<div class="form-grid"><div class="field"><label for="x-ag-colour">'+t("agencyColour")+'</label><input type="color" id="x-ag-colour" data-xag="colour" value="'+esc(ag.colour || "#1F5F5B")+'"></div>'+
       '<div class="field"><span class="lbl">'+t("agencyLogo")+'</span><div class="agp">'+(ag.logo ? '<img src="'+esc(ag.logo)+'" alt="">' : "")+'<label class="btn btn-ghost btn-sm" for="x-ag-logo">'+t("uploadLogo")+'</label><input type="file" id="x-ag-logo" class="vh" accept="image/png,image/jpeg,image/webp,image/svg+xml"></div></div></div>'+
       '<div><button type="button" class="btn btn-primary" id="x-ag-save">'+t("save")+'</button></div>'+
     '</div></div>'+
-    '<div class="card"><div class="card-h"><h2>'+t("legalT")+'</h2></div><p class="note">'+t("legalText")+'</p></div>'+
+    (signedInUser() ? "" : '<div class="card"><div class="card-h"><h2>'+t("legalT")+'</h2></div><p class="note">'+t("legalText")+'</p></div>')+
   '</div>'+
-  '<div class="card"><div class="card-h"><h2>'+t("privacyT")+'</h2><small>'+t(state.api && state.api.store ? "storedServer" : "storedLocal")+'</small></div><p class="note" style="margin-bottom:6px">'+t("privacySub")+'</p>'+wsRows+'</div>';
+  '<div class="card"><div class="card-h"><h2>'+tm("privacyT")+'</h2><small>'+(state.api && state.api.store ? tm("storedServer") : t("storedLocal"))+'</small></div><p class="note" style="margin-bottom:6px">'+tm("privacySub")+'</p>'+wsRows+'</div>';
 }
 function saveAgency(){
   var ag = Object.assign({}, state.agency || {}, state.agDraft || {});
@@ -4157,7 +4207,7 @@ function wsDataLocal(id){
   return {exportedAt:new Date().toISOString(), workspace:w0, genome:BD.genomes[id], events:BD.events[id] || [], products:P.filter(function(p){ return p.ws === id; }).map(function(p){ return {sku:p.sku, name:p.name, copy:p.copyNow || null}; })};
 }
 function deleteWs(id){
-  if (BD.workspaces.length < 2){ toast(t("keepOne")); state.delAsk = null; render(); return; }
+  if (BD.workspaces.length < 2){ toast(tm("keepOne")); state.delAsk = null; render(); return; }
   var w0 = BD.workspaces.filter(function(x){ return x.id === id; })[0], nm = w0 ? w0.name : id;
   var drop = function(){
     BD.workspaces = BD.workspaces.filter(function(x){ return x.id !== id; }); delete BD.genomes[id]; delete BD.events[id];
@@ -4307,6 +4357,231 @@ document.addEventListener("input", function(e){
 });
 
 
+/* ---------- accounts: sign-in, agency or single brand, team ---------- */
+Object.assign(S, {
+  authSignIn:["Sign in","تسجيل الدخول"], authSignUp:["Create account","إنشاء حساب"], authJoin:["Join the team","انضم إلى الفريق"],
+  authSignInT:["Sign in to Basira","سجّل الدخول إلى بصيرة"], authSignUpT:["Create your Basira account","أنشئ حسابك في بصيرة"], authJoinT:["Join {name} on Basira","انضم إلى {name} في بصيرة"],
+  authSub:["Product content for Amazon, Noon, Salla and Zid, in Arabic and English.","محتوى المنتجات لأمازون ونون وسلة وزد بالعربية والإنجليزية."],
+  authJoinSub:["You were invited to work on this account's brands.","دُعيت للعمل على علامات هذا الحساب."],
+  authEmail:["Work email","البريد الإلكتروني للعمل"], authPassword:["Password","كلمة المرور"], authPassNew:["Password, at least 8 characters","كلمة المرور، ٨ أحرف على الأقل"], authName:["Your name","اسمك"],
+  authWho:["Who is the account for?","لمن هذا الحساب؟"], typeAgency:["An agency","وكالة"], typeAgencySub:["You run listings for several brands","تدير منتجات عدة علامات تجارية"],
+  typeBrand:["My own brand","علامتي التجارية"], typeBrandSub:["You sell your own products","تبيع منتجاتك بنفسك"],
+  authCompanyA:["Agency name","اسم الوكالة"], authCompanyB:["Brand name","اسم العلامة التجارية"],
+  authNew:["New to Basira?","جديد على بصيرة؟"], authHave:["Already have an account?","لديك حساب؟"], authBusy:["One moment…","لحظة…"],
+  authErrEmail:["Enter a valid email","أدخل بريداً إلكترونياً صحيحاً"], authErrPass:["Use a password of at least 8 characters","استخدم كلمة مرور من ٨ أحرف على الأقل"], authErrName:["Enter your name","أدخل اسمك"],
+  authErrCompanyA:["Enter your agency's name","أدخل اسم وكالتك"], authErrCompanyB:["Enter your brand's name","أدخل اسم علامتك"],
+  authWrong:["Wrong email or password","البريد أو كلمة المرور غير صحيحة"], authExists:["An account with this email already exists. Sign in instead.","يوجد حساب بهذا البريد. سجّل الدخول بدلاً من ذلك."],
+  authThrottle:["Too many attempts. Try again in 15 minutes.","محاولات كثيرة. حاول بعد ١٥ دقيقة."], authBadInvite:["This invite link has expired or was already used. Ask for a new one.","انتهت صلاحية رابط الدعوة أو استُخدم من قبل. اطلب رابطاً جديداً."],
+  authForgot:["Forgot your password? Ask your account owner or write to us; reset by email isn't available yet.","نسيت كلمة المرور؟ اطلب من مالك الحساب أو راسلنا، فإعادة التعيين بالبريد غير متاحة بعد."],
+  inviteSignedIn:["You're already signed in. Sign out first to accept the invite with another email.","أنت مسجل الدخول. سجّل الخروج أولاً لقبول الدعوة ببريد آخر."],
+  signOut:["Sign out","تسجيل الخروج"], helloName:["Hello, {name}","أهلاً {name}"], roleOwner:["Owner","المالك"], roleMember:["Member","عضو"],
+  accountT:["Account","الحساب"], accountTypeL:["How you use Basira","كيف تستخدم بصيرة"],
+  modeAgency:["Agency","وكالة"], modeAgencySub:["Several client brands: client switcher, client reports under your logo, data controls per client.","عدة علامات لعملاء: مبدّل العملاء وتقارير العملاء بشعارك والتحكم في بيانات كل عميل."],
+  modeBrand:["Single brand","علامة واحدة"], modeBrandSub:["Your own products: a simpler app without the agency tools.","منتجاتك أنت: تطبيق أبسط بدون أدوات الوكالات."],
+  modeOwnerOnly:["Only the account owner can change this.","يستطيع مالك الحساب فقط تغيير هذا."], modeLocal:["Saved in this browser.","محفوظ في هذا المتصفح."], modeSaved:["Switched to {m}","تم التحويل إلى {m}"],
+  teamT:["Team","الفريق"], teamSub:["Everyone here works on the same brands and sees the same history.","كل من هنا يعمل على العلامات نفسها ويرى السجل نفسه."],
+  teamInvite:["Invite a teammate","ادعُ زميلاً"], teamLink:["Send this link to one person. It works once and expires on {d}.","أرسل هذا الرابط لشخص واحد. يعمل مرة واحدة وينتهي في {d}."], teamCopy:["Copy link","انسخ الرابط"],
+  teamRemove:["Remove","إزالة"], teamRemoveQ:["Remove {name} from the account? They'll be signed out.","إزالة {name} من الحساب؟ سيُسجَّل خروجه."], teamRemoved:["{name} removed","أُزيل {name}"], teamYou:["you","أنت"],
+  teamNeedsServer:["Teams need the Basira server with accounts on. In this browser-only version everything stays on this device.","الفرق تحتاج خادم بصيرة مع تفعيل الحسابات. في هذه النسخة داخل المتصفح يبقى كل شيء على هذا الجهاز."],
+  teamOff:["Accounts are off on this server (BASIRA_AUTH=off), so everyone who opens it shares one workspace.","الحسابات مغلقة على هذا الخادم (BASIRA_AUTH=off)، فكل من يفتحه يشارك مساحة واحدة."],
+  teamOnlyOwner:["Only the account owner can invite or remove people.","يستطيع مالك الحساب فقط دعوة الأشخاص أو إزالتهم."], loadingT:["Loading…","جارٍ التحميل…"],
+  planFits:["Fits you","مناسبة لك"], wsBrands:["Your brands","علاماتك"],
+  agencyTB:["Brand profile","ملف العلامة"], agencyNameB:["Brand name","اسم العلامة"], agencyHintB:["Used on your results reports.","يظهر في تقارير النتائج."],
+  setSubB:["Brand profile, plan and usage, team and your data.","ملف العلامة والخطة والاستخدام والفريق وبياناتك."],
+  privacyTB:["Your data and privacy","بياناتك والخصوصية"], privacySubB:["Your brand rules, history and exports stay in your account. Download a copy at any time.","قواعد علامتك وسجلها وتصديراتها تبقى في حسابك. نزّل نسخة في أي وقت."],
+  changedHintB:["Filled from your approvals. Edit it if the report uses ASINs.","مأخوذة من موافقاتك. عدّلها إن كان التقرير يستخدم ASIN."],
+  noProductsB:["No products yet","لا توجد منتجات بعد"], delClientB:["Delete brand","احذف العلامة"], keepOneB:["Keep at least one brand","أبقِ علامة واحدة على الأقل"], clientsLB:["{n} brands","{n} علامات"],
+  storedServerB:["Stored on the Basira server.","محفوظة على خادم بصيرة."],
+  reportPreviewB:["Results report","تقرير النتائج"], agencyBrandHintB:["The report carries your brand's name, logo and colour from Settings.","يحمل التقرير اسم علامتك وشعارها ولونها من الإعدادات."]
+});
+state.me = null; state.needAuth = false; state.authView = "signin"; state.authForm = {type:"agency"}; state.authErr = null; state.authBusy = false;
+state.invite = null; state.team = null; state.teamBusy = false; state.inviteLink = null; state.rmAsk = null; state.meMenu = false;
+
+var MODE_KEY = "basira-mode";
+function accountType(){
+  if (state.me && state.me.account && state.me.account.type) return state.me.account.type === "brand" ? "brand" : "agency";
+  if (state.account && state.account.type) return state.account.type === "brand" ? "brand" : "agency";
+  try { return localStorage.getItem(MODE_KEY) === "brand" ? "brand" : "agency"; } catch(e){ return "agency"; }
+}
+function isBrand(){ return accountType() === "brand"; }
+/** The single-brand wording of a string when there is one. */
+function tm(k){ return isBrand() && S[k+"B"] ? t(k+"B") : t(k); }
+function signedInUser(){ return state.me && state.me.auth && state.me.user ? state.me.user : null; }
+function initials(name){ var w = String(name || "").trim().split(/\s+/).filter(Boolean); return ((w[0] || "?").charAt(0) + (w[1] ? w[1].charAt(0) : "")).toUpperCase(); }
+function firstName(){ var u = signedInUser(); return u ? String(u.name || "").trim().split(/\s+/)[0] : ""; }
+function helloText(){ return firstName() ? tf("helloName", {name: firstName()}) : t("hello"); }
+
+/* header: who is signed in */
+function renderMe(){
+  var box = document.getElementById("me"), u = signedInUser();
+  if (!u){ box.innerHTML = '<span class="avatar" aria-hidden="true">SA</span>'; return; }
+  var a = state.me.account || {};
+  box.innerHTML = '<button type="button" class="avatar" id="me-btn" aria-expanded="'+state.meMenu+'" aria-label="'+esc(u.name)+'" title="'+esc(u.name)+'">'+esc(initials(u.name))+'</button>'+
+    (state.meMenu ? '<div class="me-menu"><b>'+esc(u.name)+'</b><span class="note" dir="ltr">'+esc(u.email)+'</span><span class="note">'+esc(a.name || "")+' · '+t(u.role === "owner" ? "roleOwner" : "roleMember")+'</span><hr>'+
+      '<a href="#settings">'+t("settings")+'</a><button type="button" id="x-signout">'+t("signOut")+'</button></div>' : "");
+}
+
+/* the sign-in, sign-up and join screen */
+function vAuth(){
+  var v = state.authView, f = state.authForm, inv = state.invite, busy = state.authBusy;
+  var inp = function(k, type, label, ac, dir){ return '<div class="field"><label for="au-'+k+'">'+label+'</label><input id="au-'+k+'" name="'+k+'" type="'+type+'" data-auth="'+k+'" autocomplete="'+ac+'"'+(dir ? ' dir="'+dir+'"' : "")+' value="'+esc(f[k] || "")+'"></div>'; };
+  var mark = '<div class="auth-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#52C4AE"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#04120F"/><circle cx="16" cy="16" r="3" fill="#52C4AE"/></svg>Basira <small>بصيرة</small></div>';
+  if (v === "join" && inv && inv.info && !inv.info.valid){
+    return '<div class="auth"><div class="auth-card">'+mark+'<div><h1>'+t("authJoin")+'</h1><p class="err" style="margin-top:10px">'+t("authBadInvite")+'</p></div>'+
+      '<p class="auth-alt">'+t("authHave")+' <button type="button" data-authv="signin">'+t("authSignIn")+'</button></p></div></div>';
+  }
+  var title = v === "join" ? tf("authJoinT", {name: esc(inv && inv.info && inv.info.account ? inv.info.account.name : "…")}) : t(v === "signup" ? "authSignUpT" : "authSignInT");
+  var fields;
+  if (v === "signup"){
+    var opt = function(val){ return '<label class="mode-opt"><input type="radio" name="type" value="'+val+'" data-auth="type"'+(f.type === val ? " checked" : "")+'><span><b>'+t(val === "agency" ? "typeAgency" : "typeBrand")+'</b><span class="note">'+t(val === "agency" ? "typeAgencySub" : "typeBrandSub")+'</span></span></label>'; };
+    fields = '<div class="field"><span class="lbl">'+t("authWho")+'</span><div class="mode-opts">'+opt("agency")+opt("brand")+'</div></div>'+
+      '<div class="form-grid">'+inp("name", "text", t("authName"), "name")+inp("company", "text", t(f.type === "brand" ? "authCompanyB" : "authCompanyA"), "organization")+'</div>'+
+      inp("email", "email", t("authEmail"), "email", "ltr")+inp("password", "password", t("authPassNew"), "new-password", "ltr");
+  } else if (v === "join"){
+    fields = inp("name", "text", t("authName"), "name")+inp("email", "email", t("authEmail"), "email", "ltr")+inp("password", "password", t("authPassNew"), "new-password", "ltr");
+  } else {
+    fields = inp("email", "email", t("authEmail"), "username", "ltr")+inp("password", "password", t("authPassword"), "current-password", "ltr");
+  }
+  return '<div class="auth"><div class="auth-card">'+mark+
+    '<div><h1>'+title+'</h1><p class="sub">'+t(v === "join" ? "authJoinSub" : "authSub")+'</p></div>'+
+    (v !== "join" ? '<div class="seg" role="group"><button type="button" data-authv="signin" aria-pressed="'+(v === "signin")+'">'+t("authSignIn")+'</button><button type="button" data-authv="signup" aria-pressed="'+(v === "signup")+'">'+t("authSignUp")+'</button></div>' : "")+
+    '<form id="auth-form" class="stack" novalidate>'+fields+
+      (state.authErr ? '<p class="err" role="alert">'+esc(state.authErr)+'</p>' : "")+
+      '<button type="submit" class="btn btn-primary"'+(busy ? " disabled" : "")+'>'+(busy ? t("authBusy") : t(v === "signup" ? "authSignUp" : v === "join" ? "authJoin" : "authSignIn"))+'</button>'+
+    '</form>'+
+    (v === "signin" ? '<p class="note">'+t("authForgot")+'</p>' : "")+
+    (v === "signin" ? '<p class="auth-alt">'+t("authNew")+' <button type="button" data-authv="signup">'+t("authSignUp")+'</button></p>' : v === "signup" ? '<p class="auth-alt">'+t("authHave")+' <button type="button" data-authv="signin">'+t("authSignIn")+'</button></p>' : "")+
+  '</div></div>';
+}
+var EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
+function submitAuth(){
+  var v = state.authView, f = state.authForm, err = null;
+  var email = String(f.email || "").trim(), pass = String(f.password || ""), name = String(f.name || "").trim(), company = String(f.company || "").trim();
+  if (v !== "signin" && !name) err = t("authErrName");
+  else if (v === "signup" && !company) err = t(f.type === "brand" ? "authErrCompanyB" : "authErrCompanyA");
+  else if (!EMAIL_RE.test(email)) err = t("authErrEmail");
+  else if (v !== "signin" && pass.length < 8) err = t("authErrPass");
+  else if (!pass) err = t("authErrPass");
+  if (err){ state.authErr = err; render(); return; }
+  var url = v === "signup" ? "/api/auth/signup" : v === "join" ? "/api/auth/join" : "/api/auth/login";
+  var body = v === "signup" ? {type:f.type, name:name, company:company, email:email, password:pass} : v === "join" ? {code: state.invite && state.invite.code, name:name, email:email, password:pass} : {email:email, password:pass};
+  state.authBusy = true; state.authErr = null; render();
+  post(url, body).then(function(me){
+    state.authBusy = false; state.authForm = {type: f.type};
+    if (state.invite){ state.invite = null; try { history.replaceState(null, "", location.pathname + location.hash); } catch(e){} }
+    signedIn(me);
+  }).catch(function(e){
+    state.authBusy = false;
+    state.authErr = e.status === 401 ? t("authWrong") : e.status === 409 ? t("authExists") : e.status === 429 ? t("authThrottle") : e.status === 410 ? t("authBadInvite") : e.message;
+    render();
+  });
+}
+function showAuth(){
+  state.me = null; state.needAuth = true; state.meMenu = false; state.account = null; state.team = null;
+  if (state.authView !== "join") state.authView = "signin";
+  render();
+}
+/** Data cached in this browser belongs to one account; another account's must never show. */
+function useAccount(me){
+  state.me = me;
+  if (!me || !me.auth) return;
+  var c = null; try { c = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch(e){}
+  if (!c || c.acct !== me.account.id){
+    try { localStorage.removeItem(STORE_KEY); localStorage.removeItem("basira-agency"); } catch(e){}
+    state.agency = null; state.sets = {};
+  }
+}
+function signedIn(me){
+  state.needAuth = false; state.team = null; state.inviteLink = null; state.account = null;
+  useAccount(me);
+  startServer();
+}
+function startServer(){
+  render(); loadFromServer(); refreshAccount(); billingReturn();
+  fetch("/api/connectors").then(function(r){ return r.ok ? r.json() : null; }).then(function(c){ if (c){ state.connectors = c; if (state.route === "catalog") render(); } }).catch(function(){});
+}
+function signOut(){
+  state.meMenu = false;
+  post("/api/auth/logout", {}).catch(function(){}).then(function(){
+    try { localStorage.removeItem(STORE_KEY); localStorage.removeItem("basira-agency"); } catch(e){}
+    location.replace(location.pathname);
+  });
+}
+
+/* settings: account type and team */
+function setMode(type){
+  if (type === accountType()) return;
+  var name = t(type === "brand" ? "modeBrand" : "modeAgency");
+  if (!state.api){ try { localStorage.setItem(MODE_KEY, type); } catch(e){} state.wsMenu = false; render(); toast(tf("modeSaved", {m:name})); return; }
+  apiJson("/api/account", {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({type:type})})
+    .then(function(a){ state.account = a; if (state.me && state.me.account) state.me.account.type = a.type; state.wsMenu = false; render(); toast(tf("modeSaved", {m:name})); })
+    .catch(function(e){ toast(e.message); render(); });
+}
+function accountCard(){
+  var u = signedInUser(), owner = !u || u.role === "owner", type = accountType();
+  var opt = function(v){ return '<label class="mode-opt"><input type="radio" name="x-mode" value="'+v+'" data-xmode="'+v+'"'+(type === v ? " checked" : "")+(owner ? "" : " disabled")+'><span><b>'+t(v === "agency" ? "modeAgency" : "modeBrand")+'</b><span class="note">'+t(v === "agency" ? "modeAgencySub" : "modeBrandSub")+'</span></span></label>'; };
+  return '<div class="card"><div class="card-h"><h2>'+t("accountT")+'</h2>'+(u ? '<small dir="ltr">'+esc(u.email)+'</small>' : "")+'</div><div class="stack">'+
+    (u ? '<p><b>'+esc(u.name)+'</b> · '+esc((state.me.account || {}).name || "")+' <span class="tag">'+t(u.role === "owner" ? "roleOwner" : "roleMember")+'</span></p>' : "")+
+    '<div class="field"><span class="lbl">'+t("accountTypeL")+'</span><div class="mode-opts">'+opt("agency")+opt("brand")+'</div>'+
+      (owner ? "" : '<span class="note">'+t("modeOwnerOnly")+'</span>')+(state.api ? "" : '<span class="note">'+t("modeLocal")+'</span>')+'</div>'+
+    (u ? '<div><button type="button" class="btn btn-ghost btn-sm" id="x-signout">'+t("signOut")+'</button></div>' : "")+
+  '</div></div>';
+}
+function loadTeam(){
+  if (state.teamBusy) return;
+  state.teamBusy = true;
+  apiJson("/api/team").then(function(j){ state.team = j; }).catch(function(e){ state.team = {members:[], canInvite:false, error:e.message}; })
+    .then(function(){ state.teamBusy = false; if (state.route === "settings") render(); });
+}
+function teamCard(){
+  var head = '<div class="card-h"><h2>'+t("teamT")+'</h2><small>'+t("teamSub")+'</small></div>';
+  if (!state.api) return '<div class="card">'+head+'<p class="note">'+t("teamNeedsServer")+'</p></div>';
+  if (!signedInUser()) return '<div class="card">'+head+'<p class="note">'+t("teamOff")+'</p></div>';
+  var tm0 = state.team, me = signedInUser();
+  if (!tm0){ loadTeam(); return '<div class="card">'+head+'<p class="note">'+t("loadingT")+'</p></div>'; }
+  var rows = (tm0.members || []).map(function(m){
+    var ask = state.rmAsk === m.id;
+    return '<div class="member"><span class="avatar" aria-hidden="true">'+esc(initials(m.name))+'</span><div style="min-width:0"><b>'+esc(m.name)+'</b>'+(m.id === me.id ? ' <span class="note">('+t("teamYou")+')</span>' : "")+'<br><span class="note" dir="ltr">'+esc(m.email)+'</span></div>'+
+      '<div class="exp-row"><span class="tag'+(m.role === "owner" ? " brand" : "")+'">'+t(m.role === "owner" ? "roleOwner" : "roleMember")+'</span>'+(tm0.canInvite && m.role !== "owner" ? '<button type="button" class="btn btn-ghost btn-sm" data-xrm="'+esc(m.id)+'">'+t("teamRemove")+'</button>' : "")+'</div>'+
+      (ask ? '<div class="confirm"><span>'+esc(tf("teamRemoveQ", {name:m.name}))+'</span><div class="exp-row"><button type="button" class="btn btn-danger btn-sm" data-xrmyes="'+esc(m.id)+'">'+t("teamRemove")+'</button><button type="button" class="btn btn-ghost btn-sm" data-xrmno="1">'+t("cancel")+'</button></div></div>' : "")+
+    '</div>';
+  }).join("");
+  var il = state.inviteLink;
+  return '<div class="card">'+head+(tm0.error ? '<p class="err">'+esc(tm0.error)+'</p>' : "")+rows+
+    (tm0.canInvite ? '<div style="margin-top:12px"><button type="button" class="btn btn-primary btn-sm" id="x-invite">'+t("teamInvite")+'</button></div>'+
+      (il ? '<div class="invite-box"><input id="x-invite-url" readonly dir="ltr" value="'+esc(il.url)+'" aria-label="'+t("teamInvite")+'"><div class="exp-row"><button type="button" class="btn btn-ghost btn-sm" id="x-invite-copy">'+t("teamCopy")+'</button><span class="note">'+tf("teamLink", {d: shortDate(il.expires)})+'</span></div></div>' : "")
+      : '<p class="note" style="margin-top:12px">'+t("teamOnlyOwner")+'</p>')+
+  '</div>';
+}
+function removeMember(id){
+  var m = ((state.team || {}).members || []).filter(function(x){ return x.id === id; })[0];
+  apiJson("/api/team/"+encodeURIComponent(id), {method:"DELETE"}).then(function(){
+    state.rmAsk = null; state.team = null; toast(tf("teamRemoved", {name: m ? m.name : id})); render();
+  }).catch(function(e){ state.rmAsk = null; toast(e.message); render(); });
+}
+
+document.addEventListener("click", function(e){
+  var el;
+  if (state.meMenu && !e.target.closest(".me")){ state.meMenu = false; renderMe(); }
+  if ((el = e.target.closest("#me-btn"))){ state.meMenu = !state.meMenu; renderMe(); return; }
+  if ((el = e.target.closest(".me-menu a"))){ state.meMenu = false; renderMe(); return; }
+  if ((el = e.target.closest("#x-signout"))){ signOut(); return; }
+  if ((el = e.target.closest("[data-authv]"))){ state.authView = el.dataset.authv; state.authErr = null; if (state.invite && state.authView !== "join"){ state.invite = null; try { history.replaceState(null, "", location.pathname + location.hash); } catch(err){} } render(); var first = view.querySelector("#auth-form input"); if (first) first.focus(); return; }
+  if ((el = e.target.closest("#x-invite"))){ post("/api/team/invite", {}).then(function(j){ state.inviteLink = j; render(); }).catch(function(err){ toast(err.message); }); return; }
+  if ((el = e.target.closest("#x-invite-copy"))){ var iu = document.getElementById("x-invite-url"); if (iu){ iu.select(); if (navigator.clipboard) navigator.clipboard.writeText(iu.value).then(function(){ toast(t("copied")); }, function(){ document.execCommand("copy"); toast(t("copied")); }); else { document.execCommand("copy"); toast(t("copied")); } } return; }
+  if ((el = e.target.closest("[data-xrm]"))){ state.rmAsk = el.dataset.xrm; render(); return; }
+  if ((el = e.target.closest("[data-xrmno]"))){ state.rmAsk = null; render(); return; }
+  if ((el = e.target.closest("[data-xrmyes]"))){ removeMember(el.dataset.xrmyes); return; }
+});
+document.addEventListener("keydown", function(e){ if (e.key === "Escape" && state.meMenu){ state.meMenu = false; renderMe(); var b = document.getElementById("me-btn"); if (b) b.focus(); } });
+document.addEventListener("submit", function(e){ if (e.target.id === "auth-form"){ e.preventDefault(); submitAuth(); } });
+document.addEventListener("input", function(e){ var el = e.target; if (el.dataset && el.dataset.auth && el.dataset.auth !== "type") state.authForm[el.dataset.auth] = el.value; });
+document.addEventListener("change", function(e){
+  var el = e.target;
+  if (el.dataset && el.dataset.auth === "type"){ state.authForm.type = el.value; var lb = document.querySelector('label[for="au-company"]'); if (lb) lb.textContent = t(el.value === "brand" ? "authCompanyB" : "authCompanyA"); return; }
+  if (el.dataset && el.dataset.xmode && el.checked){ setMode(el.dataset.xmode); return; }
+});
+
 /* ---------- router ---------- */
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
@@ -4317,6 +4592,14 @@ function route(){
   render(true);
 }
 function render(scroll){
+  var shell = document.querySelector(".shell");
+  if (state.needAuth){
+    shell.classList.add("is-auth"); renderMe();
+    view.innerHTML = vAuth();
+    document.title = "Basira · " + t(state.authView === "signup" ? "authSignUp" : state.authView === "join" ? "authJoin" : "authSignIn");
+    return;
+  }
+  shell.classList.remove("is-auth");
   renderSide();
   var r = state.route;
   if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
@@ -4518,7 +4801,7 @@ function sendAppr(pid){
     maxChars = Math.max(maxChars, slideContent(p, sl).chars);
   });
   var changes = evs.length ? recordAll(evs) : [];
-  state.queue.unshift({id:"q"+Date.now(), pid:pid, by:"Sara", status:"pending", issue:iss, edits: evs.length, chars: maxChars, learned: learnedNote(changes)});
+  state.queue.unshift({id:"q"+Date.now(), pid:pid, by:firstName() || "Sara", status:"pending", issue:iss, edits: evs.length, chars: maxChars, learned: learnedNote(changes)});
   persist(); render(); toast(t("sent"));
 }
 function sendFeedback(id){
@@ -4547,11 +4830,26 @@ function setLang(l){
 
 addEventListener("hashchange", route);
 if (/^https?:$/.test(location.protocol)){
+  // Hidden until we know whether this is the server and who is signed in, so no sample data flashes first.
+  var shellEl = document.querySelector(".shell"), booted = function(){ shellEl.classList.remove("booting"); };
+  shellEl.classList.add("booting"); setTimeout(booted, 6000);
+  var inviteCode = null; try { inviteCode = new URLSearchParams(location.search).get("invite"); } catch(e){}
   fetch("/api/health").then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
-    if (!j || !j.ok) return;
-    state.api = j; render(); loadFromServer(); refreshAccount(); billingReturn();
-    fetch("/api/connectors").then(function(r){ return r.ok ? r.json() : null; }).then(function(c){ if (c){ state.connectors = c; if (state.route === "catalog") render(); } }).catch(function(){});
-  }).catch(function(){});
+    if (!j || !j.ok){ booted(); return; }
+    state.api = j;
+    return apiJson("/api/auth/me").then(function(me){
+      useAccount(me);
+      if (inviteCode && me.auth) toast(t("inviteSignedIn"));
+      startServer();
+    }, function(e){
+      if (e.status !== 401){ startServer(); return; }
+      if (inviteCode){
+        state.authView = "join"; state.invite = {code: inviteCode, info: null};
+        apiJson("/api/auth/invite?code="+encodeURIComponent(inviteCode)).then(function(info){ state.invite.info = info; if (info.account) state.authForm.type = info.account.type; render(); }).catch(function(){ state.invite.info = {valid:false}; render(); });
+      }
+      showAuth(); booted();
+    });
+  }).catch(booted);
 }
 var saved = null; try { saved = localStorage.getItem("basira-lang"); } catch(e){}
 var initial = saved || ((navigator.language || "").toLowerCase().indexOf("ar") === 0 ? "ar" : "en");

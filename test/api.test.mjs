@@ -12,6 +12,7 @@ let dir, server, base, closeRenderer, rendererAvailable;
 before(async () => {
   dir = await mkdtemp(join(tmpdir(), "basira-api-"));
   process.env.BASIRA_DATA_DIR = dir;
+  process.env.BASIRA_AUTH = "off"; // single-tenant mode; accounts are covered in auth.test.mjs
   ({ server } = await import("../server/index.mjs"));
   ({ closeRenderer, rendererAvailable } = await import("../server/render.mjs"));
   await new Promise((r) => server.listen(0, r));

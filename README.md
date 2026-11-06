@@ -27,6 +27,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/brand-dna.mjs` | Brand DNA: evidence-weighted brand genome (traits used both to generate and to check, learning from edits and approvals), shared with the app |
 | `server/brand-ai.mjs` | Claude: reads brand materials into proposed rules; writes listing copy with the brand brief |
 | `server/brand-seed.mjs` | Sample client workspaces (Layali with a learning history, Noor as a new client) |
+| `server/auth.mjs` | Accounts (one agency or one brand each), users, scrypt passwords, sessions, single-use team invites |
 | `server/store.mjs` | File store per client workspace: genome, event log, export assets; account (plan, usage, invoices); data export and deletion |
 | `server/copy-rules.mjs` | Applies the brand's checkable rules (avoided words, no "!", no emoji, digits, headline length) to existing copy without AI, shared with the app |
 | `server/exports.mjs` | Upload files per channel: Amazon flat file (PartialUpdate, English and Arabic), Shopify product CSV, Noon, Salla and Zid CSVs, shared with the app |
@@ -67,7 +68,17 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 
 | Endpoint | Input | Output |
 | --- | --- | --- |
-| `GET /api/health` | | `{ ok, render, ai, model, imageGen, billing, amazonPublish, publicUrl }` |
+| `GET /api/health` | | `{ ok, render, ai, model, imageGen, imageProvider, slideGen, billing, amazonPublish, publicUrl, auth }` |
+| `POST /api/auth/signup` | `{ type: agency \| brand, name, company, email, password }` | `{ auth, user, account }` and the session cookie. An agency starts with the two sample clients, a brand with its own brand as the only workspace |
+| `POST /api/auth/login` | `{ email, password }` | Same; 401 on a wrong password, 429 after 5 failures in 15 minutes |
+| `POST /api/auth/logout` | | Ends the session and clears the cookie |
+| `GET /api/auth/me` | | `{ auth, user, account{ id, type, name } }`; 401 when signed out. With accounts off: `{ auth: false, account }` |
+| `GET /api/auth/invite?code=` | | `{ valid, account }` |
+| `POST /api/auth/join` | `{ code, name, email, password }` | Joins the inviting account as a member; 410 if the invite was used or expired |
+| `GET /api/team` | | `{ members[{ id, email, name, role }], canInvite }` |
+| `POST /api/team/invite` | | `{ code, expires, url }`: a single-use link valid 7 days (owner only) |
+| `DELETE /api/team/:userId` | | Removes a member and ends their sessions (owner only) |
+| `PATCH /api/account` | `{ type: agency \| brand, name }` | Switches between agency and single-brand mode (owner only) |
 | `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] } }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }` |
 | `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand, logo?: { src: data URL, pos }, fonts?: kufi \| naskh \| modern }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
 | `POST /api/reviews/analyze` | `{ product, reviews: [string \| { text, rating }] }` (up to 200) | `{ total, dialects, themes[], reviews[], fixes[] }` |
@@ -84,11 +95,11 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/brand/analyze` | `{ name, url?, pdf?: data URL, images?: [data URL], texts?: [] }` | `{ proposals[], palette[], logoPos, sources }` |
 | `POST /api/copy` | `{ product, channel, category, listing, issues[], missingKeywords[], brief }` | `{ titleEn, titleAr, bulletsEn[], bulletsAr[], changes[] }` |
 | `POST /api/leads` | `{ name, whatsapp, store, lang }` | `{ ok }`, appended to `data/leads.jsonl` |
-| `POST /api/export` | `{ ws, channel: noon \| amazon \| salla \| zid \| shopify, client, style{ language, numerals, brand, logo, fonts }, items[{ sku, name, copy{ titleEn, titleAr, bulletsEn[], bulletsAr[] }, image, slides[{ template, fields, kit }], extraImages[] }] }` (up to 50 products, 9 images each) | `{ batch, zipUrl, hosted, files[], items[{ sku, images[url] }], rendered }`. Slides are rendered, stored and served at `/assets/<ws>/<batch>/images/…`; the ZIP holds `images/`, the channel's upload files and a README |
-| `GET /assets/<ws>/<batch>/<file>` | | Hosted export images (public, long random batch id) and the ZIP |
+| `POST /api/export` | `{ ws, channel: noon \| amazon \| salla \| zid \| shopify, client, style{ language, numerals, brand, logo, fonts }, items[{ sku, name, copy{ titleEn, titleAr, bulletsEn[], bulletsAr[] }, image, slides[{ template, fields, kit }], extraImages[] }] }` (up to 50 products, 9 images each) | `{ batch, zipUrl, hosted, files[], items[{ sku, images[url] }], rendered }`. Slides are rendered, stored and served at `/assets/<account>/<ws>/<batch>/images/…`; the ZIP holds `images/`, the channel's upload files and a README |
+| `GET /assets/<account>/<ws>/<batch>/<file>` | | Hosted export images (public, so marketplaces can fetch them; long random account and batch ids) and the ZIP |
 | `POST /api/publish/amazon` | `{ ws, batch, marketplace: amazon.sa \| amazon.ae \| amazon.eg }` | `{ results[{ sku, status: ACCEPTED \| INVALID \| NOT_FOUND, submissionId, issues[] }], imagesIncluded }`: SP-API Listings PATCH of title, bullets (both languages) and image links |
 | `POST /api/report/pdf` | `{ result (from compareResults), agency{ name, logo, colour }, client, period, lang }` | `application/pdf`, A4 |
-| `GET /api/account` | | `{ plan, planName, limit, used, left, over, renders, ai, paidUntil, plans[], billing, agency, invoices[] }` |
+| `GET /api/account` | | `{ plan, planName, limit, used, left, over, renders, ai, paidUntil, plans[], billing, agency, invoices[], type, accountName, role, auth }` |
 | `PUT /api/account/agency` | `{ name, colour, logo }` | Agency profile for reports |
 | `POST /api/billing/checkout` | `{ plan: seller \| agency }` | `{ id, url, amount }`: Moyasar hosted invoice (SAR, incl. 15% VAT) |
 | `GET /api/billing/verify?id=` | | Checks an invoice this server created; a paid one switches the plan for a month |
@@ -98,7 +109,21 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/slides/generate` | `{ template, fields, image, kit, language, numerals, fonts, logo, brand, product, category, visual }` | `{ mode: generated \| scene \| typeset, reason, image: data URL, attempts[{ ok, reasons, readback, fidelity }] }`. Lists, tables and the main image are always typeset |
 | `POST /api/imagegen/onmodel` | `{ image: data URL, product, category, look, cover, setting, count, visual }` | `{ images[data URL], prompt }` |
 
-Usage metering: an `approve` event counts as one fix; `/api/render`, exports and generated photos count renders; Claude and image-model calls count AI. When the month's fixes are used, AI drafting and photo generation answer 402; approvals, exports and learning keep working. There are no user accounts yet: one server is one agency, so put it behind your own sign-in before giving it a public address.
+Usage metering: an `approve` event counts as one fix; `/api/render`, exports and generated photos count renders; Claude and image-model calls count AI. When the month's fixes are used, AI drafting and photo generation answer 402; approvals, exports and learning keep working.
+
+## Accounts
+
+Anyone can create an account in the app: an **agency** (several client brands) or a **brand** (its own products). Each account's workspaces, Brand DNA, events, plan and exports live in their own folder, `data/accounts/<account id>/`, and no request can reach another account's data. Every API route except health, leads, the sign-in routes and hosted export files needs a session.
+
+- Passwords are hashed with scrypt; session tokens are random, stored only as SHA-256 hashes, and sent as an `HttpOnly`, `SameSite=Lax` cookie (`Secure` over https) that lasts 30 days.
+- Requests that change something are refused when they come from another site's page (Origin check).
+- Five wrong passwords for one email from one address, or 20 from any addresses, lock sign-in to that email for 15 minutes.
+- The owner invites teammates with single-use links that expire in 7 days and can remove them; members work on the same brands but can't change the account type or invite.
+- **Single-brand mode** hides the agency tools: no client switcher or "new client", brand wording on reports and data controls, and the Seller plan marked as the fit. The owner can switch modes in Settings.
+
+Not built yet: email verification and password reset by email (the owner can invite a person again), and per-plan limits on the number of clients. Users and sessions are kept in one JSON file (`data/auth/auth.json`), which is fine for pilots on one server; move it to a database before running several instances.
+
+Set `BASIRA_AUTH=off` to run without accounts, as one shared workspace (the data stays at the root of `BASIRA_DATA_DIR`); only do that on a private network.
 
 Review analysis uses `claude-opus-5-5` (override with `BASIRA_MODEL`) at low effort, with structured output validated by Zod, and server-side fallback (`fallbacks: "default"`) if a request is declined.
 
@@ -124,7 +149,8 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `ANTHROPIC_API_KEY` | | Enables review analysis |
 | `BASIRA_MODEL` | `claude-opus-5-5` | Model for review analysis |
 | `CHROMIUM_PATH` | | Chromium binary for rendering |
-| `BASIRA_DATA_DIR` | `./data` | Leads, client workspaces, Brand DNA genomes and event logs |
+| `BASIRA_DATA_DIR` | `./data` | Leads, accounts, client workspaces, Brand DNA genomes and event logs |
+| `BASIRA_AUTH` | on | `off` runs without sign-in, as one shared workspace (private networks only) |
 | `SPAPI_CLIENT_ID`, `SPAPI_CLIENT_SECRET`, `SPAPI_REFRESH_TOKEN` | | Amazon Selling Partner API app credentials (Login with Amazon) |
 | `SPAPI_SELLER_ID` | | The connected seller account, needed to import a whole Amazon store |
 | `SPAPI_ENDPOINT` | `https://sellingpartnerapi-eu.amazon.com` | SP-API endpoint (Saudi Arabia, UAE and Egypt use the EU one) |
@@ -189,7 +215,8 @@ What is real:
 - **Unit economics** compares profit per unit across Noon, Amazon, Salla, Zid and Shopify after VAT, fees, delivery, cash on delivery, ads and returns. Fee defaults are starting values to replace with your own.
 - **Bulk fixes**: select products in the Catalog, and the brand's rules are applied to all of them at once (with Claude drafts when a key is set). Review, approve one by one or all, then export a ZIP for the channel: upload files, README and, with the server, every slide as a PNG. Amazon can be updated directly when a seller account is connected.
 - **Results**: upload sales reports from before and after the fixes (Amazon Business Reports, Noon and other exports). Products that weren't changed are the control group, and the uplift is the changed products' gain minus theirs. The client report carries the agency's logo and colour; PDF on the server, print from the browser.
-- **Settings**: agency profile for reports, plan and real usage (from the server, or counted in the browser), Moyasar checkout, and per-client data download, deletion and consent to anonymised use.
+- **Sign-in** (server with accounts on): create an agency or brand account, sign in, join a team from an invite link. A brand gets the simpler single-brand app.
+- **Settings**: account type (agency or single brand), team and invites, agency or brand profile for reports, plan and real usage (from the server, or counted in the browser), Moyasar checkout, and per-client data download, deletion and consent to anonymised use.
 - **On-model photos** (Photo check): generate the garment worn by a model with modest styling through an image model, or check a photo made elsewhere. Every result is checked for colour against the product photo before it can go into an export.
 
 Sample data: the catalog, reviews and the approval queue start with sample content; sample results reports are labelled. Approval no longer pretends to publish: it marks the fix ready to export.
