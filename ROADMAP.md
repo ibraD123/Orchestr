@@ -199,7 +199,9 @@ flowchart TB
 
 ## Конкуренты (разбор 2026-11-05)
 
-Полный разбор со скриншотами кабинетов: [`docs/research/competitors-2026-11.md`](docs/research/competitors-2026-11.md).
+Полный разбор со скриншотами кабинетов: [`docs/research/competitors-2026-11.md`](docs/research/competitors-2026-11.md). Карта всего рынка с оборотами и пользователями (2026-11-07): [`docs/research/landscape-2026-11.md`](docs/research/landscape-2026-11.md).
+
+**Карта рынка коротко.** Ближайшие по сути (Listing Optimization AI, Helix) зарабатывают $1–5 млн. В регионе: Catalogix (~$10 млн, шаблоны Noon/Namshi/Ounass, клиенты индийские), NoonSpy (исследования Noon + тексты), приложения Salla за 19–149 SAR/мес (Wasef AI, Tafaseel, Store Tools, KOONX). Бесплатная замена — ИИ Amazon (900 000+ продавцов, 12+ млн карточек в 2025); у Noon, Salla и Zid встроенного ИИ нет. Главная угроза — Catalogix, если добавит отзывы и бренд.
 
 **Ближе всего по духу — Listing Optimization AI** (AMZ One Step). Та же связка: свои и чужие отзывы → бриф → картинки, A+ и тексты в стиле бренда → Seller Central → A/B. Сделан агентством для агентств. Только Amazon, 8 рынков без MENA. От $97/мес, Pro Agency — $497/мес.
 
