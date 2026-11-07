@@ -463,6 +463,10 @@ th.ck-cell,td.ck-cell{width:44px;padding-inline-end:0}.ck-cell label{display:gri
 @media (max-width:640px){.om-grid{grid-template-columns:1fr}.om-ref{max-width:180px}}
 .omgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.omgrid figure{margin:0;display:grid;gap:6px;justify-items:start}.omgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.omgrid .tag{white-space:normal}
 label.is-off{opacity:.45;pointer-events:none}
+/* sales results in Brand DNA */
+.perf-r{display:grid;grid-template-columns:minmax(0,1fr) auto 76px 90px;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}.perf-r .mono{text-align:end}
+@media (max-width:560px){.perf-r{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}}
+table.oc td{vertical-align:top}table.oc .note{font-size:12px}
 /* accounts: sign-in screen, account type, team */
 .shell.booting .view{visibility:hidden}
 .shell.is-auth{grid-template-columns:1fr}
@@ -1480,6 +1484,10 @@ var __shared7 = (function(){
 // Edits and rejections create candidate traits ("mutation"); a candidate becomes active only after
 // consistent evidence or a person's decision ("selection"). Every change is versioned in the log.
 //
+// Sales results close the loop: a fix that raised conversion against a control group strengthens the
+// rules its approved content followed, and the genome keeps a record of which slide templates and which
+// kinds of fixes moved conversion for this brand. Audit priorities and the brief read that record.
+//
 // Pure functions with no imports: the server uses this module directly, and scripts/build.mjs inlines
 // it into the app so the genome learns and checks in the browser too.
 
@@ -1626,7 +1634,7 @@ function extractPalette(d, w, h, k = 5) {
 /* ---------- genome ---------- */
 
 function newGenome(ws, identity) {
-  return { ws, version: 1, updatedAt: null, identity: Object.assign({ name: "", nameAr: "", logo: null, logoPos: "top-end", palette: [], fonts: "kufi" }, identity || {}), traits: [], exemplars: [], log: [] };
+  return { ws, version: 1, updatedAt: null, identity: Object.assign({ name: "", nameAr: "", logo: null, logoPos: "top-end", palette: [], fonts: "kufi" }, identity || {}), traits: [], exemplars: [], performance: { templates: {}, fixes: {} }, log: [] };
 }
 
 function traitKey(type, params) {
@@ -1672,7 +1680,7 @@ function strength(t, at) {
 }
 
 function evidenceSummary(t) {
-  const out = { declared: 0, brandbook: 0, analysis: 0, edit: 0, approve: 0, reject: 0, manual: 0, against: 0 };
+  const out = { declared: 0, brandbook: 0, analysis: 0, edit: 0, approve: 0, reject: 0, manual: 0, outcome: 0, against: 0 };
   for (const e of t.evidence || []) { if (e.sign < 0) out.against++; else out[e.kind] = (out[e.kind] || 0) + 1; }
   return out;
 }
@@ -1805,6 +1813,8 @@ function observeReject(reasons, ctx) {
  *   approve    { content, ctx }   reinforces active traits the content satisfies, stores an exemplar
  *   removeSlide{ template, ctx }  weak evidence against a template in that category
  *   kit        { onBrand: boolean } choosing colours outside the palette weakens the palette rule
+ *   outcome    { result: win | loss | flat, upliftPts, contents[], templates[], fixes[], ctx }
+ *              a product's sales result against the control group (see learnOutcome)
  * Returns the list of changes (new candidates, promotions, retirements).
  */
 function learn(g, ev) {
@@ -1831,7 +1841,93 @@ function learn(g, ev) {
     if (g.exemplars.length > 40) g.exemplars.length = 40;
     logChange(g, { type: "approved", note: ev.label || "approved", edits: ev.edits || 0 }, at);
   }
+  else if (ev.type === "outcome") changes = learnOutcome(g, ev, at, ref);
   return changes;
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/**
+ * A sales result for one fixed product. A win strengthens every active rule the approved content
+ * followed; a loss weakens only rules learned from behaviour (one product's sales don't overrule the
+ * brand book). Wins, losses and the conversion change are tallied per slide template and per kind of
+ * fix, which is what audit priorities and the brief use. "flat" is recorded but moves no rule.
+ */
+function learnOutcome(g, ev, at, ref) {
+  const perf = g.performance || (g.performance = { templates: {}, fixes: {} });
+  const result = ev.result === "win" || ev.result === "loss" ? ev.result : "flat";
+  const pts = Number(ev.upliftPts) || 0;
+  const tally = (bucket, key) => {
+    const x = bucket[key] || (bucket[key] = { wins: 0, losses: 0, flat: 0, n: 0, sumPts: 0, lastAt: null });
+    x.n++; x[result === "win" ? "wins" : result === "loss" ? "losses" : "flat"]++; x.sumPts = round2(x.sumPts + pts); x.lastAt = at;
+  };
+  for (const id of new Set(ev.templates || [])) tally(perf.templates, id);
+  for (const key of new Set(ev.fixes || [])) tally(perf.fixes, key);
+
+  let changes = [];
+  if (result !== "flat") {
+    const followed = new Map();
+    for (const content of ev.contents || []) {
+      for (const r of check(g, content, ev.ctx || {}, at).results) if (r.pass) followed.set(r.trait.id, r.trait);
+    }
+    const sign = result === "win" ? 1 : -1;
+    for (const t of followed.values()) {
+      if (sign < 0 && t.origin !== "learned") continue;
+      const note = "sales: conversion " + (pts > 0 ? "+" : "") + pts + " pts vs control";
+      changes = changes.concat(addEvidence(g, { type: t.type, params: t.params }, { kind: "outcome", sign, w: 1, note, ref }, at));
+      changes.push({ type: sign > 0 ? "strengthened" : "weakened", trait: t.id });
+    }
+  }
+  logChange(g, { type: "outcome", result, pts, note: ev.label || result }, at);
+  return changes;
+}
+
+/**
+ * What moved conversion for this brand, from recorded sales results.
+ * verdict: "works" (more wins than losses and a positive average), "hurts" (more losses), "mixed" otherwise.
+ */
+function performanceOf(g) {
+  const perf = (g && g.performance) || { templates: {}, fixes: {} };
+  const list = (bucket) => Object.entries(bucket || {}).map(([id, x]) => {
+    const avgPts = x.n ? round2(x.sumPts / x.n) : 0;
+    const verdict = x.wins > x.losses && avgPts > 0 ? "works" : x.losses > x.wins ? "hurts" : "mixed";
+    return { id, wins: x.wins, losses: x.losses, flat: x.flat, n: x.n, avgPts, verdict, lastAt: x.lastAt };
+  }).sort((a, b) => (b.wins - b.losses) - (a.wins - a.losses) || b.avgPts - a.avgPts);
+  return { templates: list(perf.templates), fixes: list(perf.fixes) };
+}
+
+/** How much a kind of fix has earned its place for this brand: 0 (no evidence) to 1. */
+function fixBoost(g, key) {
+  const x = performanceOf(g).fixes.find((f) => f.id === key);
+  if (!x || x.verdict !== "works") return 0;
+  return Math.min(1, 0.3 * (x.wins - x.losses) + 0.1 * Math.max(0, x.avgPts));
+}
+
+/* ---------- the brand in the listing audit ---------- */
+
+/** A live listing's copy as checkable content: titles and bullets in both languages. */
+function listingContent(l) {
+  const x = l || {};
+  const texts = [{ text: x.titleEn, lang: "en", role: "title" }, { text: x.titleAr, lang: "ar", role: "title" }]
+    .concat((x.bulletsEn || []).map((b) => ({ text: b, lang: "en", role: "body" })))
+    .concat((x.bulletsAr || []).map((b) => ({ text: b, lang: "ar", role: "body" })));
+  return { texts: texts.filter((t) => t.text && String(t.text).trim()) };
+}
+
+/**
+ * Brand rules checked on a listing that is live now, in the same shape as audit issues (area "brand").
+ * Only rules that can be read from copy apply here (words, «!», emoji, digits, headline length);
+ * colours, logo and templates are checked on slides in the studio.
+ */
+function auditBrand(g, listing, ctx) {
+  const l = listing || {};
+  const r = check(g, listingContent(l), Object.assign({ channel: l.channel, category: l.category }, ctx || {}));
+  const issues = r.violations.map((v) => ({
+    key: "brand", area: "brand",
+    sev: v.trait.origin === "learned" && v.weight < 0.8 ? "low" : "med",
+    detail: { trait: v.trait.id, type: v.trait.type, rule: describe(v.trait), found: v.detail || null }
+  }));
+  return { score: r.score, checked: r.checked, issues };
 }
 
 /* ---------- expression: genome → generation instructions ---------- */
@@ -1875,10 +1971,13 @@ function express(g, ctx, at) {
     lines.push("Rules, strongest first (confidence in brackets):");
     for (const t of rules) {
       const ev = evidenceSummary(t);
-      const why = [ev.declared || ev.brandbook ? "brand book" : "", ev.edit ? ev.edit + " edits" : "", ev.approve ? ev.approve + " approvals" : "", ev.reject ? ev.reject + " rejections" : ""].filter(Boolean).join(", ");
+      const why = [ev.declared || ev.brandbook ? "brand book" : "", ev.edit ? ev.edit + " edits" : "", ev.approve ? ev.approve + " approvals" : "", ev.reject ? ev.reject + " rejections" : "", ev.outcome ? ev.outcome + " sales wins" : ""].filter(Boolean).join(", ");
       lines.push(`- [${t.st.s.toFixed(2)}] ${describe(t).en}${why ? " (" + why + ")" : ""}`);
     }
   }
+  const perf = performanceOf(g);
+  const worked = perf.templates.filter((x) => x.verdict === "works").slice(0, 4);
+  if (worked.length) lines.push("Slides that raised conversion for this brand in sales results: " + worked.map((x) => `${x.id} (+${x.avgPts} pts on average, ${x.wins} of ${x.n} products)`).join("; ") + ".");
   const ex = exemplars(g, ctx);
   if (ex.length) {
     lines.push("Approved examples for similar products:");
@@ -1892,6 +1991,7 @@ function express(g, ctx, at) {
     numerals: (has("numerals") || { params: {} }).params.style || null,
     maxChars: (has("textDensity") || { params: {} }).params.maxChars || null,
     avoidTemplates: traits.filter((t) => t.type === "template" && t.params.avoid).map((t) => t.params.id),
+    provenTemplates: worked.map((x) => x.id),
     brief: lines.join("\n")
   };
 }
@@ -1933,8 +2033,8 @@ function check(g, content, ctx, at) {
         if (heads.length) { const long = heads.filter((x) => (x.text || "").length > p.chars); pass = !long.length; detail = long.map((x) => x.text.length).join(", "); }
         break;
       }
-      case "avoidWord": if (texts.length && (!p.lang || texts.some((x) => (x.lang || (ARABIC.test(x.text || "") ? "ar" : "en")) === p.lang))) { pass = !hasWord(all, p.word); } break;
-      case "noExclamation": if (texts.length) pass = !/[!！]/.test(all); break;
+      case "avoidWord": if (texts.length && (!p.lang || texts.some((x) => (x.lang || (ARABIC.test(x.text || "") ? "ar" : "en")) === p.lang))) { pass = !hasWord(all, p.word); detail = pass ? "" : p.word; } break;
+      case "noExclamation": if (texts.length) { pass = !/[!！]/.test(all); detail = pass ? "" : "!"; } break;
       case "noEmoji": if (texts.length) pass = !EMOJI.test(all); break;
     }
     if (pass !== null) results.push({ trait: t, dim: TRAIT_TYPES[t.type].dim, pass, detail, weight: t.st.s });
@@ -1958,9 +2058,9 @@ function editTrend(g) {
   return (g.log || []).filter((l) => l.type === "approved").slice().reverse().map((l) => ({ at: l.at, edits: l.edits || 0 }));
 }
 
-return { DIMS, TRAIT_TYPES, FONT_PAIRS, LEARN, normaliseWord, stem, tokens, colourDistance, contrast, kitFromPalette, extractPalette, newGenome, traitKey, describe, strength, evidenceSummary, addEvidence, touch, setStatus, declare, observeEdit, REJECT_REASONS, observeReject, learn, activeTraits, exemplars, express, check, editTrend };
+return { DIMS, TRAIT_TYPES, FONT_PAIRS, LEARN, normaliseWord, stem, tokens, colourDistance, contrast, kitFromPalette, extractPalette, newGenome, traitKey, describe, strength, evidenceSummary, addEvidence, touch, setStatus, declare, observeEdit, REJECT_REASONS, observeReject, learn, performanceOf, fixBoost, listingContent, auditBrand, activeTraits, exemplars, express, check, editTrend };
 })();
-var DIMS = __shared7.DIMS, TRAIT_TYPES = __shared7.TRAIT_TYPES, FONT_PAIRS = __shared7.FONT_PAIRS, LEARN = __shared7.LEARN, normaliseWord = __shared7.normaliseWord, stem = __shared7.stem, tokens = __shared7.tokens, colourDistance = __shared7.colourDistance, contrast = __shared7.contrast, kitFromPalette = __shared7.kitFromPalette, extractPalette = __shared7.extractPalette, newGenome = __shared7.newGenome, traitKey = __shared7.traitKey, describe = __shared7.describe, strength = __shared7.strength, evidenceSummary = __shared7.evidenceSummary, addEvidence = __shared7.addEvidence, touch = __shared7.touch, setStatus = __shared7.setStatus, declare = __shared7.declare, observeEdit = __shared7.observeEdit, REJECT_REASONS = __shared7.REJECT_REASONS, observeReject = __shared7.observeReject, learn = __shared7.learn, activeTraits = __shared7.activeTraits, exemplars = __shared7.exemplars, express = __shared7.express, check = __shared7.check, editTrend = __shared7.editTrend;
+var DIMS = __shared7.DIMS, TRAIT_TYPES = __shared7.TRAIT_TYPES, FONT_PAIRS = __shared7.FONT_PAIRS, LEARN = __shared7.LEARN, normaliseWord = __shared7.normaliseWord, stem = __shared7.stem, tokens = __shared7.tokens, colourDistance = __shared7.colourDistance, contrast = __shared7.contrast, kitFromPalette = __shared7.kitFromPalette, extractPalette = __shared7.extractPalette, newGenome = __shared7.newGenome, traitKey = __shared7.traitKey, describe = __shared7.describe, strength = __shared7.strength, evidenceSummary = __shared7.evidenceSummary, addEvidence = __shared7.addEvidence, touch = __shared7.touch, setStatus = __shared7.setStatus, declare = __shared7.declare, observeEdit = __shared7.observeEdit, REJECT_REASONS = __shared7.REJECT_REASONS, observeReject = __shared7.observeReject, learn = __shared7.learn, performanceOf = __shared7.performanceOf, fixBoost = __shared7.fixBoost, listingContent = __shared7.listingContent, auditBrand = __shared7.auditBrand, activeTraits = __shared7.activeTraits, exemplars = __shared7.exemplars, express = __shared7.express, check = __shared7.check, editTrend = __shared7.editTrend;
 var __shared8 = (function(){
 // Sample workspaces for the demo: two clients of one agency.
 // Layali's genome is not hand-written: it is built by replaying a realistic history of edits,
@@ -1985,21 +2085,21 @@ const titles = (en, ar) => ({ texts: [{ text: en, lang: "en", role: "title" }].c
 
 const LAYALI_HISTORY = [
   { type: "edit", at: on("09-08"), product: "musk", field: "titleEn", role: "title", before: "Best Musk Tahara 50ml, Pure White Musk!", after: "Musk Tahara 50ml, Pure White Musk", ctx: C("fragrance") },
-  { type: "approve", at: on("09-08"), product: "musk", edits: 6, label: "Title and 4 slides", content: titles("Musk Tahara 50ml, Pure White Musk", "مسك الطهارة ٥٠ مل · مسك أبيض"), exemplar: { titleEn: "Musk Tahara 50ml, Pure White Musk", titleAr: "مسك الطهارة ٥٠ مل · مسك أبيض" }, ctx: C("fragrance") },
+  { type: "approve", at: on("09-08"), product: "musk", edits: 6, label: "Title and 4 slides", templates: ["cover", "benefit", "details", "occasion"], content: titles("Musk Tahara 50ml, Pure White Musk", "مسك الطهارة ٥٠ مل · مسك أبيض"), exemplar: { titleEn: "Musk Tahara 50ml, Pure White Musk", titleAr: "مسك الطهارة ٥٠ مل · مسك أبيض" }, ctx: C("fragrance") },
   { type: "edit", at: on("09-14"), product: "burner", field: "titleEn", role: "title", before: "Best Bakhoor Burner in Hand-Hammered Brass!", after: "Bakhoor Burner in Hand-Hammered Brass", ctx: C("home") },
-  { type: "approve", at: on("09-14"), product: "burner", edits: 5, label: "Title and 5 slides", content: titles("Bakhoor Burner in Hand-Hammered Brass", "مبخرة نحاس مطروق يدوياً"), exemplar: { titleEn: "Bakhoor Burner in Hand-Hammered Brass", titleAr: "مبخرة نحاس مطروق يدوياً" }, ctx: C("home") },
+  { type: "approve", at: on("09-14"), product: "burner", edits: 5, label: "Title and 5 slides", templates: ["cover", "benefit", "details", "steps", "dimensions"], content: titles("Bakhoor Burner in Hand-Hammered Brass", "مبخرة نحاس مطروق يدوياً"), exemplar: { titleEn: "Bakhoor Burner in Hand-Hammered Brass", titleAr: "مبخرة نحاس مطروق يدوياً" }, ctx: C("home") },
   { type: "edit", at: on("09-21"), product: "thobem", field: "titleEn", role: "title", before: "Men's Linen Thobe Ivory, Saudi Collar, Breathable Summer Fabric, All Sizes", after: "Men's Linen Thobe · Ivory · Saudi Collar", ctx: C("fashion") },
-  { type: "approve", at: on("09-21"), product: "thobem", edits: 5, label: "Title and size chart", content: titles("Men's Linen Thobe · Ivory · Saudi Collar", "ثوب كتان رجالي · عاجي · ياقة سعودية"), exemplar: { titleEn: "Men's Linen Thobe · Ivory · Saudi Collar", titleAr: "ثوب كتان رجالي · عاجي · ياقة سعودية" }, ctx: C("fashion") },
+  { type: "approve", at: on("09-21"), product: "thobem", edits: 5, label: "Title and size chart", templates: ["sizechart"], content: titles("Men's Linen Thobe · Ivory · Saudi Collar", "ثوب كتان رجالي · عاجي · ياقة سعودية"), exemplar: { titleEn: "Men's Linen Thobe · Ivory · Saudi Collar", titleAr: "ثوب كتان رجالي · عاجي · ياقة سعودية" }, ctx: C("fashion") },
   { type: "edit", at: on("09-29"), product: "dates", field: "titleEn", role: "title", before: "Best Sukkari Dates Gift Box 1kg!", after: "Sukkari Dates Gift Box 1kg", ctx: C("food") },
-  { type: "approve", at: on("09-29"), product: "dates", edits: 4, label: "Title and Ramadan slide", content: titles("Sukkari Dates Gift Box 1kg", "علبة تمر سكري هدية ١ كجم"), exemplar: { titleEn: "Sukkari Dates Gift Box 1kg", titleAr: "علبة تمر سكري هدية ١ كجم" }, ctx: C("food") },
+  { type: "approve", at: on("09-29"), product: "dates", edits: 4, label: "Title and Ramadan slide", templates: ["ramadan"], content: titles("Sukkari Dates Gift Box 1kg", "علبة تمر سكري هدية ١ كجم"), exemplar: { titleEn: "Sukkari Dates Gift Box 1kg", titleAr: "علبة تمر سكري هدية ١ كجم" }, ctx: C("food") },
   { type: "edit", at: on("10-06"), product: "coffee", field: "titleEn", role: "title", before: "Saudi Coffee with Cardamom 500g, Light Roast, Khawlani Beans, Fresh Ground Daily", after: "Saudi Coffee with Cardamom 500g", ctx: C("food") },
   { type: "approve", at: on("10-06"), product: "coffee", edits: 3, label: "Title and bullets", content: titles("Saudi Coffee with Cardamom 500g", "قهوة سعودية بالهيل ٥٠٠ جم"), exemplar: { titleEn: "Saudi Coffee with Cardamom 500g", titleAr: "قهوة سعودية بالهيل ٥٠٠ جم" }, ctx: C("food") },
   { type: "edit", at: on("10-13"), product: "oud", field: "titleAr", role: "title", before: "عطر عود الليل الفاخر ١٠٠ مل", after: "عطر عود الليل ١٠٠ مل", ctx: C("fragrance", "ar") },
   { type: "edit", at: on("10-13"), product: "oud", field: "titleEn", role: "title", before: "Oud Al Layl Luxury Eau de Parfum 100ml", after: "Oud Al Layl Eau de Parfum 100ml", ctx: C("fragrance") },
   { type: "reject", at: on("10-13"), product: "oud", reasons: ["tooMuchText"], label: "Details slide", ctx: Object.assign(C("fragrance"), { chars: 180 }) },
-  { type: "approve", at: on("10-15"), product: "oud", edits: 3, label: "Title and 4 slides", content: titles("Oud Al Layl Eau de Parfum 100ml", "عطر عود الليل ١٠٠ مل"), exemplar: { titleEn: "Oud Al Layl Eau de Parfum 100ml", titleAr: "عطر عود الليل ١٠٠ مل" }, ctx: C("fragrance") },
+  { type: "approve", at: on("10-15"), product: "oud", edits: 3, label: "Title and 4 slides", templates: ["cover", "benefit", "notes", "occasion"], content: titles("Oud Al Layl Eau de Parfum 100ml", "عطر عود الليل ١٠٠ مل"), exemplar: { titleEn: "Oud Al Layl Eau de Parfum 100ml", titleAr: "عطر عود الليل ١٠٠ مل" }, ctx: C("fragrance") },
   { type: "edit", at: on("10-20"), product: "abaya", field: "titleEn", role: "title", before: "Linen Abaya Sand Colour, Relaxed Fit, Side Pockets, Breathable Summer Fabric", after: "Linen Abaya · Sand · Relaxed Fit", ctx: C("fashion") },
-  { type: "approve", at: on("10-20"), product: "abaya", edits: 2, label: "Title and size chart", content: titles("Linen Abaya · Sand · Relaxed Fit", "عباية كتان · رملي · قصة واسعة"), exemplar: { titleEn: "Linen Abaya · Sand · Relaxed Fit", titleAr: "عباية كتان · رملي · قصة واسعة" }, ctx: C("fashion") },
+  { type: "approve", at: on("10-20"), product: "abaya", edits: 2, label: "Title and size chart", templates: ["sizechart"], content: titles("Linen Abaya · Sand · Relaxed Fit", "عباية كتان · رملي · قصة واسعة"), exemplar: { titleEn: "Linen Abaya · Sand · Relaxed Fit", titleAr: "عباية كتان · رملي · قصة واسعة" }, ctx: C("fashion") },
   { type: "removeSlide", at: on("10-22"), product: "oud", template: "compare", label: "Us vs ordinary", ctx: C("fragrance") },
   { type: "edit", at: on("10-27"), product: "musk", field: "titleAr", role: "title", before: "مسك الطهارة ٥٠ مل، مسك أبيض نقي بدون كحول للاستخدام اليومي", after: "مسك الطهارة ٥٠ مل · مسك أبيض", ctx: C("fragrance", "ar") },
   { type: "edit", at: on("10-28"), product: "oud", field: "bulletsAr", role: "body", before: "زعفران فاخر وعنبر", after: "زعفران وعنبر", ctx: C("fragrance", "ar") },
@@ -2264,9 +2364,36 @@ function compareResults({ before, after, changed, rows, changedAt }) {
   return { products, changed: changedG, control: controlG, upliftPts: uplift, hasControl: controlG.count > 0 };
 }
 
-return { parseSalesReport, compareResults };
+/** When a product's own result counts as a signal. */
+const OUTCOME = { minSessions: 200, z: 1.64 };
+
+/**
+ * Each changed product's own result: its conversion change minus the control group's, in points.
+ * A two-proportion z-test on its sessions decides whether that is a signal: z ≥ 1.64 (about 90%
+ * one-sided) is a "win", z ≤ −1.64 a "loss", anything between "flat". Products without sessions or
+ * conversion, or with fewer than OUTCOME.minSessions in either period, are "noData" or "lowTraffic":
+ * nothing is learned from them. The control group's own noise is small next to one product's and is
+ * left out of the test.
+ */
+function productOutcomes(result, opts) {
+  const o = Object.assign({}, OUTCOME, opts || {});
+  const r = result || { products: [] };
+  const control = r.hasControl && r.control && r.control.convPts != null ? r.control.convPts : 0;
+  return (r.products || []).filter((p) => p.changed).map((p) => {
+    const b = p.before || {}, a = p.after || {};
+    const base = { key: p.key, before: { conv: b.conv, sessions: b.sessions }, after: { conv: a.conv, sessions: a.sessions }, upliftPts: null, z: null };
+    if (b.conv == null || a.conv == null || b.sessions == null || a.sessions == null) return Object.assign(base, { verdict: "noData" });
+    const upliftPts = Math.round(((a.conv - b.conv) * 100 - control) * 100) / 100;
+    if (b.sessions < o.minSessions || a.sessions < o.minSessions) return Object.assign(base, { verdict: "lowTraffic", upliftPts });
+    const se = Math.sqrt((b.conv * (1 - b.conv)) / b.sessions + (a.conv * (1 - a.conv)) / a.sessions) * 100;
+    const z = se > 0 ? Math.round((upliftPts / se) * 100) / 100 : 0;
+    return Object.assign(base, { upliftPts, z, verdict: z >= o.z ? "win" : z <= -o.z ? "loss" : "flat" });
+  });
+}
+
+return { parseSalesReport, compareResults, OUTCOME, productOutcomes };
 })();
-var parseSalesReport = __shared10.parseSalesReport, compareResults = __shared10.compareResults;
+var parseSalesReport = __shared10.parseSalesReport, compareResults = __shared10.compareResults, OUTCOME = __shared10.OUTCOME, productOutcomes = __shared10.productOutcomes;
 var __shared11 = (function(){
 // Plans, usage metering and payments.
 // Plans mirror the landing page. A "fix" is one product whose copy or slides were approved.
@@ -2906,7 +3033,8 @@ function vOverview(){
   var tot = Object.keys(agg).reduce(function(a,k){ return a+agg[k]; },0);
   var top = Object.keys(agg).map(function(k){ return [k, Math.round(agg[k]/tot*100)]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
   var maxT = top.length ? top[0][1] : 1;
-  var first = P.slice().sort(function(a,b){ return a.score-b.score; }).slice(0,4);
+  var first = P.slice().sort(function(a,b){ return fixPriority(b) - fixPriority(a) || a.score - b.score; }).slice(0,4);
+  var proven = first.some(function(p){ return openIssues(p).some(function(k){ return provenFix(k, p); }); });
   var chs = Object.keys(CH).map(function(c){ var ps = P.filter(function(p){ return p.ch.indexOf(c) > -1; }); return [c, ps.length ? Math.round(ps.reduce(function(a,p){ return a+p.score; },0)/ps.length) : 0, ps.length]; }).filter(function(c){ return c[2]; });
   return '<div class="head"><div><h1>'+esc(helloText())+'</h1><p>'+esc(tf("ovSub2", {name: tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]), n: P.length}))+'</p></div>'+(!signedInUser() || wsInfo().sample ? '<span class="demo-banner"><span class="dot" style="color:var(--saffron)"></span>'+t("demo")+(state.api ? ' · <span style="color:var(--good)">'+t("serverOn")+'</span>' : "")+'</span>' : "")+'</div>'+
   '<div class="kpis">'+
@@ -2916,8 +3044,8 @@ function vOverview(){
     '<div class="kpi"><small>'+t("analyzed")+'</small><b>'+revs.toLocaleString("en")+'</b><span>'+t("dialects5")+'</span></div>'+
   '</div>'+
   '<div class="grid2">'+
-    '<div class="card"><div class="card-h"><h2>'+t("fixFirst")+'</h2><small>'+t("fixFirstSub")+'</small></div><div class="list">'+
-      first.map(function(p){ var is = openIssues(p); return '<a class="row-link" href="#listing-'+p.id+'"><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b>'+(is.length ? '<span class="tag '+(ISSUES[is[0]].sev === "high" ? "bad" : "warn")+'">'+tr(ISSUES[is[0]].t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span></span>'+sbar(p.score)+arrow()+'</a>'; }).join("")+
+    '<div class="card"><div class="card-h"><h2>'+t("fixFirst")+'</h2><small>'+t(proven ? "fixFirstSubProven" : "fixFirstSub")+'</small></div><div class="list">'+
+      first.map(function(p){ var is = rankedIssues(p); return '<a class="row-link" href="#listing-'+p.id+'"><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b>'+(is.length ? '<span class="tag '+((ISSUES[is[0]] || {}).sev === "high" ? "bad" : "warn")+'">'+tr((ISSUES[is[0]] || {t:[is[0], is[0]]}).t)+'</span>'+provenTag(is[0], p) : '<span class="tag good">'+t("healthy")+'</span>')+'</span></span>'+sbar(p.score)+arrow()+'</a>'; }).join("")+
     '</div></div>'+
     '<div style="display:grid;gap:18px">'+
       '<div class="card"><div class="card-h"><h2>'+t("themes")+'</h2><small>'+t("themesSub")+'</small></div>'+
@@ -2948,18 +3076,18 @@ function vCatalog(){
   '<div class="toolbar">'+(nImp ? '<div class="chips" role="group">'+["all","imported","sample"].map(function(k){ return '<button type="button" class="chip" data-src="'+k+'" aria-pressed="'+(state.src === k)+'">'+t("src_"+k)+(k === "imported" ? " · "+nImp : "")+'</button>'; }).join("")+'</div>' : "")+'<div class="chips" role="group">'+
     ["all"].concat(Object.keys(CH)).map(function(c){ return '<button type="button" class="chip" data-chan="'+c+'" aria-pressed="'+(state.chan === c)+'">'+(c === "all" ? t("all") : CH[c].n)+'</button>'; }).join("")+
   '</div><select class="sel" id="sort" aria-label="Sort" style="margin-inline-start:auto"><option value="score"'+(state.sort === "score" ? " selected" : "")+'>'+t("sortScore")+'</option><option value="reviews"'+(state.sort === "reviews" ? " selected" : "")+'>'+t("sortReviews")+'</option><option value="name"'+(state.sort === "name" ? " selected" : "")+'>'+t("sortName")+'</option></select></div>'+selBar()+
-  '<div class="tbl-wrap"><table><thead><tr><th class="ck-cell"><label><input type="checkbox" id="x-sel-all" aria-label="'+t("selectAll")+'"'+(allOn ? " checked" : "")+'></label></th><th>'+t("thProduct")+'</th><th>'+t("thChannels")+'</th><th>'+t("thScore")+'</th><th>'+t("thTop")+'</th><th>'+t("thIssues")+'</th><th>'+t("thRating")+'</th><th></th></tr></thead><tbody>'+
-  (rows.length ? rows.map(function(p){ var is = openIssues(p); var top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
-    return '<tr data-href="listing-'+p.id+'" tabindex="0"><td class="ck-cell"><label><input type="checkbox" data-xsel="'+p.id+'" aria-label="'+t("selectRow")+' '+esc(tr(p.name))+'"'+(state.sel[p.id] ? " checked" : "")+'></label></td><td><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b><small>'+esc(p.sku)+'</small>'+(p.imported ? ' <span class="tag brand">'+t("importedTag")+'</span>' : "")+'</span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span>' : '<span style="color:var(--ink-3)">—</span>')+'</td><td>'+arrow()+'</td></tr>'; }).join("")
-  : '<tr><td colspan="8" class="empty">'+t("noResults")+'</td></tr>')+
+  '<div class="tbl-wrap"><table><thead><tr><th class="ck-cell"><label><input type="checkbox" id="x-sel-all" aria-label="'+t("selectAll")+'"'+(allOn ? " checked" : "")+'></label></th><th>'+t("thProduct")+'</th><th>'+t("thChannels")+'</th><th>'+t("thScore")+'</th><th>'+t("thBrand")+'</th><th>'+t("thTop")+'</th><th>'+t("thIssues")+'</th><th>'+t("thRating")+'</th><th></th></tr></thead><tbody>'+
+  (rows.length ? rows.map(function(p){ var is = rankedIssues(p); var top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
+    return '<tr data-href="listing-'+p.id+'" tabindex="0"><td class="ck-cell"><label><input type="checkbox" data-xsel="'+p.id+'" aria-label="'+t("selectRow")+' '+esc(tr(p.name))+'"'+(state.sel[p.id] ? " checked" : "")+'></label></td><td><span class="pcell"><span class="pthumb">'+thumb(p)+'</span><span style="min-width:0"><b>'+esc(tr(p.name))+'</b><small>'+esc(p.sku)+'</small>'+(p.imported ? ' <span class="tag brand">'+t("importedTag")+'</span>' : "")+'</span></span></td><td>'+chans(p)+'</td><td>'+sbar(p.score)+'</td><td>'+brandCell(brandAuditOf(p))+'</td><td>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</td><td class="tnum">'+is.length+'</td><td class="tnum">'+(p.rating ? '★ '+p.rating.toFixed(1)+' <span style="color:var(--ink-3)">('+p.rev+')</span>' : '<span style="color:var(--ink-3)">—</span>')+'</td><td>'+arrow()+'</td></tr>'; }).join("")
+  : '<tr><td colspan="9" class="empty">'+t("noResults")+'</td></tr>')+
   '</tbody></table></div>'+
-  '<div class="mcards">'+(rows.length ? rows.map(function(p){ var is = openIssues(p), top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
+  '<div class="mcards">'+(rows.length ? rows.map(function(p){ var is = rankedIssues(p), top = is[0] ? (ISSUES[is[0]] || {sev:"med", t:[is[0], is[0]]}) : null;
     return '<div class="mc-wrap"><label class="mc-ck"><input type="checkbox" data-xsel="'+p.id+'" aria-label="'+t("selectRow")+' '+esc(tr(p.name))+'"'+(state.sel[p.id] ? " checked" : "")+'></label><a class="card mcard" href="#listing-'+p.id+'"><span class="pthumb">'+thumb(p)+'</span><span class="mc-main"><b>'+esc(tr(p.name))+'</b><span class="mc-meta">'+chans(p)+'<small class="mono">'+esc(p.sku)+'</small></span>'+(top ? '<span class="tag '+(top.sev === "high" ? "bad" : top.sev === "med" ? "warn" : "")+'">'+tr(top.t)+'</span>' : '<span class="tag good">'+t("healthy")+'</span>')+'</span>'+sbar(p.score)+'</a></div>'; }).join("") : '<p class="empty">'+t("noResults")+'</p>')+'</div>';
 }
 
 function ring(s){ var off = 213.6*(1-s/100); return '<div class="ring" style="--c:'+scoreColor(s)+'"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" cx="40" cy="40" r="34" style="stroke-dashoffset:'+off+'"/></svg><b>'+s+'</b></div>'; }
 function vListing(){
-  var p = PM[state.pid], is = openIssues(p);
+  var p = PM[state.pid], is = openIssues(p), bra = brandAuditOf(p);
   var pics = p.listing ? p.listing.images : [];
   var slots = []; for (var i = 0; i < 4; i++) slots.push(i < Math.min(p.imgs,4) || p.fixed ? '<div class="gimg">'+(i === 0 && is.indexOf("arabicBroken") > -1 ? '<span class="flag tag bad">'+t("arabic")+'</span>' : "")+(pics[i] && pics[i].src ? '<img src="'+esc(pics[i].src)+'" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="'+(i+1)+'" style="width:100%;height:100%;object-fit:cover">' : sym(p))+'</div>' : '<div class="gimg missing">'+t("missingImg")+'</div>');
   var details = p.issueDetails || null;
@@ -2971,13 +3099,13 @@ function vListing(){
   '<div class="grid2">'+
     '<div style="display:grid;gap:18px">'+
       '<div class="card"><div class="card-h"><h2>'+t("gallery")+'</h2><small>'+(p.fixed ? 4 : p.imgs)+' / 7</small></div><div class="gallery">'+slots.join("")+'</div></div>'+
-      '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+is.length+'</small></div>'+
-        (is.length ? is.map(function(k, n){ var x = ISSUES[k] || {sev:"med", slide:1, t:[k,k], d:["",""]}; var dt = details && details[n] && details[n].key === k ? details[n] : null; return '<div class="issue" style="--c:'+sevC(dt ? dt.sev : x.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b><p>'+esc(dt ? issueDetail(dt) : tr(x.d))+'</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(x.sev)+'<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'" data-slide="'+x.slide+'">'+t("fixInStudio")+'</a></div></div>'; }).join("") : '<p class="empty">'+t("noIssues")+'</p>')+
+      '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+(is.length + bra.issues.length)+'</small></div>'+
+        (is.length || bra.issues.length ? is.map(function(k, n){ var x = ISSUES[k] || {sev:"med", slide:1, t:[k,k], d:["",""]}; var dt = details && details[n] && details[n].key === k ? details[n] : null; return '<div class="issue" style="--c:'+sevC(dt ? dt.sev : x.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b>'+provenTag(k, p)+'<p>'+esc(dt ? issueDetail(dt) : tr(x.d))+'</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(x.sev)+'<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'" data-slide="'+x.slide+'">'+t("fixInStudio")+'</a></div></div>'; }).join("")+brandIssueRows(bra, p.id) : '<p class="empty">'+t("noIssues")+'</p>')+
       '</div>'+
     '</div>'+
     '<div style="display:grid;gap:18px">'+
       '<div class="card"><div class="card-h"><h2>'+t("breakdown")+'</h2></div>'+
-        [["images",br.images],["title",br.title],["arabic",br.arabic],["attrs",br.attrs],["reviewFit",br.reviewFit]].map(function(b){ return '<div class="hbar"><span>'+t(b[0])+'</span><span class="tr"><i style="--w:'+b[1]+'%;--c:'+scoreColor(b[1])+'"></i></span><span class="mono">'+b[1]+'</span></div>'; }).join("")+
+        [["images",br.images],["title",br.title],["arabic",br.arabic],["attrs",br.attrs],["reviewFit",br.reviewFit]].concat(bra.checked ? [["brandRow", bra.score]] : []).map(function(b){ return '<div class="hbar"><span>'+t(b[0])+'</span><span class="tr"><i style="--w:'+b[1]+'%;--c:'+scoreColor(b[1])+'"></i></span><span class="mono">'+b[1]+'</span></div>'; }).join("")+
       '</div>'+
       memoryCard(p)+
       (p.listing ? kwCard(p.listing) : "")+
@@ -3041,7 +3169,7 @@ function auditOut(){
   return '<div class="card"><div class="card-h"><h2>'+t("result")+'</h2><small>'+CH[r.channel].n+' · '+t("cat_"+r.category)+'</small></div><div class="lhead">'+ring(r.score)+'<div style="flex:1;min-width:200px">'+
     [["images","images"],["title","title"],["arabic","arabic"],["attrs","attrs"]].map(function(b){ var v = r.breakdown[b[0]]; return '<div class="hbar" style="grid-template-columns:110px 1fr 36px"><span>'+t(b[1])+'</span><span class="tr"><i style="--w:'+v+'%;--c:'+scoreColor(v)+'"></i></span><span class="mono">'+v+'</span></div>'; }).join("")+'</div></div></div>'+
   '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+r.issues.length+'</small></div>'+
-    (r.issues.length ? r.issues.map(function(i){ var x = ISSUES[i.key] || {t:[i.key,i.key]}; return '<div class="issue" style="--c:'+sevC(i.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b><p>'+esc(issueDetail(i))+'</p></div>'+sevTag(i.sev)+'</div>'; }).join("") : '<p class="empty">'+t("allGood")+'</p>')+'</div>'+kwCard(lf);
+    (r.issues.length ? r.issues.map(function(i){ var x = ISSUES[i.key] || {t:[i.key,i.key]}; return '<div class="issue" style="--c:'+sevC(i.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b><p>'+esc(issueDetail(i))+'</p></div>'+sevTag(i.sev)+'</div>'; }).join("") : '<p class="empty">'+t("allGood")+'</p>')+'</div>'+brandAuditCard(lf)+kwCard(lf);
 }
 function vAudit(){
   var a = state.al, req = REQUIRED_ATTRIBUTES[a.category] || [];
@@ -3196,7 +3324,7 @@ function vTemplates(){
   '<div class="chips" role="group">'+[{id:"all", name:["All","الكل"]}].concat(TEMPLATE_GROUPS).map(function(gr){ var n = gr.id === "all" ? TEMPLATES.length : TEMPLATES.filter(function(tp){ return tp.group === gr.id; }).length; return '<button type="button" class="chip" data-tgroup="'+gr.id+'" aria-pressed="'+(state.tgroup === gr.id)+'">'+tr(gr.name)+' · '+n+'</button>'; }).join("")+'</div>'+
   '<div class="tgrid">'+list.map(function(tp){
     var fit = !tp.categories || tp.categories.indexOf(cat) > -1;
-    return '<div class="tcard'+(fit ? "" : " dim")+'">'+pv('data-tpl="'+tp.id+'"')+'<div class="tmeta"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span>'+
+    return '<div class="tcard'+(fit ? "" : " dim")+'">'+pv('data-tpl="'+tp.id+'"')+'<div class="tmeta"><b>'+tr(tp.name)+'</b><span class="note">'+tr(tp.question)+'</span>'+tplWorkedTag(tp.id)+
       (tp.categories ? '<span class="tag'+(fit ? " good" : "")+'">'+t("forCat")+' '+tp.categories.map(function(c){ return t("cat_"+c); }).join(", ")+'</span>' : "")+
       '<button type="button" class="btn btn-ghost btn-sm" data-add="'+tp.id+'" aria-label="'+t("addTo")+' '+esc(tr(p.name))+'">+ '+t("add")+'</button></div></div>';
   }).join("")+'</div>';
@@ -3494,6 +3622,7 @@ function evText(x){
   if (e.edit) parts.push(e.edit+" "+t("evEdits"));
   if (e.approve) parts.push(e.approve+" "+t("evApprovals"));
   if (e.reject) parts.push(e.reject+" "+t("evRejects"));
+  if (e.outcome) parts.push(e.outcome+" "+t("evSales"));
   if (e.against) parts.push(e.against+" "+t("evAgainst"));
   return parts.join(" · ");
 }
@@ -3632,7 +3761,7 @@ function approveCopy(pid){
   });
   var finalCopy = {titleEn:asText(e.titleEn), titleAr:asText(e.titleAr), bulletsEn:asText(e.bulletsEn).split("\n").filter(Boolean), bulletsAr:asText(e.bulletsAr).split("\n").filter(Boolean)};
   var n = evs.length;
-  evs.push({type:"approve", product:pid, edits:n, label:t("copyT"), content:copyContent(finalCopy), exemplar:{titleEn:finalCopy.titleEn, titleAr:finalCopy.titleAr}, ctx:ctx});
+  evs.push({type:"approve", product:pid, edits:n, label:t("copyT"), issues:(p.issues || []).slice(), content:copyContent(finalCopy), exemplar:{titleEn:finalCopy.titleEn, titleAr:finalCopy.titleAr}, ctx:ctx});
   var changes = recordAll(evs);
   applyCopy(p, finalCopy);
   var bi = bItem(pid); if (bi){ bi.copy = JSON.parse(JSON.stringify(finalCopy)); bi.status = "approved"; bi.learned = learnedNote(changes); }
@@ -3658,7 +3787,8 @@ function memoryCard(p){
         : e.type === "reject" ? t("mem_reject")+': '+(e.reasons || []).map(function(r){ return t("r_"+r); }).join(", ")
         : e.type === "removeSlide" ? t("mem_removeSlide")+' «'+esc(e.label || e.template || "")+'»'
         : e.type === "import" ? t("mem_import")+' · '+esc(e.label || "")
-        : e.type === "kit" ? t("mem_kit") : esc(e.type);
+        : e.type === "kit" ? t("mem_kit")
+        : e.type === "outcome" ? t("mem_outcome")+' · '+t("oc_"+e.result)+' · '+fmtPts(e.upliftPts) : esc(e.type);
       return '<div class="mem-i"><span class="mono">'+shortDate(e.at)+'</span><span dir="auto">'+txt+(e.sample ? ' <span class="tag">'+t("bdSample")+'</span>' : "")+'</span></div>';
     }).join("")+'</div>' : '<p class="note">'+t("memEmpty")+'</p>')+'</div>';
 }
@@ -3771,6 +3901,7 @@ function vBrand(){
         DIMS.map(function(d){ var list = active.filter(function(x){ return TRAIT_TYPES[x.type] && TRAIT_TYPES[x.type].dim === d; }); return '<div class="dimh">'+t("dim_"+d)+'</div>'+(list.length ? list.map(traitRow).join("") : '<p class="note">'+t("bdNoRules")+'</p>'); }).join("")+
         (offs.length ? '<div class="dimh">'+t("bdOffList")+'</div>'+offs.map(traitRow).join("") : "")+
       '</div>'+
+      perfCard(g)+
       '<div class="card"><div class="card-h"><h2>'+t("bdBrief")+'</h2></div><p class="note" style="margin-bottom:10px">'+t("bdBriefSub")+'</p>'+
         '<div class="form-grid" style="margin-bottom:10px"><select class="sel" id="bp-ch" aria-label="'+t("channel")+'">'+Object.keys(CH).map(function(c){ return '<option value="'+c+'"'+(c === briefCtx.channel ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("")+'</select><select class="sel" id="bp-cat" aria-label="'+t("category")+'">'+AUDIT_CATEGORIES.map(function(c){ return '<option value="'+c+'"'+(c === briefCtx.category ? " selected" : "")+'>'+t("cat_"+c)+'</option>'; }).join("")+'</select></div>'+
         '<pre class="brief" dir="ltr">'+esc(express(g, briefCtx).brief)+'</pre></div>'+
@@ -3800,7 +3931,7 @@ function vBrand(){
           '<div class="cp-actions"><button type="button" class="btn btn-primary btn-sm" id="bd-accept">'+t("bdAddSelected")+'</button></div>' : "")+
       '</div>'+
       ruleForm()+
-      '<div class="card"><div class="card-h"><h2>'+t("bdLog")+'</h2></div><div class="logl">'+g.log.filter(function(l){ return l.type !== "candidate"; }).slice(0, 12).map(function(l){ return '<div><span class="mono">'+shortDate(l.at)+'</span><span><b>'+t("log_"+l.type)+'</b> <span dir="auto">'+esc(l.note || "")+'</span>'+(l.type === "approved" && l.edits != null ? ' · '+l.edits+' '+t("edits") : "")+'</span></div>'; }).join("")+'</div></div>'+
+      '<div class="card"><div class="card-h"><h2>'+t("bdLog")+'</h2></div><div class="logl">'+g.log.filter(function(l){ return l.type !== "candidate"; }).slice(0, 12).map(function(l){ return '<div><span class="mono">'+shortDate(l.at)+'</span><span><b>'+t("log_"+l.type)+'</b> <span dir="auto">'+esc(l.note || "")+'</span>'+(l.type === "approved" && l.edits != null ? ' · '+l.edits+' '+t("edits") : "")+(l.type === "outcome" ? ' · '+t("oc_"+l.result) : "")+'</span></div>'; }).join("")+'</div></div>'+
     '</div>'+
   '</div>';
 }
@@ -3942,7 +4073,7 @@ function applyCopy(p, finalCopy){
 }
 function approveItem(it){
   var p = PM[it.pid]; if (!p || it.status === "approved") return;
-  var changes = recordAll([{type:"approve", product:p.id, edits:0, label:t("batch"), content:copyContent(it.copy), exemplar:{titleEn:it.copy.titleEn, titleAr:it.copy.titleAr}, ctx:bCtx(p)}]);
+  var changes = recordAll([{type:"approve", product:p.id, edits:0, label:t("batch"), issues:(p.issues || []).slice(), content:copyContent(it.copy), exemplar:{titleEn:it.copy.titleEn, titleAr:it.copy.titleAr}, ctx:bCtx(p)}]);
   it.learned = learnedNote(changes); it.status = "approved"; applyCopy(p, it.copy);
 }
 function runAiAll(){
@@ -4085,8 +4216,8 @@ function sampleReports(){
   var changed = ps.slice().sort(function(a, b){ return a.score - b.score; }).slice(0, Math.ceil(ps.length / 2)).map(function(p){ return p.sku; });
   var head = '"SKU","Title","Sessions - Total","Unit Session Percentage","Units Ordered","Ordered Product Sales"\n';
   var csv = function(after){ return head + ps.map(function(p, i){
-    var s0 = 600 + (i * 389) % 1100, c0 = 0.018 + ((i * 7) % 5) / 400, ch = changed.indexOf(p.sku) > -1;
-    var s = after ? Math.round(s0 * 1.08) : s0, c = after ? c0 + (ch ? 0.011 + ((i * 3) % 4) / 1000 : 0.002) : c0, u = Math.round(s * c);
+    var s0 = 1800 + (i * 733) % 2600, c0 = 0.018 + ((i * 7) % 5) / 400, ch = changed.indexOf(p.sku) > -1, weak = ch && changed.indexOf(p.sku) === changed.length - 1;
+    var s = after ? Math.round(s0 * 1.08) : s0, c = after ? c0 + (ch ? (weak ? 0.003 : 0.011 + ((i * 3) % 4) / 1000) : 0.002) : c0, u = Math.round(s * c);
     return '"'+p.sku+'","'+String(p.name[0]).replace(/"/g, "")+'","'+s+'","'+(c * 100).toFixed(2)+'%","'+u+'","SAR '+(u * 180).toLocaleString("en-US")+'.00"';
   }).join("\n"); };
   var r = state.res;
@@ -4118,6 +4249,7 @@ function vResults(){
     '<div class="kpi"><small>'+t("unitsChanged")+'</small><b>'+fmtPct(c.unitsPct)+'</b><span>'+c.before.units+' → '+c.after.units+'</span></div>'+
     '<div class="kpi"><small>'+t("convControl")+'</small><b>'+(res.hasControl ? fmtPts(k.convPts) : "—")+'</b><span>'+(res.hasControl ? fmtConv(k.before.conv)+' → '+fmtConv(k.after.conv)+' · '+k.count : "")+'</span></div>'+
   '</div>';
+  out += learnCard(res);
   var lang = r.lang || state.lang;
   out += '<div class="card"><div class="card-h"><h2>'+tm("reportPreview")+'</h2><small>'+tm("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
     '<div class="exp-row"><div class="field" style="margin:0"><label for="x-period">'+t("periodL")+'</label><input id="x-period" value="'+esc(r.period || "")+'"></div>'+
@@ -4574,6 +4706,149 @@ document.addEventListener("change", function(e){
   if (el.dataset && el.dataset.xmode && el.checked){ setMode(el.dataset.xmode); return; }
 });
 
+/* ---------- closing the loop: sales results teach Brand DNA, the audit checks the brand ---------- */
+Object.assign(S, {
+  thBrand:["Brand","العلامة"], brandRow:["Brand rules","قواعد العلامة"], brandIssueT:["Breaks a brand rule","يخالف قاعدة العلامة"], brandFix:["Fix with brand rules","أصلح بقواعد العلامة"],
+  brandAuditT:["Brand rules of {name}","قواعد علامة {name}"], brandAllGood:["The copy follows every brand rule that can be checked on text.","النص يلتزم بكل قواعد العلامة التي يمكن فحصها على النص."],
+  brandNoRules:["No brand rules that can be checked on text yet. Add them in","لا توجد بعد قواعد للعلامة يمكن فحصها على النص. أضفها في"], charsN:["{n} characters","{n} حرفاً"],
+  provenT:["Raised conversion here: +{pts} pts","رفع التحويل هنا: +{pts} نقطة"],
+  fixFirstSubProven:["Lowest score first; fixes that already raised conversion for this brand move up","الأقل تقييماً أولاً، والتعديلات التي رفعت التحويل لهذه العلامة تتقدم"],
+  loopT:["What Brand DNA learns from these results","ما تتعلمه هوية العلامة من هذه النتائج"], loopSub:["Each fixed product against the control group","كل منتج معدّل مقابل مجموعة المقارنة"],
+  ocConv:["Conversion","التحويل"], ocUplift:["vs control","مقابل المقارنة"], ocVerdict:["Result","النتيجة"], ocApplied:["What was changed","ما الذي تغيّر"],
+  oc_win:["Worked","نجح"], oc_loss:["Worse","أسوأ"], oc_flat:["No clear effect","لا أثر واضح"], oc_lowTraffic:["Too little traffic","زيارات قليلة"], oc_noData:["No sessions in the report","لا زيارات في التقرير"],
+  ocNotInCatalog:["Not in this catalog","ليس في هذا الكتالوج"], appliedSlides:["Slides","الشرائح"], appliedNone:["No approvals recorded","لا موافقات مسجلة"], appliedN:["{n} approvals","{n} موافقات"], appliedN1:["1 approval","موافقة واحدة"],
+  ocMethod:["A product counts when it had at least 200 sessions in each period. Its conversion change minus the control group's is tested against its own traffic: about 90% confidence marks it Worked or Worse, less is No clear effect. Worked strengthens the brand rules its approved content followed; Worse weakens only rules learned from edits, never the brand book. Slide templates and kinds of fix keep a record that the audit uses to rank what to fix first.","يُحتسب المنتج إذا كانت له ٢٠٠ زيارة على الأقل في كل فترة. يُختبر تغير تحويله ناقصاً تغير مجموعة المقارنة مقابل زياراته: ثقة ٩٠٪ تقريباً تعني «نجح» أو «أسوأ»، وأقل من ذلك «لا أثر واضح». «نجح» يقوّي قواعد العلامة التي اتبعها المحتوى المعتمد، و«أسوأ» يضعف فقط القواعد المتعلَّمة من التعديلات وليس دليل العلامة. وتحتفظ قوالب الشرائح وأنواع التعديلات بسجل يستخدمه التدقيق لترتيب ما يُصلح أولاً."],
+  teachBtn:["Teach Brand DNA ({n})","علّم هوية العلامة ({n})"], taughtAlready:["These results are already in Brand DNA.","هذه النتائج مسجلة في هوية العلامة."], taughtToast:["Brand DNA learned from the sales results","تعلّمت هوية العلامة من نتائج المبيعات"],
+  taughtSum:["Learned from {n} products: {s} rules strengthened, {w} weakened. Slide templates and kinds of fix got their sales record.","تعلّمت من {n} منتجات: قُوّيت {s} قواعد وضُعفت {w}. وسُجلت نتائج قوالب الشرائح وأنواع التعديلات."],
+  sampleNoTeach:["Sample reports can only teach the sample clients.","التقارير التجريبية تُعلّم العملاء التجريبيين فقط."],
+  perfT:["What worked in sales","ما نجح في المبيعات"], perfEmpty:["Nothing yet. Upload sales reports in Results and teach Brand DNA from them.","لا شيء بعد. ارفع تقارير المبيعات في النتائج وعلّم هوية العلامة منها."],
+  perfTpl:["Slide templates","قوالب الشرائح"], perfFix:["Kinds of fix","أنواع التعديلات"], pv_works:["Works","ناجح"], pv_hurts:["Hurts","يضر"], pv_mixed:["Mixed","متفاوت"], perfN:["{w} of {n} worked","نجح {w} من {n}"],
+  log_outcome:["Sales result","نتيجة مبيعات"], mem_outcome:["Sales result","نتيجة المبيعات"], evSales:["sales wins","نجاحات في المبيعات"],
+  tplWorked:["Raised conversion here: +{pts} pts ({n})","رفع التحويل هنا: +{pts} نقطة ({n})"]
+});
+
+/* the audit checks the brand: rules that can be read from the live copy */
+function brandAuditOf(p){
+  var c = copyCurrentOf(p);
+  return auditBrand(genome(), {channel:p.ch[0], category:catOf(p), titleEn:c.titleEn, titleAr:c.titleAr, bulletsEn:c.bulletsEn || [], bulletsAr:c.bulletsAr || []});
+}
+function brandCell(b){ return b && b.checked ? sbar(b.score) : '<span style="color:var(--ink-3)">—</span>'; }
+function brandIssueText(i){
+  var d = i.detail || {}, r = d.rule || {en:"", ar:""};
+  return tr([r.en, r.ar]) + (d.type === "maxHeadline" && d.found ? " · " + tf("charsN", {n:d.found}) : "");
+}
+function brandIssueRows(b, pid){
+  return b.issues.map(function(i){
+    return '<div class="issue" style="--c:'+sevC(i.sev)+'"><span class="sev"></span><div><b>'+t("brandIssueT")+'</b><p dir="auto">'+esc(brandIssueText(i))+'</p></div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(i.sev)+(pid ? '<button type="button" class="btn btn-ghost btn-sm" data-xbrandfix="'+pid+'">'+t("brandFix")+'</button>' : "")+'</div></div>';
+  }).join("");
+}
+function brandAuditCard(listing){
+  var b = auditBrand(genome(), listing), name = tr([wsInfo().name, wsInfo().nameAr || wsInfo().name]);
+  return '<div class="card"><div class="card-h"><h2>'+esc(tf("brandAuditT", {name:name}))+'</h2>'+(b.checked ? '<small>'+tf("bcsChecked", {n:b.checked})+'</small>' : "")+'</div>'+
+    (!b.checked ? '<p class="note">'+t("brandNoRules")+' <a href="#brand">'+t("brand")+'</a>.</p>'
+      : '<div class="lhead">'+ring(b.score)+'<div style="flex:1;min-width:200px">'+(b.issues.length ? brandIssueRows(b, null) : '<p class="note">'+t("brandAllGood")+'</p>')+'</div></div>')+'</div>';
+}
+
+/* audit priorities: a kind of fix that raised conversion on other products of this brand moves up.
+   A product whose own fix was already measured keeps its plain order: its result is in its memory. */
+function measured(p){ return wsEvents().some(function(e){ return e.type === "outcome" && e.product === p.id; }); }
+function provenFix(k, p){ if (p && measured(p)) return null; return performanceOf(genome()).fixes.filter(function(f){ return f.id === k && f.verdict === "works"; })[0] || null; }
+function provenTag(k, p){ var x = provenFix(k, p); return x ? ' <span class="tag good">'+tf("provenT", {pts:x.avgPts})+'</span>' : ""; }
+function issueRank(k, p){ var x = ISSUES[k] || {sev:"med"}; return ({high:3, med:2, low:1}[x.sev] || 2) * (1 + (provenFix(k, p) ? fixBoost(genome(), k) : 0)); }
+function rankedIssues(p){ return openIssues(p).map(function(k, i){ return [k, i]; }).sort(function(a, b){ return issueRank(b[0], p) - issueRank(a[0], p) || a[1] - b[1]; }).map(function(x){ return x[0]; }); }
+function fixPriority(p){
+  if (measured(p)) return 100 - p.score;
+  var g = genome(), boost = openIssues(p).reduce(function(m, k){ return Math.max(m, fixBoost(g, k)); }, 0);
+  return (100 - p.score) * (1 + boost);
+}
+
+/* sales results → Brand DNA */
+function resKey(){
+  var r = state.res, s = JSON.stringify([r.before && r.before.rows, r.after && r.after.rows, changedList()]), h = 5381;
+  for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return "r" + h.toString(36);
+}
+function productByKey(key){
+  key = String(key || "").trim();
+  return WP().filter(function(p){ return p.sku === key || p.asin === key || (p.listing && (p.listing.sku === key || p.listing.asin === key)); })[0] || null;
+}
+/** What Basira changed on a product, from its approvals: the approved content, slide templates and the issues it fixed. */
+function appliedTo(p){
+  var evs = wsEvents().filter(function(e){ return e.product === p.id && e.type === "approve"; }), contents = [], tpls = {}, fixes = {};
+  evs.forEach(function(e){
+    if (e.content) contents.push(e.content);
+    (e.templates || (e.exemplar && e.exemplar.template ? [e.exemplar.template] : [])).forEach(function(x){ if (x) tpls[x] = 1; });
+    (e.issues || []).forEach(function(k){ fixes[k] = 1; });
+  });
+  if (evs.length && !Object.keys(fixes).length) (p.issues || []).forEach(function(k){ fixes[k] = 1; });
+  if (p.copyNow) contents.push(copyContent(p.copyNow));
+  return {approvals: evs.length, contents: contents.slice(-4), templates: Object.keys(tpls), fixes: Object.keys(fixes)};
+}
+function appliedText(a){
+  if (!a.approvals) return '<span class="note">'+t("appliedNone")+'</span>';
+  var fx = a.fixes.slice(0, 3).map(function(k){ return ISSUES[k] ? tr(ISSUES[k].t) : k; });
+  var tp = a.templates.slice(0, 3).map(function(id){ var x = templateById(id); return x ? tr(x.name) : id; });
+  return '<span class="note">'+esc(fx.join(" · "))+(tp.length ? '<br>'+t("appliedSlides")+': '+esc(tp.join(", ")) : "")+'<br>'+(a.approvals === 1 ? t("appliedN1") : tf("appliedN", {n:a.approvals}))+'</span>';
+}
+function learnedFor(key, pid){ return wsEvents().some(function(e){ return e.type === "outcome" && e.resKey === key && e.product === pid; }); }
+function outcomeRows(res){ return productOutcomes(res).map(function(o){ var p = productByKey(o.key); return Object.assign({}, o, {p:p, applied: p ? appliedTo(p) : null}); }); }
+function teachable(o, key){ return o.p && o.applied && o.applied.approvals && ["win","loss","flat"].indexOf(o.verdict) > -1 && !learnedFor(key, o.p.id); }
+function learnCard(res){
+  var r = state.res, rows = outcomeRows(res), key = resKey();
+  var todo = rows.filter(function(o){ return teachable(o, key); }), done = rows.some(function(o){ return o.p && learnedFor(key, o.p.id); });
+  var blocked = r.sample && !wsInfo().sample;
+  var vt = {win:["good","oc_win"], loss:["bad","oc_loss"], flat:["","oc_flat"], lowTraffic:["","oc_lowTraffic"], noData:["","oc_noData"]};
+  var ts = r.taught && r.taught.key === key ? r.taught : null;
+  return '<div class="card"><div class="card-h"><h2>'+t("loopT")+'</h2><small>'+t("loopSub")+'</small></div>'+
+    '<div class="tbl-wrap"><table class="oc"><thead><tr><th>'+t("thProduct")+'</th><th>'+t("ocConv")+'</th><th>'+t("ocUplift")+'</th><th>'+t("ocVerdict")+'</th><th>'+t("ocApplied")+'</th></tr></thead><tbody>'+
+    rows.map(function(o){ var v = vt[o.verdict] || vt.noData;
+      return '<tr><td>'+(o.p ? '<b>'+esc(tr(o.p.name))+'</b><br>' : "")+'<span class="mono note">'+esc(o.key)+'</span></td><td class="tnum">'+fmtConv(o.before.conv)+' → '+fmtConv(o.after.conv)+'</td><td class="tnum">'+fmtPts(o.upliftPts)+'</td>'+
+        '<td><span class="tag '+v[0]+'">'+t(v[1])+'</span>'+(o.p && learnedFor(key, o.p.id) ? ' <span class="tag brand">✓</span>' : "")+'</td><td>'+(o.p ? appliedText(o.applied) : '<span class="note">'+t("ocNotInCatalog")+'</span>')+'</td></tr>'; }).join("")+
+    '</tbody></table></div>'+
+    '<p class="note" style="margin-top:10px">'+t("ocMethod")+'</p>'+
+    (ts ? '<div class="learned"><b>'+t("learnedT")+'</b><div>'+tf("taughtSum", {n:ts.n, s:ts.strengthened, w:ts.weakened})+'</div>'+(ts.learned || []).map(function(i){ return '<div><span class="tag '+(i.type === "promoted" ? "good" : i.type === "retired" ? "bad" : "warn")+'">'+t(i.type === "promoted" ? "learnedPromoted" : i.type === "retired" ? "learnedRetired" : "learnedCandidate")+'</span> '+esc(tr(i.d))+'</div>'; }).join("")+'</div>' : "")+
+    '<div class="cp-actions" style="margin-top:12px"><button type="button" class="btn btn-primary" id="x-teach"'+(todo.length && !blocked ? "" : " disabled")+'>'+tf("teachBtn", {n:todo.length})+'</button>'+
+      (blocked ? '<span class="note">'+t("sampleNoTeach")+'</span>' : done && !todo.length ? '<span class="note">'+t("taughtAlready")+'</span>' : "")+'</div>'+
+  '</div>';
+}
+function teachFromResults(){
+  var res = resResult(); if (!res) return;
+  if (state.res.sample && !wsInfo().sample) return;
+  var key = resKey(), evs = [];
+  outcomeRows(res).forEach(function(o){
+    if (!teachable(o, key)) return;
+    evs.push({type:"outcome", product:o.p.id, resKey:key, result:o.verdict, upliftPts:o.upliftPts, z:o.z, period:state.res.period || "", label:tr(o.p.name)+" · "+fmtPts(o.upliftPts),
+      contents:o.applied.contents, templates:o.applied.templates, fixes:o.applied.fixes, ctx:{channel:o.p.ch[0], category:catOf(o.p)}});
+  });
+  if (!evs.length) return;
+  var changes = recordAll(evs), st = {}, wk = {};
+  changes.forEach(function(c){ if (c.type === "strengthened") st[c.trait] = 1; if (c.type === "weakened") wk[c.trait] = 1; });
+  state.res.taught = {key:key, n:evs.length, strengthened:Object.keys(st).length, weakened:Object.keys(wk).length, learned:learnedNote(changes)};
+  render(); toast(t("taughtToast"));
+}
+
+/* Brand DNA screen: what moved conversion */
+function perfCard(g){
+  var pf = performanceOf(g), head = '<div class="card"><div class="card-h"><h2>'+t("perfT")+'</h2></div>';
+  if (!pf.templates.length && !pf.fixes.length) return head+'<p class="note">'+t("perfEmpty")+' <a href="#results">'+t("results")+'</a></p></div>';
+  var row = function(name, x){ return '<div class="perf-r"><span>'+esc(name)+'</span><span class="tag '+(x.verdict === "works" ? "good" : x.verdict === "hurts" ? "bad" : "")+'">'+t("pv_"+x.verdict)+'</span><span class="mono">'+fmtPts(x.avgPts)+'</span><span class="note">'+tf("perfN", {w:x.wins, n:x.n})+'</span></div>'; };
+  return head+
+    (pf.templates.length ? '<div class="dimh">'+t("perfTpl")+'</div>'+pf.templates.slice(0, 8).map(function(x){ var tp = templateById(x.id); return row(tp ? tr(tp.name) : x.id, x); }).join("") : "")+
+    (pf.fixes.length ? '<div class="dimh">'+t("perfFix")+'</div>'+pf.fixes.slice(0, 8).map(function(x){ return row(ISSUES[x.id] ? tr(ISSUES[x.id].t) : x.id, x); }).join("") : "")+
+  '</div>';
+}
+function tplWorkedTag(id){
+  var x = performanceOf(genome()).templates.filter(function(y){ return y.id === id && y.verdict === "works"; })[0];
+  return x ? '<span class="tag good">'+tf("tplWorked", {pts:x.avgPts, n:x.wins})+'</span>' : "";
+}
+
+document.addEventListener("click", function(e){
+  var el;
+  if ((el = e.target.closest("#x-teach"))){ teachFromResults(); return; }
+  if ((el = e.target.closest("[data-xbrandfix]"))){ prepareBatch([el.dataset.xbrandfix]); go("batch"); return; }
+});
+
 /* ---------- router ---------- */
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
@@ -4806,7 +5081,7 @@ function approve(id){
   var it = findQ(id); if (it.status === "approved") return;
   var p0 = PM[it.pid], set0 = setOf(p0), b0 = set0.filter(function(x){ return x.tpl === "benefit"; })[0] || set0[1] || set0[0];
   var ex0 = b0 ? Object.assign({}, templateById(b0.tpl).sample, b0.fields) : {};
-  it.learned = learnedNote(recordAll([{type:"approve", product:p0.id, edits: it.edits || 0, label: set0.length+" "+t("slidesN"), content: b0 ? slideContent(p0, b0) : null, exemplar: {template: b0 && b0.tpl, headAr: ex0.headAr, headEn: ex0.headEn}, ctx:{channel:p0.ch[0], category:catOf(p0), lang:"ar", template: b0 && b0.tpl}}]));
+  it.learned = learnedNote(recordAll([{type:"approve", product:p0.id, edits: it.edits || 0, label: set0.length+" "+t("slidesN"), issues: (p0.issues || []).slice(), templates: set0.map(function(x){ return x.tpl; }), content: b0 ? slideContent(p0, b0) : null, exemplar: {template: b0 && b0.tpl, headAr: ex0.headAr, headEn: ex0.headEn}, ctx:{channel:p0.ch[0], category:catOf(p0), lang:"ar", template: b0 && b0.tpl}}]));
   // Approval marks the fix ready; nothing reaches a marketplace until it is exported or published from Bulk fixes.
   it.status = "approved"; p0.fixed = true; p0.score = p0.target; p0.imgs = Math.max(p0.imgs, set0.length);
   render(); toast(t("approvedToast"));

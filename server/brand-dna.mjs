@@ -9,6 +9,10 @@
 // Edits and rejections create candidate traits ("mutation"); a candidate becomes active only after
 // consistent evidence or a person's decision ("selection"). Every change is versioned in the log.
 //
+// Sales results close the loop: a fix that raised conversion against a control group strengthens the
+// rules its approved content followed, and the genome keeps a record of which slide templates and which
+// kinds of fixes moved conversion for this brand. Audit priorities and the brief read that record.
+//
 // Pure functions with no imports: the server uses this module directly, and scripts/build.mjs inlines
 // it into the app so the genome learns and checks in the browser too.
 
@@ -155,7 +159,7 @@ export function extractPalette(d, w, h, k = 5) {
 /* ---------- genome ---------- */
 
 export function newGenome(ws, identity) {
-  return { ws, version: 1, updatedAt: null, identity: Object.assign({ name: "", nameAr: "", logo: null, logoPos: "top-end", palette: [], fonts: "kufi" }, identity || {}), traits: [], exemplars: [], log: [] };
+  return { ws, version: 1, updatedAt: null, identity: Object.assign({ name: "", nameAr: "", logo: null, logoPos: "top-end", palette: [], fonts: "kufi" }, identity || {}), traits: [], exemplars: [], performance: { templates: {}, fixes: {} }, log: [] };
 }
 
 export function traitKey(type, params) {
@@ -201,7 +205,7 @@ export function strength(t, at) {
 }
 
 export function evidenceSummary(t) {
-  const out = { declared: 0, brandbook: 0, analysis: 0, edit: 0, approve: 0, reject: 0, manual: 0, against: 0 };
+  const out = { declared: 0, brandbook: 0, analysis: 0, edit: 0, approve: 0, reject: 0, manual: 0, outcome: 0, against: 0 };
   for (const e of t.evidence || []) { if (e.sign < 0) out.against++; else out[e.kind] = (out[e.kind] || 0) + 1; }
   return out;
 }
@@ -334,6 +338,8 @@ export function observeReject(reasons, ctx) {
  *   approve    { content, ctx }   reinforces active traits the content satisfies, stores an exemplar
  *   removeSlide{ template, ctx }  weak evidence against a template in that category
  *   kit        { onBrand: boolean } choosing colours outside the palette weakens the palette rule
+ *   outcome    { result: win | loss | flat, upliftPts, contents[], templates[], fixes[], ctx }
+ *              a product's sales result against the control group (see learnOutcome)
  * Returns the list of changes (new candidates, promotions, retirements).
  */
 export function learn(g, ev) {
@@ -360,7 +366,93 @@ export function learn(g, ev) {
     if (g.exemplars.length > 40) g.exemplars.length = 40;
     logChange(g, { type: "approved", note: ev.label || "approved", edits: ev.edits || 0 }, at);
   }
+  else if (ev.type === "outcome") changes = learnOutcome(g, ev, at, ref);
   return changes;
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/**
+ * A sales result for one fixed product. A win strengthens every active rule the approved content
+ * followed; a loss weakens only rules learned from behaviour (one product's sales don't overrule the
+ * brand book). Wins, losses and the conversion change are tallied per slide template and per kind of
+ * fix, which is what audit priorities and the brief use. "flat" is recorded but moves no rule.
+ */
+function learnOutcome(g, ev, at, ref) {
+  const perf = g.performance || (g.performance = { templates: {}, fixes: {} });
+  const result = ev.result === "win" || ev.result === "loss" ? ev.result : "flat";
+  const pts = Number(ev.upliftPts) || 0;
+  const tally = (bucket, key) => {
+    const x = bucket[key] || (bucket[key] = { wins: 0, losses: 0, flat: 0, n: 0, sumPts: 0, lastAt: null });
+    x.n++; x[result === "win" ? "wins" : result === "loss" ? "losses" : "flat"]++; x.sumPts = round2(x.sumPts + pts); x.lastAt = at;
+  };
+  for (const id of new Set(ev.templates || [])) tally(perf.templates, id);
+  for (const key of new Set(ev.fixes || [])) tally(perf.fixes, key);
+
+  let changes = [];
+  if (result !== "flat") {
+    const followed = new Map();
+    for (const content of ev.contents || []) {
+      for (const r of check(g, content, ev.ctx || {}, at).results) if (r.pass) followed.set(r.trait.id, r.trait);
+    }
+    const sign = result === "win" ? 1 : -1;
+    for (const t of followed.values()) {
+      if (sign < 0 && t.origin !== "learned") continue;
+      const note = "sales: conversion " + (pts > 0 ? "+" : "") + pts + " pts vs control";
+      changes = changes.concat(addEvidence(g, { type: t.type, params: t.params }, { kind: "outcome", sign, w: 1, note, ref }, at));
+      changes.push({ type: sign > 0 ? "strengthened" : "weakened", trait: t.id });
+    }
+  }
+  logChange(g, { type: "outcome", result, pts, note: ev.label || result }, at);
+  return changes;
+}
+
+/**
+ * What moved conversion for this brand, from recorded sales results.
+ * verdict: "works" (more wins than losses and a positive average), "hurts" (more losses), "mixed" otherwise.
+ */
+export function performanceOf(g) {
+  const perf = (g && g.performance) || { templates: {}, fixes: {} };
+  const list = (bucket) => Object.entries(bucket || {}).map(([id, x]) => {
+    const avgPts = x.n ? round2(x.sumPts / x.n) : 0;
+    const verdict = x.wins > x.losses && avgPts > 0 ? "works" : x.losses > x.wins ? "hurts" : "mixed";
+    return { id, wins: x.wins, losses: x.losses, flat: x.flat, n: x.n, avgPts, verdict, lastAt: x.lastAt };
+  }).sort((a, b) => (b.wins - b.losses) - (a.wins - a.losses) || b.avgPts - a.avgPts);
+  return { templates: list(perf.templates), fixes: list(perf.fixes) };
+}
+
+/** How much a kind of fix has earned its place for this brand: 0 (no evidence) to 1. */
+export function fixBoost(g, key) {
+  const x = performanceOf(g).fixes.find((f) => f.id === key);
+  if (!x || x.verdict !== "works") return 0;
+  return Math.min(1, 0.3 * (x.wins - x.losses) + 0.1 * Math.max(0, x.avgPts));
+}
+
+/* ---------- the brand in the listing audit ---------- */
+
+/** A live listing's copy as checkable content: titles and bullets in both languages. */
+export function listingContent(l) {
+  const x = l || {};
+  const texts = [{ text: x.titleEn, lang: "en", role: "title" }, { text: x.titleAr, lang: "ar", role: "title" }]
+    .concat((x.bulletsEn || []).map((b) => ({ text: b, lang: "en", role: "body" })))
+    .concat((x.bulletsAr || []).map((b) => ({ text: b, lang: "ar", role: "body" })));
+  return { texts: texts.filter((t) => t.text && String(t.text).trim()) };
+}
+
+/**
+ * Brand rules checked on a listing that is live now, in the same shape as audit issues (area "brand").
+ * Only rules that can be read from copy apply here (words, «!», emoji, digits, headline length);
+ * colours, logo and templates are checked on slides in the studio.
+ */
+export function auditBrand(g, listing, ctx) {
+  const l = listing || {};
+  const r = check(g, listingContent(l), Object.assign({ channel: l.channel, category: l.category }, ctx || {}));
+  const issues = r.violations.map((v) => ({
+    key: "brand", area: "brand",
+    sev: v.trait.origin === "learned" && v.weight < 0.8 ? "low" : "med",
+    detail: { trait: v.trait.id, type: v.trait.type, rule: describe(v.trait), found: v.detail || null }
+  }));
+  return { score: r.score, checked: r.checked, issues };
 }
 
 /* ---------- expression: genome → generation instructions ---------- */
@@ -404,10 +496,13 @@ export function express(g, ctx, at) {
     lines.push("Rules, strongest first (confidence in brackets):");
     for (const t of rules) {
       const ev = evidenceSummary(t);
-      const why = [ev.declared || ev.brandbook ? "brand book" : "", ev.edit ? ev.edit + " edits" : "", ev.approve ? ev.approve + " approvals" : "", ev.reject ? ev.reject + " rejections" : ""].filter(Boolean).join(", ");
+      const why = [ev.declared || ev.brandbook ? "brand book" : "", ev.edit ? ev.edit + " edits" : "", ev.approve ? ev.approve + " approvals" : "", ev.reject ? ev.reject + " rejections" : "", ev.outcome ? ev.outcome + " sales wins" : ""].filter(Boolean).join(", ");
       lines.push(`- [${t.st.s.toFixed(2)}] ${describe(t).en}${why ? " (" + why + ")" : ""}`);
     }
   }
+  const perf = performanceOf(g);
+  const worked = perf.templates.filter((x) => x.verdict === "works").slice(0, 4);
+  if (worked.length) lines.push("Slides that raised conversion for this brand in sales results: " + worked.map((x) => `${x.id} (+${x.avgPts} pts on average, ${x.wins} of ${x.n} products)`).join("; ") + ".");
   const ex = exemplars(g, ctx);
   if (ex.length) {
     lines.push("Approved examples for similar products:");
@@ -421,6 +516,7 @@ export function express(g, ctx, at) {
     numerals: (has("numerals") || { params: {} }).params.style || null,
     maxChars: (has("textDensity") || { params: {} }).params.maxChars || null,
     avoidTemplates: traits.filter((t) => t.type === "template" && t.params.avoid).map((t) => t.params.id),
+    provenTemplates: worked.map((x) => x.id),
     brief: lines.join("\n")
   };
 }
@@ -462,8 +558,8 @@ export function check(g, content, ctx, at) {
         if (heads.length) { const long = heads.filter((x) => (x.text || "").length > p.chars); pass = !long.length; detail = long.map((x) => x.text.length).join(", "); }
         break;
       }
-      case "avoidWord": if (texts.length && (!p.lang || texts.some((x) => (x.lang || (ARABIC.test(x.text || "") ? "ar" : "en")) === p.lang))) { pass = !hasWord(all, p.word); } break;
-      case "noExclamation": if (texts.length) pass = !/[!！]/.test(all); break;
+      case "avoidWord": if (texts.length && (!p.lang || texts.some((x) => (x.lang || (ARABIC.test(x.text || "") ? "ar" : "en")) === p.lang))) { pass = !hasWord(all, p.word); detail = pass ? "" : p.word; } break;
+      case "noExclamation": if (texts.length) { pass = !/[!！]/.test(all); detail = pass ? "" : "!"; } break;
       case "noEmoji": if (texts.length) pass = !EMOJI.test(all); break;
     }
     if (pass !== null) results.push({ trait: t, dim: TRAIT_TYPES[t.type].dim, pass, detail, weight: t.st.s });

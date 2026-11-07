@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
+import { auditBrand } from "./brand-dna.mjs";
 import { renderSlide, renderPdf, rendererAvailable, normaliseSpec } from "./render.mjs";
 import { analyseReviews, draftReply, aiConfigured, MODEL } from "./reviews.mjs";
 import { keywordCoverage } from "./keywords.mjs";
@@ -265,7 +266,12 @@ const routes = {
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
     };
   },
-  "POST /api/audit": async (body) => auditListing(body.listing || body),
+  // With a workspace, the audit also checks the listing's copy against that brand's rules.
+  "POST /api/audit": async (body, { store }) => {
+    const listing = body.listing || body, r = auditListing(listing);
+    if (body.ws) r.brand = auditBrand(await store.getGenome(String(body.ws)), listing);
+    return r;
+  },
   "POST /api/reviews/analyze": async (body, { store }) => { const r = await analyseReviews(body); if (aiConfigured()) await meter(store, "ai"); return r; },
   "POST /api/reviews/reply": async (body, { store }) => { const r = await draftReply(body); await meter(store, "ai"); return r; },
   "POST /api/keywords": async (body) => keywordCoverage(body.listing || body),

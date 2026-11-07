@@ -34,6 +34,20 @@ test("health reports what is configured", async () => {
   assert.equal(h.body.imageGen, false);
 });
 
+test("with a workspace, the audit checks the copy against that brand's rules", async () => {
+  const listing = { channel: "noon", category: "fragrance", titleEn: "Best Oud Perfume 100ml for Men and Women!", titleAr: "عطر عود ١٠٠ مل", bulletsEn: ["Lasts all day"], bulletsAr: ["ثبات طوال اليوم"] };
+  const plain = await api("POST", "/api/audit", { listing });
+  assert.equal(plain.status, 200);
+  assert.equal(plain.body.brand, undefined, "no workspace, no brand check");
+  const r = await api("POST", "/api/audit", { listing, ws: "layali" });
+  assert.equal(r.status, 200);
+  const types = r.body.brand.issues.map((i) => i.detail.type);
+  assert.ok(types.includes("avoidWord"), "Layali learned to avoid «best»");
+  assert.ok(types.includes("noExclamation"));
+  assert.ok(r.body.brand.score < 100);
+  assert.equal((await api("POST", "/api/audit", { listing, ws: "nope" })).status, 404);
+});
+
 test("approvals count as fixes against the plan", async () => {
   let a = await api("GET", "/api/account");
   assert.equal(a.body.plan, "trial"); assert.equal(a.body.used, 0); assert.equal(a.body.limit, 20);

@@ -89,3 +89,30 @@ export function compareResults({ before, after, changed, rows, changedAt }) {
   const uplift = changedG.convPts != null && controlG.convPts != null && controlG.count ? Math.round((changedG.convPts - controlG.convPts) * 100) / 100 : changedG.convPts;
   return { products, changed: changedG, control: controlG, upliftPts: uplift, hasControl: controlG.count > 0 };
 }
+
+/** When a product's own result counts as a signal. */
+export const OUTCOME = { minSessions: 200, z: 1.64 };
+
+/**
+ * Each changed product's own result: its conversion change minus the control group's, in points.
+ * A two-proportion z-test on its sessions decides whether that is a signal: z ≥ 1.64 (about 90%
+ * one-sided) is a "win", z ≤ −1.64 a "loss", anything between "flat". Products without sessions or
+ * conversion, or with fewer than OUTCOME.minSessions in either period, are "noData" or "lowTraffic":
+ * nothing is learned from them. The control group's own noise is small next to one product's and is
+ * left out of the test.
+ */
+export function productOutcomes(result, opts) {
+  const o = Object.assign({}, OUTCOME, opts || {});
+  const r = result || { products: [] };
+  const control = r.hasControl && r.control && r.control.convPts != null ? r.control.convPts : 0;
+  return (r.products || []).filter((p) => p.changed).map((p) => {
+    const b = p.before || {}, a = p.after || {};
+    const base = { key: p.key, before: { conv: b.conv, sessions: b.sessions }, after: { conv: a.conv, sessions: a.sessions }, upliftPts: null, z: null };
+    if (b.conv == null || a.conv == null || b.sessions == null || a.sessions == null) return Object.assign(base, { verdict: "noData" });
+    const upliftPts = Math.round(((a.conv - b.conv) * 100 - control) * 100) / 100;
+    if (b.sessions < o.minSessions || a.sessions < o.minSessions) return Object.assign(base, { verdict: "lowTraffic", upliftPts });
+    const se = Math.sqrt((b.conv * (1 - b.conv)) / b.sessions + (a.conv * (1 - a.conv)) / a.sessions) * 100;
+    const z = se > 0 ? Math.round((upliftPts / se) * 100) / 100 : 0;
+    return Object.assign(base, { upliftPts, z, verdict: z >= o.z ? "win" : z <= -o.z ? "loss" : "flat" });
+  });
+}

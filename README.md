@@ -24,7 +24,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/economics.mjs` | Unit economics per channel (VAT, commission, fulfilment, COD, ads, returns), shared with the app |
 | `server/photo-metrics.mjs` | Photo checks (white background, product fill) and background removal on raw pixels, shared with the app |
 | `server/photo.mjs` | Claude reviews main-image candidates and picks the one most likely to be clicked |
-| `server/brand-dna.mjs` | Brand DNA: evidence-weighted brand genome (traits used both to generate and to check, learning from edits and approvals), shared with the app |
+| `server/brand-dna.mjs` | Brand DNA: evidence-weighted brand genome (traits used both to generate and to check, learning from edits, approvals and sales results), the record of which templates and fixes raised conversion, and the brand check in the listing audit; shared with the app |
 | `server/brand-ai.mjs` | Claude: reads brand materials into proposed rules; writes listing copy with the brand brief |
 | `server/brand-seed.mjs` | Sample client workspaces (Layali with a learning history, Noor as a new client) |
 | `server/auth.mjs` | Accounts (one agency or one brand each), users, scrypt passwords, sessions, single-use team invites |
@@ -32,7 +32,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/copy-rules.mjs` | Applies the brand's checkable rules (avoided words, no "!", no emoji, digits, headline length) to existing copy without AI, shared with the app |
 | `server/exports.mjs` | Upload files per channel: Amazon flat file (PartialUpdate, English and Arabic), Shopify product CSV, Noon, Salla and Zid CSVs, shared with the app |
 | `server/zip.mjs` | Minimal ZIP writer, shared with the app |
-| `server/results.mjs` | Reads marketplace sales reports and compares changed products with a control group, shared with the app |
+| `server/results.mjs` | Reads marketplace sales reports, compares changed products with a control group, and judges each product's own result (z-test on its sessions), shared with the app |
 | `server/report.mjs` | Before/after report for the client as an A4 HTML document under the agency's logo (PDF on the server, print in the browser), shared with the app |
 | `server/billing.mjs` | Plans, monthly usage metering (fixes, renders, AI calls), plan expiry, shared with the app |
 | `server/payments.mjs` | Moyasar Invoices API: hosted checkout in SAR (Mada, cards, Apple Pay) and invoice verification |
@@ -79,7 +79,7 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/team/invite` | | `{ code, expires, url }`: a single-use link valid 7 days (owner only) |
 | `DELETE /api/team/:userId` | | Removes a member and ends their sessions (owner only) |
 | `PATCH /api/account` | `{ type: agency \| brand, name }` | Switches between agency and single-brand mode (owner only) |
-| `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] } }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }` |
+| `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] }, ws? }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }`. With `ws`, also `brand: { score, checked, issues[] }`: the copy checked against that workspace's brand rules |
 | `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand, logo?: { src: data URL, pos }, fonts?: kufi \| naskh \| modern }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
 | `POST /api/reviews/analyze` | `{ product, reviews: [string \| { text, rating }] }` (up to 200) | `{ total, dialects, themes[], reviews[], fixes[] }` |
 | `POST /api/import` | `{ url, limit? }`: an Amazon, Noon, Shopify, Salla or Zid product or store link | `{ source, count, averageScore, items[{ sku, name, url, image, listing, audit }], warnings }` |
@@ -203,7 +203,7 @@ The final form then POSTs `{ name, whatsapp, store, lang }` as JSON. When the pa
 The app works on sample data for a fictional client (Layali Fragrances, 8 listings). Views are routed by hash: `#overview`, `#brand`, `#audit`, `#catalog`, `#batch`, `#listing-<id>`, `#studio-<id>`, `#photos`, `#reviews`, `#templates`, `#approvals`, `#results`, `#profit`, `#settings`.
 
 What is real:
-- **Audit** runs the real engine in the browser; the score updates as you type.
+- **Audit** runs the real engine in the browser; the score updates as you type. It also checks the copy against the client's brand rules, as do the Catalog (Brand column) and each listing.
 - **Studio**, when served by the Basira server, renders real 1600 × 2000 PNGs with correct Arabic shaping, from your uploaded product photo or the sample drawing. Without the server it shows the live preview and simulates generation.
 - **Reviews → Analyse your reviews** calls Claude through the server.
 
@@ -214,7 +214,7 @@ What is real:
 - **Photo check** measures main-image candidates against Amazon and Noon rules, removes plain backgrounds, rebuilds a compliant 2000 × 2000 main image, and (with the server) asks Claude which photo is most likely to be clicked.
 - **Unit economics** compares profit per unit across Noon, Amazon, Salla, Zid and Shopify after VAT, fees, delivery, cash on delivery, ads and returns. Fee defaults are starting values to replace with your own.
 - **Bulk fixes**: select products in the Catalog, and the brand's rules are applied to all of them at once (with Claude drafts when a key is set). Review, approve one by one or all, then export a ZIP for the channel: upload files, README and, with the server, every slide as a PNG. Amazon can be updated directly when a seller account is connected.
-- **Results**: upload sales reports from before and after the fixes (Amazon Business Reports, Noon and other exports). Products that weren't changed are the control group, and the uplift is the changed products' gain minus theirs. The client report carries the agency's logo and colour; PDF on the server, print from the browser.
+- **Results**: upload sales reports from before and after the fixes (Amazon Business Reports, Noon and other exports). Products that weren't changed are the control group, and the uplift is the changed products' gain minus theirs. The client report carries the agency's logo and colour; PDF on the server, print from the browser. **Teach Brand DNA** turns each fixed product's result into evidence: a product that beat the control group strengthens the brand rules its approved content followed, a worse one weakens only rules learned from edits, and slide templates and kinds of fix keep a record of what raised conversion. The brief, the Brand DNA screen, Templates and the audit's "Fix first" order read that record.
 - **Sign-in** (server with accounts on): create an agency or brand account, sign in, join a team from an invite link. A brand gets the simpler single-brand app.
 - **Settings**: account type (agency or single brand), team and invites, agency or brand profile for reports, plan and real usage (from the server, or counted in the browser), Moyasar checkout, and per-client data download, deletion and consent to anonymised use.
 - **On-model photos** (Photo check): generate the garment worn by a model with modest styling through an image model, or check a photo made elsewhere. Every result is checked for colour against the product photo before it can go into an export.
