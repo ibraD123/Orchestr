@@ -31,6 +31,7 @@ import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
 import { amazonPublish, amazonConfig, amazonConfigured } from "./connectors/amazon.mjs";
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
+import { noonConfigured, noonPublish, noonContent } from "./connectors/noon.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Keys from a local .env file (not committed), only when this file is the program being run, so
@@ -289,6 +290,41 @@ async function publishAmazon(body, { store }) {
   return { marketplace: mk.country, imagesIncluded, results };
 }
 
+/** Publish an exported batch to Noon (Content API). Images go by their hosted links. */
+async function publishNoon(body, { store }) {
+  if (!noonConfigured()) fail("Publishing to Noon needs a Noon service account (NOON_CREDENTIALS, or NOON_KEY_ID and NOON_PRIVATE_KEY)", 503);
+  const ws = String(body.ws || ""), batch = String(body.batch || "");
+  const m = await store.getManifest(ws, batch);
+  if (m.channel !== "noon") fail("Export this batch for Noon first");
+  if (!m.hosted) fail("Noon fetches images by link: set PUBLIC_URL to the server's public https address and export again", 422);
+  const brand = String(body.brand || "").trim(), category = String(body.category || "").trim();
+  const extra = new Map((Array.isArray(body.items) ? body.items : []).map((x) => [String(x.sku), x]));
+  const results = [];
+  m.noon = m.noon || {};
+  for (const it of m.items.slice(0, 50)) {
+    const o = extra.get(it.sku) || {};
+    try {
+      const r = await noonPublish({ partnerSku: o.partnerSku || it.sku, size: o.size || null, brand: o.brand || brand, category: o.category || category, images: it.images.map((rel) => m.imageBase + rel), copy: it.copy });
+      m.noon[it.sku] = { skuParent: r.skuParent, at: new Date().toISOString() };
+      results.push({ sku: it.sku, status: r.skuParent ? "SUBMITTED" : "ERROR", skuParent: r.skuParent, message: r.status && r.status.message || "" });
+    } catch (e) { results.push({ sku: it.sku, status: "ERROR", message: e.message }); }
+  }
+  await store.saveAsset(ws, batch, "manifest.json", JSON.stringify(m));
+  return { results };
+}
+/** Noon's review of a published batch: each image, each language, whether it is live. */
+async function noonStatus(body, { store }) {
+  if (!noonConfigured()) fail("Noon status needs a Noon service account", 503);
+  const m = await store.getManifest(String(body.ws || ""), String(body.batch || ""));
+  const out = [];
+  for (const [sku, v] of Object.entries(m.noon || {})) {
+    if (!v.skuParent) continue;
+    try { out.push({ sku, ...(await noonContent(v.skuParent)) }); }
+    catch (e) { out.push({ sku, skuParent: v.skuParent, error: e.message }); }
+  }
+  return { products: out };
+}
+
 /* ---------- routes ---------- */
 
 // Routes with ids in the path.
@@ -406,7 +442,7 @@ const routes = {
     return {
       ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: llmModelName(), llm: llmProvider(),
       imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, imageProviders: imageProviders().map((p) => p.name), slideGen: slideGenConfigured(),
-      videoGen: videoGenConfigured(), billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), amazonSearch: amazonConfigured(c),
+      videoGen: videoGenConfigured(), billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), noonPublish: noonConfigured(), amazonSearch: amazonConfigured(c),
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
     };
   },
@@ -442,6 +478,8 @@ const routes = {
 
   "POST /api/export": async (body, ctx) => buildExport(body, ctx),
   "POST /api/publish/amazon": async (body, ctx) => publishAmazon(body, ctx),
+  "POST /api/publish/noon": async (body, ctx) => publishNoon(body, ctx),
+  "POST /api/noon/status": async (body, ctx) => noonStatus(body, ctx),
   "POST /api/report/pdf": async (body) => {
     if (!body.result || !Array.isArray(body.result.products)) fail("Send the compared results");
     if (!(await rendererAvailable())) fail("PDF reports need Chromium on the server", 503);

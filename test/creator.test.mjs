@@ -335,3 +335,47 @@ test("gallery video: Kling or Veo input, the fal queue, and frames checked for a
   assert.match(bad.attempts[1].reasons.join(), /product changed \(cap is different\)/);
   await assert.rejects(generateVideo({ image: "data:video/mp4;base64,AA" }, deps), /PNG, JPEG or WebP/);
 });
+
+test("Noon Content API: signed login, the session, the product body and Noon's review", async () => {
+  const { generateKeyPairSync, createVerify } = await import("node:crypto");
+  const { noonJwt, noonCall, copyAttributes, upsertBody, contentSummary, noonConfigured } = await import("../server/connectors/noon.mjs");
+  const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const c = { keyId: "key-1", privateKey: privateKey.export({ type: "pkcs8", format: "pem" }), project: "PRJ1", base: "https://noon.test" };
+  assert.equal(noonConfigured({}), false);
+  const jwt = noonJwt(c, 1_700_000_000_000);
+  const [h, b, sig] = jwt.split(".");
+  assert.deepEqual(JSON.parse(Buffer.from(h, "base64url")), { alg: "RS256", typ: "JWT" });
+  const claims = JSON.parse(Buffer.from(b, "base64url"));
+  assert.equal(claims.sub, "key-1"); assert.equal(claims.iat, 1_700_000_000, "seconds, not milliseconds"); assert.ok(claims.jti);
+  assert.ok(createVerify("RSA-SHA256").update(h + "." + b).verify(publicKey, Buffer.from(sig, "base64url")));
+
+  const calls = []; let logins = 0, expireOnce = true;
+  const net = async (url, opts) => {
+    calls.push({ url, cookie: opts.headers.Cookie, ua: opts.headers["User-Agent"], body: JSON.parse(opts.body) });
+    const headers = new Headers();
+    if (url.endsWith("/identity/public/v1/api/login")) { logins++; headers.append("set-cookie", `sid=s${logins}; Path=/; HttpOnly`); return { status: 200, headers, body: Buffer.from("{}") }; }
+    if (expireOnce) { expireOnce = false; return { status: 401, headers, body: Buffer.from("{}") }; }
+    return { status: 200, headers, body: Buffer.from(JSON.stringify({ sku_parent: "N123", variants: [] })) };
+  };
+  const r = await noonCall("/content/v1/product/upsert", { a: 1 }, { c, net });
+  assert.equal(r.sku_parent, "N123");
+  assert.equal(logins, 2, "an expired session signs in again once");
+  assert.equal(calls[0].body.default_project_code, "PRJ1");
+  assert.equal(calls.at(-1).cookie, "sid=s2");
+  assert.ok(calls.every((x) => /^Basira\//.test(x.ua)), "every call names the app");
+
+  const codes = copyAttributes([{ attribute_code: "product_title", attribute_type: "ATTRIBUTE_TYPE_TEXT" }, { attribute_code: "feature_bullets", attribute_type: "ATTRIBUTE_TYPE_TEXT", is_multivalued: true }, { attribute_code: "long_description", attribute_type: "ATTRIBUTE_TYPE_TEXT" }, { attribute_code: "colour_name", attribute_type: "ATTRIBUTE_TYPE_SELECT" }], {});
+  assert.deepEqual(codes, { title: "product_title", bullets: "feature_bullets", description: "long_description" });
+  const body = upsertBody({ partnerSku: "OUD-100", brand: "Layali", category: "beauty-fragrance-perfume", images: ["https://x.test/1.jpg", "https://x.test/2.jpg"], copy: { titleEn: "Oud", titleAr: "عود", bulletsEn: ["Lasts", "Saffron"], bulletsAr: ["ثبات"] } }, codes);
+  assert.deepEqual(body.images, [{ url: "https://x.test/1.jpg", sort: 1 }, { url: "https://x.test/2.jpg", sort: 2 }]);
+  assert.deepEqual(body.attributes.product_title.values, [{ value: "Oud", language: "LANGUAGE_EN" }, { value: "عود", language: "LANGUAGE_AR" }]);
+  assert.deepEqual(body.attributes.feature_bullets.values.map((v) => [v.language, v.sort]), [["LANGUAGE_EN", 1], ["LANGUAGE_EN", 2], ["LANGUAGE_AR", 1]]);
+  assert.throws(() => upsertBody({ partnerSku: "X" }, codes), /brand and category/);
+
+  const sum = contentSummary({ sku_parent: "N123", images: [{ url: "u1", sort: 1, visibility: "VISIBILITY_STATUS_VISIBLE", review_status: "REVIEW_STATUS_VALID", issues: [] }, { url: "u2", sort: 2, review_status: "REVIEW_STATUS_INVALID", issues: [{ code: "text", message: "Text on main image" }] }],
+    statuses: [{ language: "LANGUAGE_EN", content: { completeness: "100", missing_attributes: [] }, qc: { status: "QC_STATUS_APPROVED", rejection_reasons: [] }, overall_status: "OVERALL_STATUS_ACTIVE" }, { language: "LANGUAGE_AR", content: { completeness: "80", missing_attributes: ["long_description"] }, qc: { status: "QC_STATUS_PENDING", rejection_reasons: [] }, overall_status: "OVERALL_STATUS_INACTIVE" }] });
+  assert.equal(sum.rejectedImages, 1);
+  assert.deepEqual(sum.images[1], { url: "u2", sort: 2, visible: false, review: "invalid", issues: ["Text on main image"] });
+  assert.deepEqual(sum.languages.map((l) => [l.language, l.completeness, l.qc, l.live]), [["en", 100, "approved", true], ["ar", 80, "pending", false]]);
+  assert.equal(sum.live, false, "live only when every language is active");
+});

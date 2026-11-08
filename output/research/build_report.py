@@ -74,10 +74,11 @@ def table(doc, rows):
     n=len(cells[0]); tab=doc.add_table(rows=0, cols=n); tab.alignment=WD_TABLE_ALIGNMENT.CENTER; tab.autofit=False
     width=7.06
     # Two column specs give readable labels and room for actual requirements.
-    ratios=([.25,.75] if n==2 else [.20,.40,.40] if n==3 else [1/n]*n)
+    ratios=([.25,.75] if n==2 else [.08,.46,.46] if n==3 and cells[0][0]=='ID' else [.20,.40,.40] if n==3 else [1/n]*n)
     for col, ratio in zip(tab.columns, ratios): col.width=Inches(width*ratio)
     for i,row in enumerate(cells):
         tr=tab.add_row()
+        no_split=OxmlElement('w:cantSplit'); tr._tr.get_or_add_trPr().append(no_split)
         for j, txt in enumerate(row):
             c=tr.cells[j]; c.width=Inches(width*ratios[j]); c.vertical_alignment=WD_CELL_VERTICAL_ALIGNMENT.TOP
             pr=c._tc.get_or_add_tcPr()
@@ -116,8 +117,12 @@ def main():
             p=doc.add_paragraph(style='Heading 1'); inline(p,line[3:])
         elif line.startswith('### '): p=doc.add_paragraph(style='Heading 2'); inline(p,line[4:])
         elif line.startswith('#### '): p=doc.add_paragraph(style='Heading 3'); inline(p,line[5:])
-        elif line.startswith('- '): p=doc.add_paragraph(style='List Bullet'); inline(p,line[2:])
-        elif re.match(r'^\d+\. ',line): p=doc.add_paragraph(style='List Number'); inline(p,re.sub(r'^\d+\. ','',line))
+        elif line.startswith('- '):
+            p=doc.add_paragraph(style='List Bullet'); inline(p,line[2:])
+            if line.startswith(('- Источник ', '- География/', '- [Техническая таблица')):
+                p.paragraph_format.keep_with_next=True
+        elif re.match(r'^\d+\. ',line):
+            p=doc.add_paragraph(); p.paragraph_format.left_indent=Inches(.25); p.paragraph_format.first_line_indent=Inches(-.25); inline(p,line)
         elif line.startswith('<!--'): pass
         else: p=doc.add_paragraph(); inline(p,line)
         i+=1

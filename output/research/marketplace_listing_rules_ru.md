@@ -8,7 +8,7 @@
 
 Проверено 8 ноября 2026 года
 
-Основной фокус — Amazon.ae и Noon. Дополнительно — Amazon.sa, Trendyol International, Carrefour, Namshi, Tradeling и Sharaf DG. Salla и Zid рассмотрены отдельно как платформы собственного магазина. Египет упоминается только там, где официальный источник прямо различает региональные правила.
+Основной фокус — Amazon.ae и Noon. Дополнительно — Amazon.sa, Trendyol International, Carrefour, Namshi, Tradeling, Sharaf DG, Microless и TikTok Shop KSA с ограничениями модели подключения. Salla и Zid рассмотрены отдельно как платформы собственного магазина. Египет упоминается только там, где официальный источник прямо различает региональные правила.
 
 Документ предназначен для продавцов, агентств, дизайнеров и команды продукта Basira. Он объединяет доступные публичные официальные требования. При загрузке конкретного SKU дополнительно применяется схема категории, доступные функции аккаунта и актуальные сообщения модерации.
 
@@ -99,14 +99,14 @@
 - География/поверхность: текст явно помечен Saudi Arabia; titles. Официальный индексируемый help; прямое открытие может показать shell.
 - Индексируемая версия требует 75 символов с пробелами для большинства non-media и одновременно говорит о worldwide scope. Запрещает рекламные обещания вроде бесплатной доставки, декоративные символы; требует понятного описания товара.
 - **Конфликт:** A02 прямо исключает SA из перехода. Внутри этой help-версии также остался фрагмент о 200 символах. Не устранять противоречие выбором удобного числа: показывать неопределённость и сверять schema/category template.
-- Для AE соответствующий help: https://sellercentral.amazon.ae/help/hub/reference/external/GYTR6SYGFA5E3EQC?locale=en-US — в проверке не получен полный локальный текст; это не самостоятельное доказательство лимита.
+- Для AE есть [соответствующий help](https://sellercentral.amazon.ae/help/hub/reference/external/GYTR6SYGFA5E3EQC?locale=en-US), но полный локальный текст не подтверждён; это не самостоятельное доказательство лимита.
 
 #### A04 — Updates to improve your product titles begin on July 27
 
 - Источник [Официальная страница](https://sellercentral.amazon.ae/seller-forums/discussions/t/2f40628c-eb97-4b24-b983-cb1e331e06dc)
 - География/поверхность: официальное объявление, зеркало AE Seller Forums; не надёжное доказательство UAE rollout. Публикация 10 июня 2026, индексируемый текст.
 - Объявляет 75 символов для non-media и новое поле Item Highlights 125 символов, видимое и индексируемое; упоминает постепенную AI-переработку title и период review для brand owners.
-- Применимость к UAE не считать подтверждённой: исключение в A02 противоречит такому прочтению. В финальном тексте достаточно показать конфликт; не предлагать обязательную массовую обрезку titles.
+- Применимость к UAE не подтверждена: исключение в A02 противоречит такому прочтению. Обязательная массовая обрезка titles на этом основании не обоснована.
 
 #### A05 — Search optimization и Optimize listings for search
 
@@ -141,12 +141,10 @@
 #### A09 — Product image guide
 
 - Источник [Официальная страница](https://sellercentral.amazon.ae/help/hub/reference/external/G1881?locale=ar-AE)
-- Техническая таблица того же guide также индексируется: https://sellercentral.amazon.ae/help/hub/reference/external/1881?locale=zh-CN
+- [Техническая таблица того же guide](https://sellercentral.amazon.ae/help/hub/reference/external/1881?locale=zh-CN) также доступна в индексе.
 - География/поверхность: явно UAE; MAIN/галерея/swatch. Официальный индексируемый help.
-- Требуется минимум одно compliant MAIN. Рекомендованы ≥6 дополнительных фото и видео. Upload не гарантирует display: Amazon выбирает контент разных contributors; появление выбранного фото может занять 24 часа.
-- Техусловия: 500–10 000 px по длинной стороне, ≥72 dpi, JPEG/TIFF/PNG/неанимированный GIF; JPEG предпочтителен, 1000+ px рекомендованы для zoom.
-- MAIN: реалистичный точный товар целиком, 85% кадра, один вид, только входящее в комплект; белый RGB 255/255/255. Lifestyle допускается ограниченным product types без дополнительного текста/логотипов. Упаковка — когда существенная часть товара. Манекены запрещены; взрослую одежду показывают на модели, учитывая mobility exceptions; обувь — один ботинок в заданном ракурсе.
-- Фотореалистичные полностью синтетические люди требуют `contains-synthetic-performer` в XMP `dc:subject`; реальные retouched люди, отсутствие людей и нефотореалистичные персонажи исключены. Это не общий «AI запрещён».
+- Числа и общий MAIN-стандарт — в сводной таблице. Дополнения: упаковка допустима как существенная часть товара; манекены запрещены; взрослая одежда обычно на модели с предусмотренными исключениями, обувь — один ботинок в заданном ракурсе.
+- Amazon выбирает фото разных участников каталога; выбранное фото может появиться в течение 24 часов. Для полностью синтетических фотореалистичных людей требуется XMP-тег, описанный в A14.
 
 #### A10 — Technical image file requirements
 
@@ -182,9 +180,8 @@
 
 - Источник [Официальная страница](https://sellercentral.amazon.ae/help/hub/reference/external/GSL5BGQC2EYYDQ29)
 - География/поверхность: явно UAE; видео карточки рядом с фото. Свежий индексируемый help, проверка 8.11.2026.
-- Требования: активный аккаунт более трёх месяцев; brand-registered или non-brand; созданные/опубликованные ASIN. MOV/MP4, ≤1080p, максимум 5 GB, **1–12 минут**, horizontal **16:9** / vertical **9:16**; thumbnail JPEG/PNG/GIF/BMP **менее 5 MB**. Выбираются title, ASIN, поддерживаемый язык, обложка; инструмент поддерживает множественную загрузку до 15 файлов за операцию.
-- Review обычно 1–7 рабочих дней; после approval/detail-page publication проверять статус и ожидать до трёх дней. Для **softlines** при ≥6 изображениях video подавляется в **desktop**. Загрузить ≠ получить гарантированный слот.
-- Запрещены внешние URL и promotional CTA; нужны права на музыку/изображения/прочие audiovisual works. Полностью AI-созданные фотореалистичные люди требуют специального XMP-тега, как в A09.
+- Параметры и доступ — в сводной таблице. Массовая загрузка до 15 файлов за операцию. Проверка обычно 1–7 рабочих дней, показ — в течение трёх дней после одобрения.
+- Внешние URL и рекламные призывы запрещены. Для полностью синтетических фотореалистичных людей требуется keyword `contains-synthetic-performer` в XMP `dc:subject`. Реальные ретушированные люди, отсутствие людей и нефотореалистичные персонажи исключены.
 - Глобальный максимум числа видео на ASIN и приоритет сортировки для AE этим исследованием однозначно не установлен.
 
 #### A15 — Shoppable video guide (US)
@@ -192,7 +189,6 @@
 - Источник [Официальная страница](https://sellercentral.amazon.com/gp/help/external/Y4LL3M3WJEFE8MZ)
 - География/поверхность: явно US; дополнительная официальная редакционная база PDP video. Индексируемый help.
 - Помимо техпараметров guide требует качественного изображения/звука, видимого товара, профессиональной подачи, достоверной информации. Не допускает misleading claims, внешние ссылки, promotional CTA, чужую музыку/искусство без прав, видимый посторонний branding.
-- В таблице US описаны horizontal 16:9 и vertical 9:16; локальный UAE guide A14 также подтверждает эти ориентации.
 - Различает overview, unboxing, how-to, setup, troubleshooting, brand story. Автоперенос между странами не гарантирован: глобальные display-эксперименты и отдельные исключения не равны полноценной публикации на всех рынках.
 - AI disclosure: keyword `contains-synthetic-performer` в XMP `dc:subject`; речь о полностью синтетическом фотореалистичном человеке, а не всех AI-модификациях.
 
@@ -315,14 +311,14 @@
 | Вопрос | Что говорят первичные источники | Решение для документа/продукта |
 |---|---|---|
 | Title 2026 AE/SA | A02 исключает AE/SA/EG/TR; A03 и A04 дают 75 без согласованного регионального scope | «Лимит конкретного product type требует локального подтверждения». Не маркировать все titles >75 как нарушение |
-| PDP video count | Current US blog и старые форумы дают разные числа; локальный AE hard maximum count однозначно не подтверждён | Для AE не публиковать универсальные max4/max5 без проверки uploader; ориентации16:9/9:16 подтверждены A14 |
-| Thumbnail видео | Официальный sell.amazon.com/blog/amazon-product-video ошибочно пишет under5GB; AE help A14 пишет under5MB | Использовать help <5MB. Blog не источник технических пределов |
+| PDP video count | Current US blog и старые форумы дают разные числа; локальный AE hard maximum count однозначно не подтверждён | Для AE не публиковать универсальные max4/max5 без проверки uploader; ориентации 16:9/9:16 подтверждены A14 |
+| Thumbnail видео | [Официальный блог](https://sell.amazon.com/blog/amazon-product-video) ошибочно пишет under 5 GB; AE help A14 пишет under 5 MB | Использовать help <5MB. Blog не источник технических пределов |
 | Сколько фото оставить ради видео | Общий US blog говорит <6 для всего; AE guide уточняет softlines + desktop | Не советовать всем категориям удалять фото; проверять live display и устройство |
-| Premium A+ | Старые официальные материалы требуют15 проектов; актуальный FAQ5 и worldwide eligibility | Использовать A19, отметить account verification и промопериод цены |
+| Premium A+ | Старые официальные материалы требуют 15 проектов; актуальный FAQ 5 и worldwide eligibility | Использовать A19, отметить account verification и промопериод цены |
 | MYE | Локальная UAE marketing-page рекламирует; актуальный eligibility-list не содержит UAE/SA | Доступ неподтверждён, не включать в гарантированный feature list |
-| CMYK | В кратких guide часто объявляется строго запрещённым; AEtechnical A10 говорит Not preferred | Экспортировать RGB как безопасный стандарт, не выдавать ложный hard fail |
-| Backend keyword 250 vs 500 bytes | Локальный A05 требует <250; общая API troubleshooting A28 приводит500 как пример schema-length в смешанном seller/vendor контексте | Не считать API-пример разрешением индексировать500байт в AE. Сверять schema и локальную search policy отдельно |
-| 1600/2000 px / 10 MB / максимум9 фото | Часто повторяется во вторичных материалах и старых styleguides, но текущий AE guide не устанавливает универсально | Указывать только подтверждённые минимумы/диапазоны; рекомендуемый production preset отдельно |
+| CMYK | В кратких guide часто объявляется строго запрещённым; AE technical A10 говорит Not preferred | Экспортировать RGB как безопасный стандарт, не выдавать ложный hard fail |
+| Backend keyword 250 vs 500 bytes | Локальный A05 требует <250; общая API troubleshooting A28 приводит 500 как пример schema-length в смешанном seller/vendor контексте | Не считать API-пример разрешением индексировать 500 байт в AE. Сверять schema и локальную search policy отдельно |
+| 1600/2000 px / 10 MB / максимум 9 фото | Часто повторяется во вторичных материалах и старых styleguides, но текущий AE guide не устанавливает универсально | Указывать только подтверждённые минимумы/диапазоны; рекомендуемый production preset отдельно |
 
 Не установлены в открытых официальных источниках: единый для всех категорий AE предел description/bullets; обязательный English+Arabic во всех полях; общая схема eligibility всех новых AI-tools; API-публикация всех видов PDP/A+ video; точное время гарантированного review. Это не повод додумывать значения: проверяются локальные templates, help аккаунта и uploader.
 
@@ -369,7 +365,7 @@
 
 ### Галерея и первое изображение
 
-**[N07](https://helpcenter.noon.partners/en/category/product-listing/image-requirements-and-rejection-reasons-for-the-seller-sku) Image requirements and rejection reasons for the seller SKU.** Общая спецификация: **JPEG/JPG; ширина ≥660 px; отношение ширина/высота ≥0,5; ≥72 PPI; ≤10 MB; RGB/sRGB**. Три изображения — рекомендация. Главное: фронтальный ракурс, белый фон; для fashion рекомендован светло-серый. Lifestyle на первом запрещён; жёсткие тени/отражения, упаковка, обрезание товара и несколько ракурсов запрещены. Исключение: smartphones/tablets — front+back. Комплект показывается полностью. Вертикально снятый товар: отступы 10% сверху/снизу; горизонтально — 5% по бокам. Дополнительные фото: соответствие товару, без лишних аксессуаров; товар занимает 70–80% кадра; фотографии, без CAD/иллюстраций. Запрещены рамки, цены, гарантия, даты изготовления/годности, водяные знаки, имена/логотипы продавца. **Неоднозначность текста:** раздел дополнительных фото запрещает «unwanted text», но отдельно допускает добавление подходящего текста. Однозначный общий запрет всей инфографики именно на первом фото не найден; разрешение произвольных overlays также не установлено. Вывод: первое фото делать чистым; инфографику проверять по категории/QC, преимущественно использовать дополнительные фото/A+.
+**[N07](https://helpcenter.noon.partners/en/category/product-listing/image-requirements-and-rejection-reasons-for-the-seller-sku) Image requirements and rejection reasons for the seller SKU.** Общая спецификация: **JPEG/JPG; ширина ≥660 px; отношение ширина/высота ≥0,5; ≥72 PPI; ≤10 MB; RGB/sRGB**. Три изображения — рекомендация. Главное: фронтальный ракурс, белый фон; для fashion рекомендован светло-серый. Lifestyle на первом запрещён; жёсткие тени/отражения, упаковка, обрезание товара и несколько ракурсов запрещены. Исключение: smartphones/tablets — front+back. Комплект показывается полностью. Вертикально снятый товар: отступы 10% сверху/снизу; горизонтально — 5% по бокам. Дополнительные фото: соответствие товару, без лишних аксессуаров; товар занимает 70–80% кадра; фотографии, без CAD/иллюстраций. Запрещены рамки, цены, гарантия, даты изготовления/годности, водяные знаки, имена/логотипы продавца. **Неоднозначность текста:** раздел дополнительных фото запрещает «unwanted text», но отдельно допускает добавление подходящего текста. 
 
 Категорийные исключения существеннее общих рекомендаций по количеству:
 
@@ -389,7 +385,7 @@
 
 **[N17](https://adsupport.noon.com/en/articles/10696604-how-to-create-a-brand-ads-campaign) How to Create a Brand Ads Campaign — платная реклама.** Статья датирована **17 июня 2026**. Brand Ads имеют Standard, Video, Brand Carousel; video требует загрузки видео и логотипов. Для запуска нужен зарегистрированный Noon Partner и доступ к бренду; при отсутствии — запрос с доказательством ownership. Английский логотип обязателен, арабский опционален; brand name и headline — в двух языковых полях. При отсутствии арабского названия бренда эта рекламная форма разрешает повторить английское. Landing page ведёт на Noon storefront/внутреннюю страницу. Это отличается от правил регистрации каталожного бренда N18. Статья ссылается на отдельный creative guide N23, поэтому параметры PDP-видео не считаются параметрами рекламного видео. Standard-banner workflow прямо предлагает AI generation; это не разрешение AI-видео/изображений в любой карточке.
 
-**[N23](https://drive.google.com/file/d/16GKVd5BdME7BXs9Z6xvY0VVwDyV8sGyS/view?usp=drivesdk) Brand Ads Creative Guidelines Feb 2026 [Shared Externally].pdf.** Официально связан из N17. Проверена ссылка/название файла; Google Drive отдал оболочку, содержимое PDF веб-инструментом не извлечено, download endpoint недоступен. **Технические лимиты video ads из этого PDF не подтверждены.** В итоговом документе можно дать ссылку как официальный ресурс с пометкой об ограничении доступа, но нельзя приписывать ему конкретные числа без чтения.
+**[N23](https://drive.google.com/file/d/16GKVd5BdME7BXs9Z6xvY0VVwDyV8sGyS/view?usp=drivesdk) Brand Ads Creative Guidelines Feb 2026 [Shared Externally].pdf.** Официально связан из N17. Проверена ссылка/название файла; Google Drive отдал оболочку, содержимое PDF веб-инструментом не извлечено, download endpoint недоступен. **Технические лимиты video ads из этого PDF не подтверждены.** Конкретные рекламные видеолимиты из PDF требуют чтения действующего файла и проверки в кабинете.
 
 ### Бренд, гарантии, локальные ограничения и модерация
 
@@ -439,7 +435,7 @@
 - **N04** — [Seller SKU content language requirements](https://helpcenter.noon.partners/en/category/product-listing/seller-sku-content-language-requirements). UAE/KSA/Egypt. Открытый полный текст.
 - **N05** — [The seller SKU product attributes](https://helpcenter.noon.partners/en/category/product-listing/the-seller-sku-product-attributes). Категорийные атрибуты. Открытый полный текст.
 - **N06** — [Feature bullets (product highlights) and description for the seller SKU](https://helpcenter.noon.partners/en/category/product-listing/feature-bullets-product-highlights-and-description-for-the-seller-sku). Тексты и конфликтующее media appendix. Открытый полный текст.
-- **N07** — [Image requirements and rejection reasons for the seller SKU](https://helpcenter.noon.partners/en/category/product-listing/image-requirements-and-rejection-reasons-for-the-seller-sku). Галерея, main/alternate images. Открытый полный текст; визуальные примеры не использовались для вывода о ненаписанном разрешении overlays.
+- **N07** — [Image requirements and rejection reasons for the seller SKU](https://helpcenter.noon.partners/en/category/product-listing/image-requirements-and-rejection-reasons-for-the-seller-sku). Галерея.
 - **N08** — [Creating product variations: adding sizes, colors, and other attributes](https://helpcenter.noon.partners/en/category/product-listing/creating-product-variations-adding-sizes-colors-and-other-attributes). Варианты. Открытый полный текст.
 - **N09** — [Barcode requirements](https://helpcenter.noon.partners/en/category/product-listing/barcode-requirements). Fulfillment barcode FBN/FBP. Открытый полный текст.
 - **N10** — [Seller SKU content quality](https://helpcenter.noon.partners/en/category/product-listing/seller-sku-content-quality). QC/status/completeness. Открытый полный текст.
@@ -474,7 +470,7 @@
 | Trendyol International / Gulf | Seller Center публикует регистрацию UAE и Saudi Arabia; после подключения — кабинет/API | В International API явно указаны AE и SA (также KW) | Наиболее подробная публичная спецификация среди площадок этого раздела: поля, язык, атрибуты, варианты, фото, HTML, QC и видео | **Есть официальный International V2 API** и технические требования |
 | Namshi | Официальный noon FAQ требует отдельной регистрации; Namshi Terms прямо упоминают buyer/seller | Country-specific доступность seller account для UAE/KSA и условия подключения следует подтвердить | Открытые Terms описывают ответственность за listings; численные нормы контента и схема загрузки публично не установлены | Публичная спецификация не найдена; это не доказательство отсутствия функции |
 | Tradeling | Исторический официальный seller PDF описывает регистрацию компании и размещение каталога; текущая страница Become a Seller возвращает исследовательскому инструменту 403 | UAE/B2B MENA; конкретную доступность локального продавца и доставки в KSA нужно согласовать | Актуального публичного style guide карточки не найдено | Публичная спецификация не найдена |
-| Sharaf DG | Действующая UAE-страница Sell With Us: зарегистрированный в UAE бизнес с Trade License; есть Sign Up и product uploads/API | Подтверждён UAE seller route. Наличие магазинов группы в других странах не доказывает такой же marketplace там | Управление товаром/остатком и API заявлены, публичный category content guide не найден | Публичная спецификация не найдена |
+| Sharaf DG | Действующая UAE-страница Sell With Us: зарегистрированный в UAE бизнес с Trade License; есть Sign Up и product uploads/API | Подтверждён UAE seller route. Наличие магазинов группы в других странах не доказывает такой же marketplace там | Управление товаром/остатком и API заявлены, подробный creative/media guide с численными пределами не найден | Публичная спецификация не найдена |
 
 ### Carrefour UAE конкретные правила и пределы применимости
 
@@ -496,21 +492,21 @@
 
 **География и версия.** На главной странице Developers раздельные ветки Domestic Türkiye и International Marketplace. В последней для Saudi Arabia указан storeFrontCode=SA, для UAE — AE. Все перечисленные ниже правила взяты из International v3.0, а не турецкой документации. Действующий Seller Center перечисляет отдельные UAE и Saudi Arabia registration links. [O06](https://developers.trendyol.com/), [O07](https://developers.trendyol.com/v3.0/docs/5-regions-and-store-front-codes), [O12](https://partner.trendyol.com/sa/auth/logout?redirect=%2Fsa%2Fauth%2Fsso%2Flms%3Fdomain%3DINT%26env%3Dprod%26url%3D%252Fseller-information-center%252Fsa%252Fsearch%253FsearchTerm%253DSiemens123%252A)
 
-В документации остаются несогласованные уведомления о прекращении V1: главная указывает 15.10.2026, старый International V1 endpoint — 10.08.2026. Для новой интеграции на дату исследования нужен **Product V2**; не строить реализацию на V1 даже если таблица старой страницы сохраняет ACTIVE. Страница Product Create v2 при проверке отображала «Updated about 1 month ago»; это относительная метка интерфейса, а не установленная дата вступления правил в силу. [O06](https://developers.trendyol.com/), [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
+На главной странице документации указано прекращение V1 с 15 октября 2026 года. Для новой интеграции на дату исследования нужен **Product V2**; не строить реализацию на V1 даже если таблица старой страницы сохраняет ACTIVE. Страница Product Create v2 при проверке отображала «Updated about 1 month ago»; это относительная метка интерфейса, а не установленная дата вступления правил в силу. [O06](https://developers.trendyol.com/), [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
 
 **Поля карточки и язык.** Product Create V2 требует `storeFrontCode`; `Accept-Language=en` задаёт английский, `ar` поддержан для SA/AE/KW. Обязательны barcode (до 40 символов), title (до 100), productMainId (до 40, общий для вариантов), brandId, categoryId, quantity, description (HTML, до 30 000), listPrice, salePrice, images, vatRate и attributes. Строковый barcode API сам по себе не доказывает требование GS1 GTIN. `listPrice` ≥ `salePrice`; максимум 1000 items/запрос. Отправка запускает approval. [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
 
-Старое Gulf FAQ с формулировкой «только English» уступает текущему V2, разрешающему AR. VAT нужно брать из country table: SA — 15, AE — 5. [O07](https://developers.trendyol.com/v3.0/docs/5-regions-and-store-front-codes), [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
+API V2 прямо поддерживает AR для AE/SA; язык ручной загрузки нужно сверять отдельно. VAT нужно брать из country table: SA — 15, AE — 5. [O07](https://developers.trendyol.com/v3.0/docs/5-regions-and-store-front-codes), [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
 
 **Атрибуты и варианты.** Нужно получать актуальные brand/category/attribute/value dictionaries. Используется конечная leaf category; API сообщает `required`, `allowCustom`, `allowMultipleAttributeValues`, `slicer` и `varianter`. Новые атрибуты могут появляться: документация рекомендует обновлять список еженедельно, дерево — перед операцией. `slicer` создаёт отдельную карточку/content (например, цвет); `varianter` задаёт выбор внутри content (например, размер). Группировка опирается на productMainId. После approval атрибуты slicer/varianter имеют ограничения на изменение. [O09](https://developers.trendyol.com/v3.0/docs/category-attribute-list-v2), [O10](https://developers.trendyol.com/v3.0/docs/copy-of-1-product-services-best-practices)
 
 **Фото.** Для API Product Create V2: HTTPS URL с SSL; максимум восемь фото на barcode; 1200 × 1800 px и 96 dpi. Эти параметры доказаны именно для API; нельзя объявлять их универсальным пределом всех ручных загрузчиков Seller Center. Публичный International API не устанавливает на этой странице допустимые raster formats, максимальный image file size, белый фон, порядок ракурсов или разрешение инфографики/водяных знаков. Для художественных правил нужен Gulf category guide из кабинета. [O08](https://developers.trendyol.com/v3.0/docs/product-create-v2)
 
-**Расширенное описание.** Best Practices разрешают простой HTML без JS и styles, без iframe. Указаны 4 000–30 000 символов; при описании короче 4 000 должен присутствовать image tag. Странное нижнее ограничение нужно учитывать как опубликованную спецификацию и проверить на своей категории/тестовом аккаунте; нельзя обещать полноценный A+ редактор на основании HTML-поля. [O10](https://developers.trendyol.com/v3.0/docs/copy-of-1-product-services-best-practices)
+**Расширенное описание.** Best Practices разрешают простой HTML без JS и styles, без iframe. Указаны 4 000–30 000 символов; при описании короче 4 000 должен присутствовать image tag. Указанное нижнее ограничение нужно учитывать как опубликованную спецификацию и проверить на своей категории/тестовом аккаунте; нельзя обещать полноценный A+ редактор на основании HTML-поля. [O10](https://developers.trendyol.com/v3.0/docs/copy-of-1-product-services-best-practices)
 
 **Видео карточки.** International V2 содержит сервис Video Upload / Listing Services с обязательным storefront header: MP4/MOV, максимум 500 MB, длительность 8–120 секунд. Один productContentId может иметь одно active video; одно видео связывается максимум со 100 content IDs. Video title — 3–50 символов, description — до 500. Загрузка идёт по HTTP/HTTPS URL. SUCCESS означает получение файла, а показ покупателю начинается при `isApproved=true`; нужна отдельная проверка результата. Сам источник предупреждает, что ограничения размера, длительности и timeout динамически управляются и могут меняться. [O11](https://developers.trendyol.com/v3.0/docs/video-upload-filtering-services)
 
-Файл проверяют по расширению и фактическому формату. Разрешены типы назначения, включая product promotion, usage, assembly/installation, packaging, store promotion и advertisement. Это классификация API, а не разрешение любых рекламных утверждений. Кодек, разрешение/aspect ratio, audio/subtitle language, watermark/claims policy, thumbnail и доступность конкретному seller account в публичной странице не указаны. Реализованный International video endpoint с AE/SA storefronts — сильное свидетельство интеграционного пути, но доступ конкретного кабинета и категорий стоит проверить при подключении. [O07](https://developers.trendyol.com/v3.0/docs/5-regions-and-store-front-codes), [O11](https://developers.trendyol.com/v3.0/docs/video-upload-filtering-services)
+Файл проверяют по расширению и фактическому формату. Разрешены типы назначения, включая product promotion, usage, assembly/installation, packaging, store promotion и advertisement. Это классификация API, а не разрешение любых рекламных утверждений. Кодек, разрешение/aspect ratio, audio/subtitle language, watermark/claims policy, thumbnail и доступность конкретному seller account в публичной странице не указаны. Задокументированный International video endpoint с AE/SA storefronts — сильное свидетельство интеграционного пути, но доступ конкретного кабинета и категорий стоит проверить при подключении. [O07](https://developers.trendyol.com/v3.0/docs/5-regions-and-store-front-codes), [O11](https://developers.trendyol.com/v3.0/docs/video-upload-filtering-services)
 
 ### Namshi отдельная платформа, технические нормы нельзя выводить из noon
 
@@ -534,9 +530,21 @@ Noon прямо пишет, что для Namshi требуется **отдел
 
 На текущей странице Sell With Us условия сформулированы конкретно: зарегистрированный в UAE бизнес с действующей Trade License, товар для продажи в UAE, наличие ассортимента и способность отвечать на customer queries. Страница ведёт на Sign Up и описывает контроль listings/inventory. Отдельная marketplace registration page прямо упоминает product uploads и API. Это внешний seller route, а не только предложение стать оптовым поставщиком сети. [O19](https://uae.sharafdg.com/sell-with-us/), [O20](https://uae.sharafdg.com/marketplace/register/?source=signup_button_header)
 
-Повторная проверка обнаружила официальную страницу **Seller Basics / Guidelines on Listing new categories & new products**. Она требует предоставить сведения о товаре с сайта бренда, собственного сайта или product data sheets; раскрыть политику качества, гарантии, ремонта/возврата; по запросу подтвердить владение запасом и разрешение бренда на продажи в UAE. Для food отдельно указана маркировка EN/AR — это правило физической этикетки, не доказательство обязательного языка listing. Численных creative/media specifications страница не содержит. [O21](https://uae.sharafdg.com/ar/seller-basics/)
+Официальная страница **Seller Basics / Guidelines on Listing new categories & new products**. Она требует предоставить сведения о товаре с сайта бренда, собственного сайта или product data sheets; раскрыть политику качества, гарантии, ремонта/возврата; по запросу подтвердить владение запасом и разрешение бренда на продажи в UAE. Для food отдельно указана маркировка EN/AR — это правило физической этикетки, не доказательство обязательного языка listing. Численных creative/media specifications страница не содержит. [O21](https://uae.sharafdg.com/ar/seller-basics/)
 
 **Публичная technical specification не найдена:** title/description/EN–AR, обязательные EAN/brand attrs, variants, количество/px/MB/форматы фото, main vs secondary rules, текст/watermarks, product-video upload и rich content. Видео на рекламной странице самой площадки не является доказательством seller video feature. Наличие магазинов группы в Oman/Bahrain/Egypt также не доказывает открытый marketplace route там. Для Basira подключение этой площадки следует делать после получения seller template/API schema и соответствующего media guide. [O19](https://uae.sharafdg.com/sell-with-us/), [O20](https://uae.sharafdg.com/marketplace/register/?source=signup_button_header)
+
+### Microless UAE
+
+Есть подтверждённая программа внешних продавцов для зарегистрированных в UAE компаний с Trade License и VAT certificate. FAQ допускает электронику, компьютеры, товары для животных, спорта, книги и другие категории; fashion и groceries исключены. Для существующего товара продавец добавляет цену и наличие, а новые товары передаёт площадке списком. Отдельная инструкция подтверждает поштучное и массовое размещение через Seller Account. Страницы не устанавливают численные требования к фото, инфографике и видео товара; нужно получить действующий media guide. Заявленный охват GCC не подтверждает самостоятельное подключение компании из KSA. [O22](https://uae.microless.com/seller/faq/), [O23](https://sc.microless.com/seller/how-it-works/)
+
+### TikTok Shop KSA
+
+Официальный TikTok Newsroom от 28 марта 2025 года включает Saudi Arabia в перечень стран Shop. Это утверждение о торговом сервисе, а не об аудитории или рекламной доступности. Global Selling Seller Terms от 14 июня 2024 года содержат отдельные условия продаж покупателям KSA, но относятся к cross-border продавцам из mainland China/Hong Kong и не подтверждают самостоятельную регистрацию местного саудовского бизнеса. Общий local seller route KSA и Shop/onboarding UAE в проверенных источниках не установлены; это предел подтверждения, а не доказательство недоступности. [O24](https://newsroom.tiktok.com/expansion-tiktok-shop-europa-francia-italia-alemania?lang=es), [O25](https://lf3-static.bytednsdoc.com/obj/eden-cn/lm-uvpahylwv-z/ljhwZthlaukjlkulzlp/user-agreement/v21/Global%20Selling%20Seller%20Terms%20of%20Service%20for%20TikTok%20Shop.pdf)
+
+**Контентные требования.** Официальные Cross-border Terms требуют соответствия описаний и рекламных утверждений применимым правилам (§7.2), предоставления обязательных предупреждений, сведений о безопасности и инструкций до покупки на местном языке (§7.3–7.4). Раздел KSA требует юридическое имя продавца, адрес, контактные и применимые регистрационные сведения — это информация о продавце, а не разрешение добавлять контакты в любой ролик. Schedule 7 различает managed/full-service и POP sellers; для первой модели прямо перечисляет Saudi restricted/prohibited policies и совместную UK/KSA IP policy. Это не переносит все британские правила креативов в KSA. [O26](https://seller.tiktokglobalshop.com/university/essay?default_language=zh-CN&identity=1&knowledge_id=4611080967456529)
+
+**Фото и видео.** Отдельная публичная KSA-спецификация с лимитами заголовка, числом/размером фото, допустимостью инфографики первого кадра и параметрами product video не подтверждена. Видеопост с привязанным товаром, видео в карточке и платный ролик должны проверяться раздельно. US/UK limits не следует подставлять в KSA-профиль. Маршрут получения актуальных правил — [Global Seller Center](https://seller.tiktokglobalshop.com/) → [Cross-border Academy](https://seller.tiktokglobalshop.com/university/), с выбором модели и региона аккаунта. Часть материалов требует JavaScript и доступа продавца. [O26](https://seller.tiktokglobalshop.com/university/essay?default_language=zh-CN&identity=1&knowledge_id=4611080967456529)
 
 ### Выводы для Basira что можно реализовать по доказанным правилам
 
@@ -573,6 +581,11 @@ Noon прямо пишет, что для Namshi требуется **отдел
 | O19 | [Sharaf DG UAE — Sell With Us](https://uae.sharafdg.com/sell-with-us/) | UAE business/Trade License и путь Sign Up, управление товарами |
 | O20 | [Sharaf DG UAE — Marketplace Register](https://uae.sharafdg.com/marketplace/register/?source=signup_button_header) | Внешний marketplace seller и product uploads/API; не содержит media guide |
 | O21 | [Sharaf DG UAE — Seller Basics / listing guidelines](https://uae.sharafdg.com/ar/seller-basics/) | Источники product information, качество/гарантия и разрешение бренда; не содержит численных image/video rules. Страница доступна по /ar/, основной текст руководства на английском |
+| O22 | [Microless UAE — Seller FAQ](https://uae.microless.com/seller/faq/) | UAE seller, категории и присоединение предложения к каталогу |
+| O23 | [Microless — How it works](https://sc.microless.com/seller/how-it-works/) | Seller Account, поштучное и массовое размещение; без численных media specifications |
+| O24 | [TikTok Newsroom — expansión de TikTok Shop](https://newsroom.tiktok.com/expansion-tiktok-shop-europa-francia-italia-alemania?lang=es) | 28.03.2025, прямо перечисляет Saudi Arabia; не спецификация местной регистрации |
+| O25 | [TikTok Shop — Global Selling Seller Terms PDF](https://lf3-static.bytednsdoc.com/obj/eden-cn/lm-uvpahylwv-z/ljhwZthlaukjlkulzlp/user-agreement/v21/Global%20Selling%20Seller%20Terms%20of%20Service%20for%20TikTok%20Shop.pdf) | 14.06.2024, §1.3 и Schedule 1 §5; China/Hong Kong cross-border и KSA |
+| O26 | [TikTok Shop Academy — Cross-border Terms](https://seller.tiktokglobalshop.com/university/essay?default_language=zh-CN&identity=1&knowledge_id=4611080967456529) | Общие content obligations и KSA/модельный scope, не численные image/video пределы. Официальный индекс; прямое чтение требует JS/login |
 
 ### Контрольные вопросы для закрытой документации
 
@@ -646,7 +659,7 @@ Google Merchant Center — отдельный канал, а не маркетп
 
 ### Проверить перед отправкой
 
-1. Категория, бренд, GTIN или допустимое освобождение, модель и варианты соответствуют продаваемому товару.
+1. Категория, бренд, требуемые идентификаторы — GTIN, если обязателен, и barcode площадки или партнёра — модель и варианты соответствуют продаваемому товару.
 2. Заголовок, характеристики, буллеты, описание и оба языка не противоречат друг другу; единицы, количество и комплектация одинаковы.
 3. Основное фото соответствует категории; в кадре нет не включённых в продажу элементов, запрещённых надписей и чужих знаков.
 4. Инфографика не содержит цен, истекающих акций, недоказанных превосходных степеней или утверждений о свойствах, которых нет в исходных данных.

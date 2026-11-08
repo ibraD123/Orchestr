@@ -514,6 +514,11 @@ button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13p
 .pt-pin.done{background:var(--ink-3)}
 .pt-req{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
 @media (max-width:600px){.pt-ans{grid-template-columns:1fr}}
+.noon-imgs{display:flex;gap:6px;flex-wrap:wrap}
+.noon-img{position:relative;width:64px;border-radius:8px;overflow:hidden;border:2px solid var(--line);background:#fff}
+.noon-img img{display:block;width:100%;height:auto}
+.noon-img i{position:absolute;inset-inline:0;bottom:0;font-size:10px;font-style:normal;text-align:center;background:rgba(0,0,0,.55);color:#fff}
+.noon-img.invalid{border-color:var(--bad)}.noon-img.valid{border-color:var(--good)}
 .cr-video{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:16px;margin-top:14px}
 .cr-video video{width:100%;border-radius:12px;background:#000}
 @media (max-width:600px){.cr-video{grid-template-columns:1fr}}
@@ -1929,7 +1934,38 @@ function exportCard(approved){
       (pub.error ? '<p class="err">'+esc(pub.error)+'</p>' : "")+
       (pub.result ? '<div class="publist">'+pub.result.results.map(function(x){ return '<div><span class="mono">'+esc(x.sku)+'</span><span class="tag '+(x.status === "ACCEPTED" ? "good" : x.status === "SKIPPED" ? "" : "bad")+'">'+t("pub_"+x.status)+'</span><span class="note">'+(x.issues || []).slice(0, 3).map(function(i){ return esc(i.message); }).join(" · ")+'</span></div>'; }).join("")+'</div>' : "")+
     '</div>' : "")+
+    (ch === "noon" ? noonPubBlock(r) : "")+
   '</div>';
+}
+function noonPubBlock(r){
+  var b = state.batch, np = b.noonPub || {}, can = state.api && state.api.noonPublish, st = b.noonSt || {};
+  return '<div class="pub"><div class="exp-row"><input class="cr-q" id="x-noon-brand" placeholder="'+t("noonBrand")+'" value="'+esc(b.noonBrand || wsInfo().name || "")+'"><input class="cr-q" id="x-noon-cat" placeholder="'+t("noonCat")+'" value="'+esc(b.noonCat || "")+'" dir="ltr">'+
+    '<button type="button" class="btn btn-ghost" id="x-noon-pub"'+(can && r && r.batch && r.hosted && !np.busy ? "" : " disabled")+'>'+(np.busy ? t("publishing2") : t("noonPublish"))+'</button>'+
+    (np.result ? '<button type="button" class="btn btn-ghost" id="x-noon-st"'+(st.busy ? " disabled" : "")+'>'+t("noonCheck")+'</button>' : "")+'</div>'+
+    '<p class="note">'+(can ? (r && r.batch ? (r.hosted ? t("noonPubNote") : t("noonNeedsHost")) : t("exportFirst")) : t("noonNeeds"))+'</p>'+
+    (np.error ? '<p class="err">'+esc(np.error)+'</p>' : "")+
+    (np.result ? '<div class="publist">'+np.result.results.map(function(x){ return '<div><span class="mono">'+esc(x.sku)+'</span><span class="tag '+(x.status === "SUBMITTED" ? "good" : "bad")+'">'+t("noon_"+x.status)+'</span><span class="note">'+esc(x.message || "")+'</span></div>'; }).join("")+'</div>' : "")+
+    (st.error ? '<p class="err">'+esc(st.error)+'</p>' : "")+
+    (st.result ? '<div class="publist">'+st.result.products.map(function(x){
+      if (x.error) return '<div><span class="mono">'+esc(x.sku)+'</span><span class="tag bad">'+esc(x.error)+'</span></div>';
+      return '<div style="display:grid;gap:4px"><div><span class="mono">'+esc(x.sku)+'</span> <span class="tag '+(x.live ? "good" : x.rejectedImages ? "bad" : "warn")+'">'+t(x.live ? "noonLive" : x.rejectedImages ? "noonRejected" : "noonReview")+'</span></div>'+
+        '<div class="noon-imgs">'+x.images.map(function(im){ return '<span class="noon-img '+im.review+'" title="'+esc(im.issues.join("; "))+'"><img src="'+esc(im.url)+'" alt=""><i>'+t("rv_"+(im.review || "unspecified"))+'</i></span>'; }).join("")+'</div>'+
+        x.languages.map(function(l){ return '<div class="note">'+l.language.toUpperCase()+': '+t("noonComplete")+' '+l.completeness+'% · QC '+esc(l.qc)+(l.reasons.length ? ' · '+esc(l.reasons.join(", ")) : "")+(l.missing.length ? ' · '+t("noonMissing")+' '+esc(l.missing.join(", ")) : "")+'</div>'; }).join("")+
+        x.images.filter(function(im){ return im.review === "invalid"; }).map(function(im){ return '<div class="err">'+esc(im.issues.join("; "))+'</div>'; }).join("")+'</div>';
+    }).join("")+'</div>' : "")+
+  '</div>';
+}
+function runNoonPublish(){
+  var b = state.batch; if (!b.exp || !b.exp.result || !b.exp.result.batch) return;
+  b.noonBrand = (document.getElementById("x-noon-brand") || {}).value || b.noonBrand; b.noonCat = (document.getElementById("x-noon-cat") || {}).value || b.noonCat;
+  b.noonPub = {busy:true}; b.noonSt = null; render();
+  post("/api/publish/noon", {ws:state.ws, batch:b.exp.result.batch, brand:b.noonBrand, category:b.noonCat})
+    .then(function(j){ b.noonPub = {result:j}; }).catch(function(e){ b.noonPub = {error:e.message}; }).then(render);
+}
+function runNoonStatus(){
+  var b = state.batch; if (!b.exp || !b.exp.result) return;
+  b.noonSt = {busy:true}; render();
+  post("/api/noon/status", {ws:state.ws, batch:b.exp.result.batch}).then(function(j){ b.noonSt = {result:j}; }).catch(function(e){ b.noonSt = {error:e.message}; }).then(render);
 }
 function exportPayload(items){
   return Promise.all(items.map(function(it){
@@ -2940,6 +2976,8 @@ document.addEventListener("click", function(e){
   var el, p = PM[state.pid];
   if ((el = e.target.closest("[data-crtab]"))){ state.cr.tab = el.dataset.crtab; render(); return; }
   if ((el = e.target.closest("[data-crch]"))){ state.cr.channel = el.dataset.crch; state.cr.region = el.dataset.crch === "noon" ? "saudi-ar" : state.cr.region; render(); return; }
+  if (e.target.closest("#x-noon-pub")){ runNoonPublish(); return; }
+  if (e.target.closest("#x-noon-st")){ runNoonStatus(); return; }
   if ((el = e.target.closest("[data-crvsrc]")) && p){ var vv = (state.cr.video = state.cr.video || {})[p.id] = (state.cr.video[p.id] || {}); vv.src = el.dataset.crvsrc; render(); return; }
   if (e.target.closest("#cr-vgo") && p){ crMakeVideo(p); return; }
   if (e.target.closest("#cr-vadd") && p){ var va = state.cr.video[p.id]; if (va && va.url){ va.inExport = true; toast(tf("addedToExport", {name: tr(p.name)})); render(); } return; }
@@ -2985,6 +3023,10 @@ Object.assign(S, {
   rs_new:["New","جديد"], rs_inProgress:["In progress","قيد التنفيذ"], rs_done:["Done","تم"],
   ptBrief:["Brand questionnaire","استبيان العلامة"], ptBriefNone:["The client hasn't filled it in yet. It's in their portal link.","لم يملأه العميل بعد. هو في رابط البوابة."], ptBriefApply:["Apply to Brand DNA","طبّقه على هوية العلامة"], ptBriefApplied:["Applied to Brand DNA","طُبّق على هوية العلامة"],
   ptBriefDone:["Brand DNA updated from the questionnaire","حُدّثت هوية العلامة من الاستبيان"],
+  noonBrand:["Brand on Noon","العلامة على نون"], noonCat:["Noon category code, e.g. beauty-fragrance-perfume","رمز فئة نون"], noonPublish:["Publish to Noon","انشر على نون"], noonCheck:["Check Noon's review","تحقق من مراجعة نون"],
+  noonNeeds:["Publishing to Noon needs a Noon service account key on the server (NOON_CREDENTIALS).","النشر على نون يحتاج مفتاح حساب خدمة نون على الخادم."], noonNeedsHost:["Noon fetches images by link: the server needs a public https address (PUBLIC_URL). Export again after that.","نون يجلب الصور برابط: يحتاج الخادم عنواناً عاماً."], noonPubNote:["Creates or updates each product with its titles, points and images in both languages. Noon then reviews each image.","ينشئ أو يحدّث كل منتج بعناوينه ونقاطه وصوره باللغتين. ثم يراجع نون كل صورة."],
+  noon_SUBMITTED:["Sent to Noon","أُرسل إلى نون"], noon_ERROR:["Error","خطأ"], noonLive:["Live","منشور"], noonRejected:["Images rejected","صور مرفوضة"], noonReview:["In review","قيد المراجعة"],
+  rv_valid:["accepted","مقبولة"], rv_invalid:["rejected","مرفوضة"], rv_pending:["in review","قيد المراجعة"], rv_unspecified:["—","—"], noonComplete:["complete","مكتمل"], noonMissing:["missing:","ناقص:"],
   ptSettings:["Approvals and package","الموافقات والباقة"], ptApprovers:["Who approves for the client","من يوافق عن العميل"], ptAddApprover:["Add","أضف"], ptApproverName:["Name","الاسم"],
   ro_marketing:["Marketing","التسويق"], ro_legal:["Legal (claims)","الشؤون القانونية (الادعاءات)"], ro_owner:["Owner","المالك"],
   ptRemindDays:["Remind after (days)","ذكّر بعد (أيام)"], ptMonthly:["Fixes in the monthly package","التعديلات في الباقة الشهرية"], ptSaveSettings:["Save","احفظ"], ptSettingsSaved:["Saved","تم الحفظ"],

@@ -76,6 +76,18 @@ Noon прямо пишет, что для Namshi требуется **отдел
 
 **Публичная technical specification не найдена:** title/description/EN–AR, обязательные EAN/brand attrs, variants, количество/px/MB/форматы фото, main vs secondary rules, текст/watermarks, product-video upload и rich content. Видео на рекламной странице самой площадки не является доказательством seller video feature. Наличие магазинов группы в Oman/Bahrain/Egypt также не доказывает открытый marketplace route там. Для Basira подключение этой площадки следует делать после получения seller template/API schema и соответствующего media guide. [O19, O20]
 
+## Microless UAE
+
+Есть подтверждённая программа внешних продавцов для зарегистрированных в UAE компаний с Trade License и VAT certificate. FAQ допускает электронику, компьютеры, товары для животных, спорта, книги и другие категории; fashion и groceries исключены. Для существующего товара продавец добавляет цену и наличие, а новые товары передаёт площадке списком. Отдельная инструкция подтверждает поштучное и массовое размещение через Seller Account. Страницы не устанавливают численные требования к фото, инфографике и видео товара; нужно получить действующий media guide. Заявленный охват GCC не подтверждает самостоятельное подключение компании из KSA. [O22, O23]
+
+## TikTok Shop KSA
+
+Официальный TikTok Newsroom от 28 марта 2025 года включает Saudi Arabia в перечень стран Shop. Это утверждение о торговом сервисе, а не об аудитории или рекламной доступности. Global Selling Seller Terms от 14 июня 2024 года содержат отдельные условия продаж покупателям KSA, но относятся к cross-border продавцам из mainland China/Hong Kong и не подтверждают самостоятельную регистрацию местного саудовского бизнеса. Общий local seller route KSA и Shop/onboarding UAE в проверенных источниках не установлены; это предел подтверждения, а не доказательство недоступности. [O24, O25]
+
+**Контентные требования.** Официальные Cross-border Terms требуют соответствия описаний и рекламных утверждений применимым правилам (§7.2), предоставления обязательных предупреждений, сведений о безопасности и инструкций до покупки на местном языке (§7.3–7.4). Раздел KSA требует юридическое имя продавца, адрес, контактные и применимые регистрационные сведения — это информация о продавце, а не разрешение добавлять контакты в любой ролик. Schedule 7 различает managed/full-service и POP sellers; для первой модели прямо перечисляет Saudi restricted/prohibited policies и совместную UK/KSA IP policy. Это не переносит все британские правила креативов в KSA. [O26]
+
+**Фото и видео.** Отдельная публичная KSA-спецификация с лимитами заголовка, числом/размером фото, допустимостью инфографики первого кадра и параметрами product video не подтверждена. Видеопост с привязанным товаром, видео в карточке и платный ролик должны проверяться раздельно. US/UK limits не следует подставлять в KSA-профиль. Маршрут получения актуальных правил — [Global Seller Center](https://seller.tiktokglobalshop.com/) → [Cross-border Academy](https://seller.tiktokglobalshop.com/university/), с выбором модели и региона аккаунта. Часть материалов требует JavaScript и доступа продавца. [O26]
+
 ## Выводы для Basira: что можно реализовать по доказанным правилам
 
 1. Сделать **разные профили `platform × country × category × placement × ingestion channel`**. У Trendyol API и ручной uploader могут иметь разные рамки; у Carrefour публичная UAE KB не означает идентичное правило KSA.
@@ -111,6 +123,11 @@ Noon прямо пишет, что для Namshi требуется **отдел
 | O19 | [Sharaf DG UAE — Sell With Us](https://uae.sharafdg.com/sell-with-us/) | UAE business/Trade License и путь Sign Up, управление товарами |
 | O20 | [Sharaf DG UAE — Marketplace Register](https://uae.sharafdg.com/marketplace/register/?source=signup_button_header) | Внешний marketplace seller и product uploads/API; не содержит media guide |
 | O21 | [Sharaf DG UAE — Seller Basics / listing guidelines](https://uae.sharafdg.com/ar/seller-basics/) | Источники product information, качество/гарантия и разрешение бренда; не содержит численных image/video rules. Страница доступна по /ar/, основной текст руководства на английском |
+| O22 | [Microless UAE — Seller FAQ](https://uae.microless.com/seller/faq/) | UAE seller, категории и присоединение предложения к каталогу |
+| O23 | [Microless — How it works](https://sc.microless.com/seller/how-it-works/) | Seller Account, поштучное и массовое размещение; без численных media specifications |
+| O24 | [TikTok Newsroom — expansión de TikTok Shop](https://newsroom.tiktok.com/expansion-tiktok-shop-europa-francia-italia-alemania?lang=es) | 28.03.2025, прямо перечисляет Saudi Arabia; не спецификация местной регистрации |
+| O25 | [TikTok Shop — Global Selling Seller Terms PDF](https://lf3-static.bytednsdoc.com/obj/eden-cn/lm-uvpahylwv-z/ljhwZthlaukjlkulzlp/user-agreement/v21/Global%20Selling%20Seller%20Terms%20of%20Service%20for%20TikTok%20Shop.pdf) | 14.06.2024, §1.3 и Schedule 1 §5; China/Hong Kong cross-border и KSA |
+| O26 | [TikTok Shop Academy — Cross-border Terms](https://seller.tiktokglobalshop.com/university/essay?default_language=zh-CN&identity=1&knowledge_id=4611080967456529) | Общие content obligations и KSA/модельный scope, не численные image/video пределы. Официальный индекс; прямое чтение требует JS/login |
 
 ## Контрольные вопросы для закрытой документации
 
