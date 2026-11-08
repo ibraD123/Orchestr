@@ -141,3 +141,42 @@ test("end to end: link, send, the client answers through the link, the agency se
   const exp = await fetch(base + "/api/workspaces/layali/export").then((r) => r.json());
   assert.equal(exp.portal.requests.length, 1);
 });
+
+test("small fixes need the client's consent, library files, shared results", async () => {
+  const { minorReview, newFile, normaliseResults } = await import("../server/portal.mjs");
+  const p = emptyPortal();
+  const items = [{ key: "q9|oud", name: "Oud", after: { images: ["/x.png"] } }];
+  assert.throws(() => minorReview(p, { items }), (e) => e.status === 403);
+  p.settings = normaliseSettings({ allowMinor: true });
+  const r = minorReview(p, { items, note: "typo in the Arabic title" }, "2026-11-10T00:00:00.000Z");
+  assert.deepEqual([r.minor, r.items[0].status, r.items[0].synced, r.items[0].approvals.any.by], [true, "approved", true, "agency"]);
+  p.reviews.push(r);
+  assert.equal(monthReport(p, new Date("2026-11-20T00:00:00Z")).minor, 1, "the client sees small fixes in their report");
+  assert.equal(clientView(p, { brand: {}, agency: {} }).reviews[0].items[0].minor, true);
+  assert.throws(() => newFile({ name: "x.svg", ext: "svg", size: 10 }), /PNG, JPEG, WebP or PDF/);
+  assert.throws(() => newFile({ ext: "pdf", size: 11 * 1024 * 1024 }), /10 MB/);
+  const res = normaliseResults({ period: "Oct → Nov", changed: { count: 5, convPts: 1.234, unitsPct: 12, salesPct: 15 }, control: { count: 3, convPts: 0.1 }, upliftPts: 1.13, products: [{ name: "Oud", convPts: 1.4, salesPct: "x" }] });
+  assert.deepEqual([res.changed.convPts, res.products[0].salesPct, res.upliftPts], [1.23, null, 1.13]);
+  assert.throws(() => normaliseResults({}), /compared results/);
+});
+
+test("end to end: files from both sides, results in the client's report", async () => {
+  const link = await call("POST", "/api/portal/noor/link", {});
+  const token = link.body.url.split("/c/")[1];
+  const up = await call("POST", `/api/c/${token}/files`, { name: "brand-book.png", data: PX, by: "Huda" });
+  assert.equal(up.status, 200);
+  assert.match(up.body.url, /^\/assets\/local\/noor\/library-files\/f[a-z0-9]+\.png$/);
+  assert.equal((await fetch(base + up.body.url)).status, 200);
+  assert.equal((await call("POST", `/api/c/${token}/files`, { name: "x.html", data: "data:text/html;base64,AAAA" })).status, 400);
+  await call("POST", "/api/portal/noor/files", { name: "logo.png", data: PX });
+  await call("PUT", "/api/portal/noor/results", { changed: { count: 2, convPts: 0.9 }, control: { count: 2, convPts: 0.1 }, upliftPts: 0.8 });
+  const view = await call("GET", "/api/c/" + token);
+  assert.deepEqual(view.body.files.map((f) => f.by), ["agency", "Huda"]);
+  assert.equal(view.body.results.upliftPts, 0.8);
+  await call("DELETE", "/api/portal/noor/results");
+  assert.equal((await call("GET", "/api/c/" + token)).body.results, null, "the agency can take results back");
+  const minor = await call("POST", "/api/portal/noor/minor", { items: [{ key: "q1|x", name: "X", after: { images: [PX] } }] });
+  assert.equal(minor.status, 403, "small fixes stay off until the client allows them");
+  const del = await call("DELETE", `/api/portal/noor/files/${view.body.files[0].id}`);
+  assert.equal(del.status, 200);
+});

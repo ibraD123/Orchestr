@@ -379,3 +379,10 @@ test("Noon Content API: signed login, the session, the product body and Noon's r
   assert.deepEqual(sum.languages.map((l) => [l.language, l.completeness, l.qc, l.live]), [["en", 100, "approved", true], ["ar", 80, "pending", false]]);
   assert.equal(sum.live, false, "live only when every language is active");
 });
+
+test("Amazon after publishing: buyable or not, with Amazon's issues", async () => {
+  const { listingStatusFrom } = await import("../server/connectors/amazon.mjs");
+  const s = listingStatusFrom("OUD-100", { summaries: [{ asin: "B0X", status: ["BUYABLE", "DISCOVERABLE"], lastUpdatedDate: "2026-11-08", mainImage: { link: "https://m.media-amazon.com/1.jpg" } }], issues: [{ code: "90220", message: "Missing bullet", severity: "WARNING" }, { code: "8541", message: "Image rejected", severity: "ERROR" }] });
+  assert.deepEqual([s.buyable, s.discoverable, s.errors, s.issues.length, s.asin], [true, true, 1, 2, "B0X"]);
+  assert.equal(listingStatusFrom("X", {}).buyable, false);
+});

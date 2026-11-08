@@ -47,6 +47,8 @@ def main():
     texts=[]
     for name in order:
         s=raw[name]
+        if name=='other-marketplaces':
+            s=re.sub(r'\n## Контрольные вопросы для закрытой документации\n.*\Z','',s,flags=re.S)
         if name in titles: s='<!-- pagebreak -->\n\n'+normalize(s,titles[name])
         if name=='storefronts' or name=='operating-guide': s='<!-- pagebreak -->\n\n'+s
         # Turn bare source URLs into human-readable native hyperlinks.
@@ -86,6 +88,11 @@ def main():
             'весьworldwide':'весь worldwide',
             'Официальный sell.amazon.com/blog/amazon-product-video':'[Официальный блог](https://sell.amazon.com/blog/amazon-product-video)',
             'официальный sell.amazon.com/blog/amazon-product-video':'[официальный блог](https://sell.amazon.com/blog/amazon-product-video)',
+            'Для AE не публиковать универсальные max4/max5 без проверки uploader; ориентации 16:9/9:16 подтверждены A14':'Максимальное число проверять в загрузчике аккаунта',
+            'AE help A14 пишет under 5 MB':'локальный help задаёт другую единицу измерения',
+            'Использовать help <5MB. Blog не источник технических пределов':'Использовать параметр thumbnail из A14 и сводной таблицы',
+            'AE guide уточняет softlines + desktop':'локальный guide уточняет область применения',
+            'Не советовать всем категориям удалять фото; проверять live display и устройство':'Применять условие строки PDP video display; проверять устройство и категорию',
         }
         for a,b in replacements.items(): s=s.replace(a,b)
         texts.append(s.strip())

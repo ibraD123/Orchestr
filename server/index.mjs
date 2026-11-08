@@ -25,11 +25,11 @@ import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } fr
 import { generateSlide, slideGenConfigured, readBackText, checkProduct } from "./slidegen.mjs";
 import { generateVideo, falVideo, videoInput, videoGenConfigured, VIDEO_MODEL } from "./videogen.mjs";
 import { labelImage } from "./ai-label.mjs";
-import { newReview, decide, newRequest, normaliseBrief, normaliseSettings, defaultSettings, clientView, portalSummary, REQUEST_STATUS } from "./portal.mjs";
+import { newReview, decide, newRequest, normaliseBrief, normaliseSettings, defaultSettings, clientView, portalSummary, minorReview, newFile, normaliseResults, FILE_TYPES, REQUEST_STATUS } from "./portal.mjs";
 import { analyseCompetitors } from "./gallery.mjs";
 import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
-import { amazonPublish, amazonConfig, amazonConfigured } from "./connectors/amazon.mjs";
+import { amazonPublish, amazonConfig, amazonConfigured, amazonListingStatus } from "./connectors/amazon.mjs";
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
 import { noonConfigured, noonPublish, noonContent } from "./connectors/noon.mjs";
 
@@ -43,7 +43,7 @@ const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);
 const MAX_BODY = 30 * 1024 * 1024;
 const STATIC = { "/": "index.html", "/index.html": "index.html", "/app": "app.html", "/app.html": "app.html" };
-const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".zip": "application/zip" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".pdf": "application/pdf", ".zip": "application/zip" };
 
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
 
@@ -160,6 +160,38 @@ async function portalContext(token) {
   return { store, ws, key: v.account };
 }
 const DATA_URL_IMG = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/;
+/** Review images arrive as data URLs; they are stored with the client's assets and replaced by their links. */
+async function storeReviewImages(store, key, ws, list) {
+  const batch = "review-" + Date.now().toString(36) + randomBytes(4).toString("hex");
+  const save = async (src, name) => {
+    if (typeof src !== "string") return null;
+    if (/^\/assets\//.test(src)) return src;
+    const im = DATA_URL_IMG.exec(src);
+    if (!im) return null;
+    const ext = im[1] === "jpeg" ? "jpg" : im[1];
+    await store.saveAsset(ws, batch, `${name}.${ext}`, Buffer.from(im[2], "base64"));
+    return `/assets/${key}/${ws}/${batch}/${name}.${ext}`;
+  };
+  const items = [];
+  for (const [i, it] of (Array.isArray(list) ? list : []).slice(0, 30).entries()) {
+    const after = [];
+    for (const [j, src] of (it.after && Array.isArray(it.after.images) ? it.after.images : []).slice(0, 12).entries()) { const u = await save(src, `p${i}-after-${j}`); if (u) after.push(u); }
+    items.push({ ...it, before: { ...(it.before || {}), image: await save(it.before && it.before.image, `p${i}-before`) }, after: { ...(it.after || {}), images: after } });
+  }
+  return items;
+}
+const DATA_URL_FILE = /^data:(image\/(?:png|jpeg|webp)|application\/pdf);base64,([A-Za-z0-9+/=]+)$/;
+async function addLibraryFile(store, key, ws, body, by) {
+  const m = DATA_URL_FILE.exec(String(body.data || ""));
+  if (!m) fail("Upload a PNG, JPEG, WebP or PDF");
+  const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf" }[m[1]];
+  const data = Buffer.from(m[2], "base64");
+  const f = newFile({ name: body.name, ext, by, size: data.length });
+  await store.saveAsset(ws, "library-files", `${f.id}.${ext}`, data);
+  f.url = `/assets/${key}/${ws}/library-files/${f.id}.${ext}`;
+  await store.updatePortal(ws, (p) => { (p.files = p.files || []).push(f); p.events.push({ type: "file", at: f.at }); });
+  return f;
+}
 
 /* ---------- plan and usage ---------- */
 
@@ -383,26 +415,27 @@ const paramRoutes = [
   ["POST", /^\/api\/portal\/([a-z0-9-]+)\/reviews$/, async (m, body, { store, key }) => {
     const ws = m[1];
     await store.getGenome(ws);
-    const batch = "review-" + Date.now().toString(36) + randomBytes(4).toString("hex");
-    const save = async (src, name) => {
-      if (typeof src !== "string") return null;
-      if (/^\/assets\//.test(src)) return src;
-      const im = DATA_URL_IMG.exec(src);
-      if (!im) return null;
-      const ext = im[1] === "jpeg" ? "jpg" : im[1];
-      await store.saveAsset(ws, batch, `${name}.${ext}`, Buffer.from(im[2], "base64"));
-      return `/assets/${key}/${ws}/${batch}/${name}.${ext}`;
-    };
-    const items = [];
-    for (const [i, it] of (Array.isArray(body.items) ? body.items : []).slice(0, 30).entries()) {
-      const after = [];
-      for (const [j, src] of (it.after && Array.isArray(it.after.images) ? it.after.images : []).slice(0, 12).entries()) { const u = await save(src, `p${i}-after-${j}`); if (u) after.push(u); }
-      items.push({ ...it, before: { ...(it.before || {}), image: await save(it.before && it.before.image, `p${i}-before`) }, after: { ...(it.after || {}), images: after } });
-    }
-    const review = newReview({ title: body.title, items });
+    const review = newReview({ title: body.title, items: await storeReviewImages(store, key, ws, body.items) });
     await store.updatePortal(ws, (p) => { p.reviews.push(review); p.events.push({ type: "sent", review: review.id, at: review.sentAt }); });
     return review;
   }],
+  // Small fixes without the client's approval, when the client allowed it; recorded so they still see them.
+  ["POST", /^\/api\/portal\/([a-z0-9-]+)\/minor$/, async (m, body, { store, key }) => {
+    const ws = m[1];
+    await store.getGenome(ws);
+    const items = await storeReviewImages(store, key, ws, body.items);
+    return store.updatePortal(ws, (p) => { const r = minorReview(p, { title: body.title, note: body.note, items }); p.reviews.push(r); p.events.push({ type: "minor", review: r.id, at: r.sentAt }); return r; });
+  }],
+  // The library: files from the client or the agency (PNG, JPEG, WebP, PDF up to 10 MB).
+  ["POST", /^\/api\/portal\/([a-z0-9-]+)\/files$/, async (m, body, { store, key }) => addLibraryFile(store, key, m[1], body, "agency")],
+  ["DELETE", /^\/api\/portal\/([a-z0-9-]+)\/files\/([a-z0-9]+)$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.files = (p.files || []).filter((f) => f.id !== m[2]); return { ok: true }; })],
+  ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/files$/, async (m, body) => {
+    const { store, ws, key } = await portalContext(m[1]);
+    return addLibraryFile(store, key, ws.id, body, String(body.by || "").slice(0, 80) || "Client");
+  }, true],
+  // The sales result the agency chooses to show the client.
+  ["PUT", /^\/api\/portal\/([a-z0-9-]+)\/results$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.results = normaliseResults(body); return p.results; })],
+  ["DELETE", /^\/api\/portal\/([a-z0-9-]+)\/results$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.results = null; return { ok: true }; })],
   // The agency marks client answers as handled (synced into the queue) or comments as resolved.
   ["PATCH", /^\/api\/portal\/([a-z0-9-]+)\/reviews\/([a-z0-9]+)\/items\/(\d+)$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => {
     const r = p.reviews.find((x) => x.id === m[2]); const it = r && r.items[Number(m[3])];
@@ -421,7 +454,7 @@ const paramRoutes = [
   ["PUT", /^\/api\/portal\/([a-z0-9-]+)\/settings$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.settings = normaliseSettings(body || {}, p.settings); return p.settings; })],
   ["POST", /^\/api\/portal\/([a-z0-9-]+)\/brief\/applied$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { if (p.brief) p.brief.appliedAt = new Date().toISOString(); return { ok: true }; })],
   // Hosted export files: images marketplaces fetch by link, and the ZIP. Public on purpose: account and batch ids are long and random.
-  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|zip))$/, async (m) => {
+  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|pdf|zip))$/, async (m) => {
     const known = AUTH ? await auth.accountExists(m[1]) : m[1] === "local";
     if (!known) fail("Not found", 404);
     const ext = extname(m[4]);
@@ -480,6 +513,18 @@ const routes = {
   "POST /api/publish/amazon": async (body, ctx) => publishAmazon(body, ctx),
   "POST /api/publish/noon": async (body, ctx) => publishNoon(body, ctx),
   "POST /api/noon/status": async (body, ctx) => noonStatus(body, ctx),
+  // Amazon's view of the products of a published batch: buyable or not, and Amazon's issues.
+  "POST /api/amazon/status": async (body, { store }) => {
+    const mk = AMAZON_MARKETPLACES[String(body.marketplace || "amazon.sa").replace(/^www\./, "")] || fail("marketplace must be amazon.sa, amazon.ae or amazon.eg");
+    const c = amazonConfig();
+    if (!amazonConfigured(c) || !c.sellerId) fail("Amazon status needs the connected seller account (SPAPI_SELLER_ID)", 503);
+    const m = await store.getManifest(String(body.ws || ""), String(body.batch || ""));
+    const out = [];
+    for (const it of m.items.slice(0, 50)) {
+      try { out.push(await amazonListingStatus(it.sku, mk, c)); } catch (e) { out.push({ sku: it.sku, error: e.message }); }
+    }
+    return { products: out };
+  },
   "POST /api/report/pdf": async (body) => {
     if (!body.result || !Array.isArray(body.result.products)) fail("Send the compared results");
     if (!(await rendererAvailable())) fail("PDF reports need Chromium on the server", 503);

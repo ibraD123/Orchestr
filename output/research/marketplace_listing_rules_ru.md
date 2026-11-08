@@ -311,9 +311,9 @@
 | Вопрос | Что говорят первичные источники | Решение для документа/продукта |
 |---|---|---|
 | Title 2026 AE/SA | A02 исключает AE/SA/EG/TR; A03 и A04 дают 75 без согласованного регионального scope | «Лимит конкретного product type требует локального подтверждения». Не маркировать все titles >75 как нарушение |
-| PDP video count | Current US blog и старые форумы дают разные числа; локальный AE hard maximum count однозначно не подтверждён | Для AE не публиковать универсальные max4/max5 без проверки uploader; ориентации 16:9/9:16 подтверждены A14 |
-| Thumbnail видео | [Официальный блог](https://sell.amazon.com/blog/amazon-product-video) ошибочно пишет under 5 GB; AE help A14 пишет under 5 MB | Использовать help <5MB. Blog не источник технических пределов |
-| Сколько фото оставить ради видео | Общий US blog говорит <6 для всего; AE guide уточняет softlines + desktop | Не советовать всем категориям удалять фото; проверять live display и устройство |
+| PDP video count | Current US blog и старые форумы дают разные числа; локальный AE hard maximum count однозначно не подтверждён | Максимальное число проверять в загрузчике аккаунта |
+| Thumbnail видео | [Официальный блог](https://sell.amazon.com/blog/amazon-product-video) ошибочно пишет under 5 GB; локальный help задаёт другую единицу измерения | Использовать параметр thumbnail из A14 и сводной таблицы |
+| Сколько фото оставить ради видео | Общий US blog говорит <6 для всего; локальный guide уточняет область применения | Применять условие строки PDP video display; проверять устройство и категорию |
 | Premium A+ | Старые официальные материалы требуют 15 проектов; актуальный FAQ 5 и worldwide eligibility | Использовать A19, отметить account verification и промопериод цены |
 | MYE | Локальная UAE marketing-page рекламирует; актуальный eligibility-list не содержит UAE/SA | Доступ неподтверждён, не включать в гарантированный feature list |
 | CMYK | В кратких guide часто объявляется строго запрещённым; AE technical A10 говорит Not preferred | Экспортировать RGB как безопасный стандарт, не выдавать ложный hard fail |
@@ -586,10 +586,6 @@ Noon прямо пишет, что для Namshi требуется **отдел
 | O24 | [TikTok Newsroom — expansión de TikTok Shop](https://newsroom.tiktok.com/expansion-tiktok-shop-europa-francia-italia-alemania?lang=es) | 28.03.2025, прямо перечисляет Saudi Arabia; не спецификация местной регистрации |
 | O25 | [TikTok Shop — Global Selling Seller Terms PDF](https://lf3-static.bytednsdoc.com/obj/eden-cn/lm-uvpahylwv-z/ljhwZthlaukjlkulzlp/user-agreement/v21/Global%20Selling%20Seller%20Terms%20of%20Service%20for%20TikTok%20Shop.pdf) | 14.06.2024, §1.3 и Schedule 1 §5; China/Hong Kong cross-border и KSA |
 | O26 | [TikTok Shop Academy — Cross-border Terms](https://seller.tiktokglobalshop.com/university/essay?default_language=zh-CN&identity=1&knowledge_id=4611080967456529) | Общие content obligations и KSA/модельный scope, не численные image/video пределы. Официальный индекс; прямое чтение требует JS/login |
-
-### Контрольные вопросы для закрытой документации
-
-Чтобы закрыть публичные пробелы, от каждой площадки нужны: действующий договор и страна seller account; category taxonomy и upload template; обязательные/рекомендованные поля с limits; main/gallery image guide с примерами допустимой инфографики; техническая и редакционная video policy; способы связать видео с карточкой; language/translation workflow; rich-content schema; QC/rejection codes и порядок appeals; правила авторства/лицензий и AI media. Это список недостающих материалов исследования, а не обязательная проверка, придуманная площадками.
 
 <!-- pagebreak -->
 

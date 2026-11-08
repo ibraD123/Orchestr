@@ -13,7 +13,7 @@ const id = (prefix) => prefix + Date.now().toString(36) + Math.random().toString
 const fail = (msg, status = 400) => { const e = new Error(msg); e.status = status; throw e; };
 
 export function emptyPortal() { return { reviews: [], requests: [], brief: null, events: [], settings: defaultSettings() }; }
-export function defaultSettings() { return { approvers: [], remindAfterDays: 3, monthlyFixes: null }; }
+export function defaultSettings() { return { approvers: [], remindAfterDays: 3, monthlyFixes: null, allowMinor: false }; }
 
 /**
  * Who approves for the client, when to remind them, and how many fixes the monthly package holds.
@@ -28,7 +28,9 @@ export function normaliseSettings(b, prev) {
   return {
     approvers,
     remindAfterDays: Number.isFinite(days) && days >= 1 && days <= 30 ? Math.round(days) : base.remindAfterDays,
-    monthlyFixes: b.monthlyFixes === undefined ? base.monthlyFixes : Number.isFinite(fixes) && fixes > 0 ? Math.round(fixes) : null
+    monthlyFixes: b.monthlyFixes === undefined ? base.monthlyFixes : Number.isFinite(fixes) && fixes > 0 ? Math.round(fixes) : null,
+    // The client agreed that small fixes (a typo, a digit, a word) go live without their approval.
+    allowMinor: typeof b.allowMinor === "boolean" ? b.allowMinor : base.allowMinor
   };
 }
 
@@ -88,6 +90,39 @@ export function decide(portal, reviewId, index, body, at = new Date().toISOStrin
   return it;
 }
 
+/**
+ * Small fixes the agency made without the client's approval, when the client allowed it.
+ * They are recorded as approved by the agency, so the client still sees them in the report and library.
+ */
+export function minorReview(portal, input, at = new Date().toISOString()) {
+  const settings = Object.assign(defaultSettings(), portal.settings || {});
+  if (!settings.allowMinor) fail("This client hasn't allowed small fixes without approval. Turn it on in the portal settings first.", 403);
+  const r = newReview({ ...input, title: str(input.title, 120) || "Small fixes" }, at);
+  r.minor = true;
+  for (const it of r.items) { it.status = "approved"; it.decidedAt = at; it.synced = true; it.minor = true; it.approvals = { any: { by: "agency", at } }; it.note = str(input.note, 300); }
+  return r;
+}
+
+export const FILE_TYPES = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", pdf: "application/pdf" };
+/** A file in the client's library, uploaded by the client or the agency. The bytes are stored separately. */
+export function newFile({ name, ext, by, size }, at = new Date().toISOString()) {
+  if (!FILE_TYPES[ext]) fail("Upload a PNG, JPEG, WebP or PDF");
+  if (size > 10 * 1024 * 1024) fail("Files up to 10 MB");
+  return { id: id("f"), name: str(name, 120) || "file." + ext, ext, by: str(by, 80) || "Client", at, size };
+}
+
+/** The sales result the agency shares with the client: changed products against the control group. */
+export function normaliseResults(b, at = new Date().toISOString()) {
+  const grp = (g) => g && typeof g === "object" ? { count: Math.max(0, Math.round(Number(g.count) || 0)), convPts: num(g.convPts), unitsPct: num(g.unitsPct), salesPct: num(g.salesPct) } : null;
+  if (!b || !grp(b.changed)) fail("Send the compared results");
+  return {
+    period: str(b.period, 80), at,
+    changed: grp(b.changed), control: grp(b.control), upliftPts: num(b.upliftPts),
+    products: (Array.isArray(b.products) ? b.products : []).slice(0, 12).map((p) => ({ name: str(p.name || p.key, 120), convPts: num(p.convPts), unitsPct: num(p.unitsPct), salesPct: num(p.salesPct), verdict: str(p.verdict, 20) }))
+  };
+}
+const num = (v) => (v == null || !Number.isFinite(Number(v)) ? null : Math.round(Number(v) * 100) / 100);
+
 /** What still waits on someone: "legal" when only the legal approval is missing. */
 export function waitingOn(it, settings) {
   if (it.status !== "pending") return null;
@@ -135,7 +170,9 @@ export function clientView(portal, { brand, agency }, now = new Date()) {
     approvers: settings.approvers.map((a) => ({ id: a.id, name: a.name, role: a.role })),
     report: monthReport(portal, now),
     library: library(portal),
-    reviews: portal.reviews.slice(-20).reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments, needs: it.needs || ["any"], approvals: it.approvals || {}, waitingOn: waitingOn(it, settings) })) })),
+    files: (portal.files || []).slice().reverse().map((f) => ({ id: f.id, name: f.name, ext: f.ext, by: f.by, at: f.at, url: f.url })),
+    results: portal.results || null,
+    reviews: portal.reviews.slice(-20).reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments, needs: it.needs || ["any"], approvals: it.approvals || {}, waitingOn: waitingOn(it, settings), minor: Boolean(it.minor) })) })),
     requests: portal.requests.slice(-30).reverse(),
     brief: portal.brief ? { ...portal.brief, logo: portal.brief.logo ? true : null } : null
   };
@@ -156,6 +193,7 @@ export function monthReport(portal, now = new Date()) {
     changes: items.filter((i) => i.status === "changes").length,
     requestsOpen: portal.requests.filter((q) => q.status !== "done").length,
     requestsDone: portal.requests.filter((q) => q.status === "done" && inMonth(q.doneAt || q.at)).length,
+    minor: approved.filter((i) => i.minor).length,
     package: limit ? { limit, used: approved.length, over: Math.max(0, approved.length - limit) } : null,
     recent: approved.slice(-8).reverse().map((i) => ({ name: i.name, image: i.after.images[0] || null, at: i.decidedAt }))
   };

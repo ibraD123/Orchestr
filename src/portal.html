@@ -98,6 +98,9 @@ var T = {
   rpMonth:["This month","هذا الشهر"], rpSent:["Sent for approval","أُرسل للموافقة"], rpApproved:["Approved","تمت الموافقة"], rpWaiting:["Waiting for you","بانتظارك"], rpChanges:["Changes requested","طُلبت تعديلات"],
   rpReqOpen:["Requests in work","طلبات قيد العمل"], rpReqDone:["Requests done","طلبات منجزة"], rpPackage:["Monthly package","الباقة الشهرية"], rpUsed:["{used} of {limit} fixes used","استُخدم {used} من {limit} تعديلاً"], rpOver:["{n} over the package","{n} فوق الباقة"], rpRecent:["Recently approved","تمت الموافقة مؤخراً"],
   libEmpty:["Approved images appear here.","تظهر هنا الصور المعتمدة."], download:["Download","تنزيل"],
+  files:["Files","الملفات"], addFile:["Add a file (PNG, JPEG, WebP or PDF, up to 10 MB)","أضف ملفاً (PNG أو JPEG أو WebP أو PDF حتى 10 ميغابايت)"], uploading:["Uploading…","جارٍ الرفع…"], approvedImgs:["Approved images","الصور المعتمدة"],
+  rpMinor:["Small fixes made without approval","تعديلات صغيرة دون موافقة"], minorTag:["Small fix, approved by the agency","تعديل صغير وافقت عليه الوكالة"],
+  rsT:["Sales results","نتائج المبيعات"], rsChanged:["Improved products","المنتجات المحسّنة"], rsControl:["Unchanged products","المنتجات دون تغيير"], rsUplift:["Conversion uplift","زيادة التحويل"], rsConv:["conversion","التحويل"], rsUnits:["units","الوحدات"], rsSales:["sales","المبيعات"], rsPts:["pts","نقطة"],
   err:["Something went wrong:","حدث خطأ:"], gone:["This link isn't valid any more. Ask your agency for a new one.","هذا الرابط لم يعد صالحاً. اطلب رابطاً جديداً من الوكالة."]
 };
 var token = location.pathname.split("/").pop(), data = null, tab = "reviews", drafts = {}, lang = "en";
@@ -142,7 +145,7 @@ function vReviews(){
     it.comments.forEach(function(c){ c.pins.forEach(function(p){ n++; (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: n, done: c.resolved}); }); });
     d.pins.forEach(function(p, j){ (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: "+" + (j + 1), draft: true}); });
     var st = it.status === "pending" ? "warn" : it.status === "approved" ? "good" : "bad";
-    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
+    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + (it.minor ? '<span class="tag">' + t("minorTag") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
       '<div class="ba"><div class="before"><span class="lbl">' + t("before") + "</span>" + (it.before.image ? '<div class="shot"><img src="' + esc(it.before.image) + '" alt=""></div>' : "") + copyHTML(it.before.copy) + "</div>" +
       '<div><span class="lbl">' + t("after") + '</span><div class="imgs">' + it.after.images.map(function(src, j){
         return '<div class="shot" data-img="' + j + '"><img src="' + esc(src) + '" alt="">' + (pinsByImg[j] || []).map(function(p){ return '<span class="pin' + (p.draft ? " draft" : p.done ? " done" : "") + '" style="left:' + (p.x * 100) + "%;top:" + (p.y * 100) + '%">' + p.n + "</span>"; }).join("") + "</div>";
@@ -160,12 +163,25 @@ function vReport(){
   var r = data.report, stat = function(k, v){ return '<div class="card" style="margin:0"><div class="note">' + t(k) + '</div><div style="font-size:28px;font-weight:700">' + v + "</div></div>"; };
   return '<section class="card"><h2>' + t("rpMonth") + ' <span class="note">' + esc(r.month) + "</span></h2>" +
     '<div class="imgs" style="margin-top:12px">' + stat("rpSent", r.sent) + stat("rpApproved", r.approved) + stat("rpWaiting", r.waiting) + stat("rpChanges", r.changes) + stat("rpReqOpen", r.requestsOpen) + stat("rpReqDone", r.requestsDone) + "</div>" +
+    (r.minor ? '<p class="note" style="margin-top:10px">' + t("rpMinor") + ": " + r.minor + "</p>" : "") +
     (r.package ? '<div style="margin-top:14px"><span class="lbl">' + t("rpPackage") + '</span><div style="height:10px;border-radius:6px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, Math.round(r.package.used / r.package.limit * 100)) + '%;background:var(--accent)"></i></div><p class="note" style="margin-top:6px">' + t("rpUsed").replace("{used}", r.package.used).replace("{limit}", r.package.limit) + (r.package.over ? " · " + t("rpOver").replace("{n}", r.package.over) : "") + "</p></div>" : "") + "</section>" +
-    (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? '<img src="' + esc(x.image) + '" alt="">' : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
+    resultsHTML() + (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? '<img src="' + esc(x.image) + '" alt="">' : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
 }
+function resultsHTML(){
+  var x = data.results; if (!x) return "";
+  var sign = function(v, unit){ return v == null ? "—" : (v > 0 ? "+" : "") + v + unit; };
+  var row = function(k, g){ return g ? "<tr><td>" + t(k) + " (" + g.count + ")</td><td>" + sign(g.convPts, " " + t("rsPts")) + "</td><td>" + sign(g.unitsPct, "%") + "</td><td>" + sign(g.salesPct, "%") + "</td></tr>" : ""; };
+  return '<section class="card"><h2>' + t("rsT") + (x.period ? ' <span class="note">' + esc(x.period) + "</span>" : "") + "</h2>" +
+    (x.upliftPts != null ? '<p style="font-size:24px;font-weight:700;margin:8px 0">' + sign(x.upliftPts, " " + t("rsPts")) + ' <span class="note" style="font-size:13px;font-weight:400">' + t("rsUplift") + "</span></p>" : "") +
+    '<table style="width:100%;border-collapse:collapse;font-size:13.5px"><thead><tr><th></th><th>' + t("rsConv") + "</th><th>" + t("rsUnits") + "</th><th>" + t("rsSales") + "</th></tr></thead><tbody>" + row("rsChanged", x.changed) + row("rsControl", x.control) + "</tbody></table>" +
+    (x.products.length ? '<div style="margin-top:10px;display:grid;gap:4px">' + x.products.map(function(p){ return '<div class="note">' + esc(p.name) + " · " + sign(p.convPts, " " + t("rsPts")) + " · " + sign(p.salesPct, "% " + t("rsSales")) + "</div>"; }).join("") + "</div>" : "") + "</section>";
+}
+var upMsg = null;
 function vLibrary(){
-  if (!data.library.length) return '<p class="empty">' + t("libEmpty") + "</p>";
-  return data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default"><img src="' + esc(src) + '" alt=""></div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
+  var files = '<section class="card"><h2>' + t("files") + '</h2><div class="imgs" style="margin-top:10px">' + data.files.map(function(f){ return '<div><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><div class="shot" style="cursor:pointer;display:grid;place-items:center;min-height:90px">' + (f.ext === "pdf" ? "<b>PDF</b>" : '<img src="' + esc(f.url) + '" alt="">') + '</div></a><div class="note" style="margin-top:4px">' + esc(f.name) + " · " + esc(f.by) + "</div></div>"; }).join("") + "</div>" +
+    '<label class="f" style="margin-top:12px">' + t("addFile") + '<input type="file" id="lib-file" accept="image/png,image/jpeg,image/webp,application/pdf"></label>' + (upMsg ? '<p class="' + (upMsg.ok ? "ok" : "err") + '">' + esc(upMsg.text) + "</p>" : "") + "</section>";
+  if (!data.library.length) return files + '<p class="empty">' + t("libEmpty") + "</p>";
+  return files + '<h2 style="font-size:16px;margin:18px 0 10px">' + t("approvedImgs") + "</h2>" + data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default"><img src="' + esc(src) + '" alt=""></div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
 }
 var req = {kind: "season", text: "", links: "", due: "", msg: null};
 function vRequests(){
@@ -231,6 +247,11 @@ document.addEventListener("change", function(e){
   if (el.id === "rq-kind") req.kind = el.value;
   if (el.id === "who"){ try { localStorage.setItem("basira-portal-approver", el.value); } catch (x) {} }
   if (el.dataset.b && brief) brief[el.dataset.b] = el.value;
+  if (el.id === "lib-file" && el.files && el.files[0]){
+    var f = el.files[0], fr2 = new FileReader(); upMsg = {ok: true, text: t("uploading")}; render();
+    fr2.onload = function(){ send("/files", "POST", {name: f.name, data: fr2.result, by: name()}).then(function(){ upMsg = null; return load(); }).catch(function(err){ upMsg = {ok: false, text: err.message}; render(); }); };
+    fr2.readAsDataURL(f); return;
+  }
   if (el.id === "bf-logo" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ brief.logo = fr.result; }; fr.readAsDataURL(el.files[0]); }
 });
 setLang(lang); load();

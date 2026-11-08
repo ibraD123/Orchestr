@@ -527,6 +527,9 @@ button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13p
 .noon-img img{display:block;width:100%;height:auto}
 .noon-img i{position:absolute;inset-inline:0;bottom:0;font-size:10px;font-style:normal;text-align:center;background:rgba(0,0,0,.55);color:#fff}
 .noon-img.invalid{border-color:var(--bad)}.noon-img.valid{border-color:var(--good)}
+.pt-files{display:grid;gap:6px}
+.pt-file{display:flex;gap:10px;align-items:center}
+.pt-file img,.pt-pdf{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--surface-2)}
 .cr-video{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:16px;margin-top:14px}
 .cr-video video{width:100%;border-radius:12px;background:#000}
 @media (max-width:600px){.cr-video{grid-template-columns:1fr}}
@@ -3171,8 +3174,8 @@ var ICONS = {
 };
 function navHTML(mobile){
   var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
-  var base = state.route === "listing" ? "catalog" : ["studio","templates","photos"].indexOf(state.route) > -1 ? "creator" : state.route;
-  return ["overview","brand","audit","catalog","batch","creator","reviews","approvals","results","settings"].map(function(k){
+  var base = state.route === "listing" ? "catalog" : ["studio","templates","photos","reviews"].indexOf(state.route) > -1 || (state.route === "creator") ? "creator" : state.route;
+  return ["overview","brand","audit","catalog","batch","creator","approvals","results","settings"].map(function(k){
     var href = k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -3510,7 +3513,7 @@ function vApprovals(){
       '<div style="min-width:0;display:grid;gap:6px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(tr(p.name))+'</b>'+stTag+'</div>'+
         '<div style="font-size:13px;color:var(--ink-2)">'+tr(iss.t)+' · 4 '+t("slidesN")+' · '+t("newTitle")+' · '+t("scoreAfter")+' <b class="tnum" style="color:var(--good)">'+p.target+'</b></div>'+
         '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3)">'+chans(p)+'<span>'+t("by")+' '+it.by+'</span></div></div>'+
-      '<div class="appr-actions">'+(it.status === "pending" ? '<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approveOnly")+'</button>' : it.status === "asking" ? "" : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>'+(it.status === "approved" ? '<button type="button" class="btn btn-primary btn-sm" data-xexport="'+p.id+'">'+t("toExport")+'</button>' : ""))+'</div>'+
+      '<div class="appr-actions">'+(it.status === "pending" ? (it.checked ? '<span class="tag good">'+t("checkedT")+'</span>' : '<button type="button" class="btn btn-ghost btn-sm" data-checked="'+it.id+'">'+t("checkIt")+'</button>')+(ptAllowMinor() ? '<button type="button" class="btn btn-ghost btn-sm" data-minor="'+it.id+'" title="'+esc(t("minorNote"))+'">'+t("minorIt")+'</button>' : "")+'<button type="button" class="btn btn-ghost btn-sm" data-changes="'+it.id+'">'+t("changes")+'</button><button type="button" class="btn btn-primary btn-sm" data-approve="'+it.id+'">'+t("approveOnly")+'</button>' : it.status === "asking" ? "" : '<a class="btn btn-ghost btn-sm" href="#listing-'+p.id+'">'+t("open")+'</a>'+(it.status === "approved" ? '<button type="button" class="btn btn-primary btn-sm" data-xexport="'+p.id+'">'+t("toExport")+'</button>' : ""))+'</div>'+
       (it.status === "asking" ? '<div class="reasons"><b>'+t("reasonsT")+'</b><div class="chips">'+REJECT_REASONS.map(function(r){ return '<button type="button" class="chip" data-reason="'+it.id+'|'+r+'" aria-pressed="'+((it.reasons || []).indexOf(r) > -1)+'">'+t("r_"+r)+'</button>'; }).join("")+'</div><div style="display:flex;gap:8px"><button type="button" class="btn btn-primary btn-sm" data-sendfb="'+it.id+'">'+t("sendFeedback")+'</button><button type="button" class="btn btn-ghost btn-sm" data-cancelfb="'+it.id+'">'+t("cancel")+'</button></div></div>' : "")+
       (it.learned && it.learned.length ? learnedBlock(it.learned) : "")+
     '</div>'; }).join("")+'</div>' : '<div class="card empty">'+t("queueEmpty")+'</div>');
@@ -4291,6 +4294,10 @@ function exportCard(approved){
       '<p class="note">'+(canPub ? (r && r.batch ? t("pubNote") : t("exportFirst")) : t("amazonNeeds"))+'</p>'+
       (pub.error ? '<p class="err">'+esc(pub.error)+'</p>' : "")+
       (pub.result ? '<div class="publist">'+pub.result.results.map(function(x){ return '<div><span class="mono">'+esc(x.sku)+'</span><span class="tag '+(x.status === "ACCEPTED" ? "good" : x.status === "SKIPPED" ? "" : "bad")+'">'+t("pub_"+x.status)+'</span><span class="note">'+(x.issues || []).slice(0, 3).map(function(i){ return esc(i.message); }).join(" · ")+'</span></div>'; }).join("")+'</div>' : "")+
+      (pub.result ? '<div class="exp-row" style="margin-top:8px"><button type="button" class="btn btn-ghost btn-sm" id="x-amz-st"'+(b.amzSt && b.amzSt.busy ? " disabled" : "")+'>'+t("amzCheck")+'</button></div>' : "")+
+      (b.amzSt && b.amzSt.error ? '<p class="err">'+esc(b.amzSt.error)+'</p>' : "")+
+      (b.amzSt && b.amzSt.result ? '<div class="publist">'+b.amzSt.result.products.map(function(x){ return '<div><span class="mono">'+esc(x.sku)+'</span>'+(x.error ? '<span class="tag bad">'+esc(x.error)+'</span>' : '<span class="tag '+(x.buyable ? "good" : "bad")+'">'+t(x.buyable ? "amzBuyable" : "amzNotBuyable")+'</span><span class="note">'+(x.issues.length ? x.issues.length+' '+t("amzIssues")+': '+esc(x.issues.slice(0, 2).map(function(i){ return i.message; }).join("; ")) : "")+'</span>')+'</div>'; }).join("")+'</div>' : "")+
+
     '</div>' : "")+
     (ch === "noon" ? noonPubBlock(r) : "")+
   '</div>';
@@ -4417,7 +4424,7 @@ function vResults(){
   out += '<div class="card"><div class="card-h"><h2>'+tm("reportPreview")+'</h2><small>'+tm("agencyBrandHint")+' <a href="#settings">'+t("settings")+'</a></small></div>'+
     '<div class="exp-row"><div class="field" style="margin:0"><label for="x-period">'+t("periodL")+'</label><input id="x-period" value="'+esc(r.period || "")+'"></div>'+
       '<div class="field" style="margin:0"><span class="lbl">'+t("reportLang")+'</span><div class="seg" role="group"><button type="button" data-xrl="en" aria-pressed="'+(lang === "en")+'">English</button><button type="button" data-xrl="ar" aria-pressed="'+(lang === "ar")+'">العربية</button></div></div>'+
-      '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button>'+(saver ? '<button type="button" class="btn btn-ghost" id="x-rep-html">'+t("reportHtml")+'</button>' : "")+'</div>'+
+      '<span style="margin-inline-start:auto"></span>'+(state.api && state.api.render ? '<button type="button" class="btn btn-primary" id="x-pdf"'+(r.pdf ? " disabled" : "")+'>'+t(r.pdf ? "pdfBusy" : "pdf")+'</button>' : "")+'<button type="button" class="btn btn-ghost" id="x-print">'+t("print")+'</button>'+(state.api && state.api.store ? '<button type="button" class="btn btn-ghost" id="x-res-share">'+t("resShare")+'</button>' : "")+(saver ? '<button type="button" class="btn btn-ghost" id="x-rep-html">'+t("reportHtml")+'</button>' : "")+'</div>'+
     '<iframe id="x-rep-frame" class="rep-frame" title="'+tm("reportPreview")+'"></iframe></div>';
   return out;
 }
@@ -5016,7 +5023,7 @@ document.addEventListener("click", function(e){
 /* ---------- Creator: images planned from data, competitors, search preview, season packs, brand model ---------- */
 Object.assign(S, {
   creator:["Creator","المصمم"], crSub:["Images planned from what buyers say, what the audit found and what competitors show. Every image is checked before anyone sees it.","صور مبنية على ما يقوله المشترون وما وجده الفحص وما يعرضه المنافسون. كل صورة تُفحص قبل أن يراها أحد."],
-  crTabCard:["Product set","مجموعة المنتج"], crTabCatalog:["Catalog and seasons","الكتالوج والمواسم"], crTabModel:["Brand model","عارضة العلامة"], crTabTemplates:["Templates","القوالب"], crTabPhotos:["Photos","الصور"],
+  crTabCard:["Product set","مجموعة المنتج"], crTabReviews:["Reviews","التقييمات"], crTabCatalog:["Catalog and seasons","الكتالوج والمواسم"], crTabModel:["Brand model","عارضة العلامة"], crTabTemplates:["Templates","القوالب"], crTabPhotos:["Photos","الصور"],
   crKnows:["What Basira knows","ما تعرفه بصيرة"], crReviews:["Reviews","التقييمات"], crAudit:["Audit","الفحص"], crSales:["Sales","المبيعات"],
   crNoReviews:["No reviews analysed for this product yet.","لم تُحلَّل تقييمات هذا المنتج بعد."], crNoIssues:["No open issues.","لا مشكلات مفتوحة."], crNoSales:["No sales results yet. Upload reports in Results.","لا نتائج مبيعات بعد. ارفع التقارير في النتائج."],
   crWorked:["raised conversion","رفع التحويل"], crHurt:["lowered conversion","خفّض التحويل"],
@@ -5073,11 +5080,12 @@ function crTag(r){ if (r.source === "risk") return "warn"; return r.source === "
 
 function vCreator(){
   var tab = state.cr.tab;
-  var tabs = [["card","crTabCard"],["catalog","crTabCatalog"],["model","crTabModel"],["templates","crTabTemplates"],["photos","crTabPhotos"]];
+  var tabs = [["card","crTabCard"],["reviews","crTabReviews"],["catalog","crTabCatalog"],["model","crTabModel"],["templates","crTabTemplates"],["photos","crTabPhotos"]];
   var head = '<div class="head"><div><h1>'+t("creator")+'</h1><p>'+t("crSub")+'</p></div></div>'+
     '<div class="chips" role="tablist" style="margin-bottom:16px">'+tabs.map(function(x){ return '<button type="button" class="chip" role="tab" data-crtab="'+x[0]+'" aria-pressed="'+(tab === x[0])+'">'+t(x[1])+'</button>'; }).join("")+'</div>';
   if (tab === "templates") return head + (state.pid ? vTemplates() : vNoProducts());
   if (tab === "photos") return head + vPhotos();
+  if (tab === "reviews") return head + vReviews();
   if (tab === "model") return head + crModel();
   if (tab === "catalog") return head + crCatalog();
   var p = PM[state.pid];
@@ -5358,6 +5366,7 @@ document.addEventListener("click", function(e){
 document.addEventListener("change", function(e){
   var el = e.target, p = PM[state.pid];
   if (el.dataset && el.dataset.ptap){ var pa = el.dataset.ptap.split("|"), dr = state.ptDraft[state.ws]; if (dr && dr.approvers[+pa[0]]) dr.approvers[+pa[0]][pa[1]] = el.value; return; }
+  if (el.id === "pt-file" && el.files && el.files[0]){ var ff = el.files[0], frd = new FileReader(); frd.onload = function(){ post("/api/portal/"+state.ws+"/files", {name: ff.name, data: frd.result}).then(function(){ toast(t("ptUploaded")); return portalLoad(state.ws, true); }).catch(function(x){ toast(x.message); }); }; frd.readAsDataURL(ff); return; }
   if (el.id === "cr-pick"){ state.pid = el.value; render(); return; }
   if (el.dataset && el.dataset.crhit != null && p){ var sr = state.cr.search[p.id]; if (sr){ sr.items[+el.dataset.crhit].on = el.checked; render(); } return; }
   if (el.dataset && el.dataset.crsel){ state.cr.sel[el.dataset.crsel] = el.checked; return; }
@@ -5385,7 +5394,13 @@ Object.assign(S, {
   noonNeeds:["Publishing to Noon needs a Noon service account key on the server (NOON_CREDENTIALS).","النشر على نون يحتاج مفتاح حساب خدمة نون على الخادم."], noonNeedsHost:["Noon fetches images by link: the server needs a public https address (PUBLIC_URL). Export again after that.","نون يجلب الصور برابط: يحتاج الخادم عنواناً عاماً."], noonPubNote:["Creates or updates each product with its titles, points and images in both languages. Noon then reviews each image.","ينشئ أو يحدّث كل منتج بعناوينه ونقاطه وصوره باللغتين. ثم يراجع نون كل صورة."],
   noon_SUBMITTED:["Sent to Noon","أُرسل إلى نون"], noon_ERROR:["Error","خطأ"], noonLive:["Live","منشور"], noonRejected:["Images rejected","صور مرفوضة"], noonReview:["In review","قيد المراجعة"],
   rv_valid:["accepted","مقبولة"], rv_invalid:["rejected","مرفوضة"], rv_pending:["in review","قيد المراجعة"], rv_unspecified:["—","—"], noonComplete:["complete","مكتمل"], noonMissing:["missing:","ناقص:"],
-  ptSettings:["Approvals and package","الموافقات والباقة"], ptApprovers:["Who approves for the client","من يوافق عن العميل"], ptAddApprover:["Add","أضف"], ptApproverName:["Name","الاسم"],
+  ptSettings:["Approvals and package","الموافقات والباقة"],
+  checkIt:["Checked by us","راجعناه"], checkedT:["Checked by the agency","راجعته الوكالة"], ptCheckFirst:["Mark products as checked by the agency first, then send them to the client","علّم المنتجات كمراجَعة من الوكالة أولاً، ثم أرسلها للعميل"],
+  minorIt:["Small fix: no client approval","تعديل صغير: بلا موافقة العميل"], minorNote:["The client allowed small fixes without approval. It is recorded and shown in their report.","سمح العميل بالتعديلات الصغيرة دون موافقة. يُسجَّل ويظهر في تقريره."], minorDone:["Recorded as a small fix and approved","سُجّل كتعديل صغير وتمت الموافقة"],
+  ptAllowMinor:["The client allows small fixes (a typo, a digit, a word) without their approval","يسمح العميل بالتعديلات الصغيرة (خطأ إملائي، رقم، كلمة) دون موافقته"],
+  ptFiles:["Library files","ملفات المكتبة"], ptUpload:["Add a file","أضف ملفاً"], ptFilesNone:["No files yet. The client can add files from their portal too.","لا ملفات بعد. يمكن للعميل أيضاً إضافة ملفات من بوابته."], ptUploaded:["File added","أُضيف الملف"],
+  resShare:["Show in the client portal","اعرضها في بوابة العميل"], resSampleNo:["These are sample reports, so they aren't sent to the client. Upload real reports first.","هذه تقارير تجريبية فلا تُرسل للعميل. ارفع تقارير حقيقية أولاً."], resShared:["Results are in the client's report","النتائج في تقرير العميل"],
+  amzCheck:["Check status on Amazon","تحقق من الحالة على أمازون"], amzBuyable:["Buyable","قابل للشراء"], amzNotBuyable:["Not buyable","غير قابل للشراء"], amzIssues:["issues","ملاحظات"], ptApprovers:["Who approves for the client","من يوافق عن العميل"], ptAddApprover:["Add","أضف"], ptApproverName:["Name","الاسم"],
   ro_marketing:["Marketing","التسويق"], ro_legal:["Legal (claims)","الشؤون القانونية (الادعاءات)"], ro_owner:["Owner","المالك"],
   ptRemindDays:["Remind after (days)","ذكّر بعد (أيام)"], ptMonthly:["Fixes in the monthly package","التعديلات في الباقة الشهرية"], ptSaveSettings:["Save","احفظ"], ptSettingsSaved:["Saved","تم الحفظ"],
   ptRemind:["Remind on WhatsApp ({d} days waiting)","ذكّر عبر واتساب (بانتظار منذ {d} أيام)"], ptRemindText:["A reminder: {n} products for {brand} are waiting for your approval:","تذكير: {n} منتجات لـ{brand} بانتظار موافقتك:"],
@@ -5429,25 +5444,55 @@ function slideImages(p){
     }); }, Promise.resolve([]));
   });
 }
+function ptAllowMinor(){ var p = state.portal[state.ws]; return Boolean(p && p.settings && p.settings.allowMinor); }
+/** One product's before and after, ready for the portal. */
+function reviewItem(q){
+  var p = PM[q.pid];
+  return Promise.all([ensureDataImage(p).then(shrinkForAi).catch(function(){ return null; }), slideImages(p)]).then(function(x){
+    if (!x[1].length) return null;
+    return {key: q.id+"|"+p.id, name: tr(p.name), needsLegal: (p.issues || []).indexOf("claim") > -1, before:{image: x[0], copy:{titleEn: p.name[0], titleAr: p.name[1]}}, after:{images: x[1], copy:{titleEn: p.newTitle || p.name[0], titleAr: p.name[1]}}};
+  });
+}
+function portalMinor(qid){
+  var q = findQ(qid); if (!q) return;
+  state.ptBusy = true; render();
+  reviewItem(q).then(function(it){
+    if (!it) throw new Error(t("ptNeedsRender"));
+    return post("/api/portal/"+state.ws+"/minor", {items:[it]});
+  }).then(function(){ approve(qid); toast(t("minorDone")); return portalLoad(state.ws, true); })
+    .catch(function(e){ toast(e.message); }).then(function(){ state.ptBusy = false; render(); });
+}
 function portalSend(){
   var pend = wsQueue().filter(function(q){ return q.status === "pending"; });
+  // The agency checks first; only what it checked goes to the client.
+  if (pend.length && !pend.some(function(q){ return q.checked; })) return toast(t("ptCheckFirst"));
+  pend = pend.filter(function(q){ return q.checked; });
   var sent = {}; (state.portal[state.ws] ? state.portal[state.ws].reviews : []).forEach(function(r){ r.items.forEach(function(it){ if (it.status === "pending") sent[it.key.split("|")[0]] = true; }); });
   pend = pend.filter(function(q){ return !sent[q.id]; });
   if (!pend.length) return toast(t("ptNothing"));
   state.ptBusy = true; render();
   var items = [];
-  pend.reduce(function(chain, q){ return chain.then(function(){
-    var p = PM[q.pid];
-    return Promise.all([ensureDataImage(p).then(shrinkForAi).catch(function(){ return null; }), slideImages(p)]).then(function(x){
-      if (!x[1].length) return;
-      items.push({key: q.id+"|"+p.id, name: tr(p.name), needsLegal: (p.issues || []).indexOf("claim") > -1, before:{image: x[0], copy:{titleEn: p.name[0], titleAr: p.name[1]}}, after:{images: x[1], copy:{titleEn: p.newTitle || p.name[0], titleAr: p.name[1]}}});
-    });
-  }); }, Promise.resolve()).then(function(){
+  pend.reduce(function(chain, q){ return chain.then(function(){ return reviewItem(q).then(function(it){ if (it) items.push(it); }); }); }, Promise.resolve()).then(function(){
     if (!items.length) throw new Error(t("ptNeedsRender"));
     return post("/api/portal/"+state.ws+"/reviews", {title: new Date().toLocaleDateString(state.lang === "ar" ? "ar" : "en-GB"), items: items});
   }).then(function(){ toast(tf("ptSent", {n: items.length})); return portalLoad(state.ws, true); })
     .catch(function(e){ toast(e.message); })
     .then(function(){ state.ptBusy = false; render(); });
+}
+/** Share the compared sales results with the client: their portal report shows them. */
+function shareResults(){
+  var res = resResult(); if (!res) return;
+  // Sample reports are for trying the screen; they never reach a client.
+  if (state.res.sample) return toast(t("resSampleNo"));
+  var grp = function(g){ return g ? {count:g.count, convPts:g.convPts, unitsPct:g.unitsPct, salesPct:g.salesPct} : null; };
+  var products = res.products.filter(function(x){ return x.changed; }).sort(function(a, b){ return (b.delta.convPts || 0) - (a.delta.convPts || 0); }).slice(0, 10).map(function(x){ var pr = WP().filter(function(q){ return q.sku === x.key; })[0]; return {name: pr ? tr(pr.name) : x.key, convPts:x.delta.convPts, unitsPct:x.delta.unitsPct, salesPct:x.delta.salesPct, verdict: x.verdict || ""}; });
+  apiJson("/api/portal/"+state.ws+"/results", {method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({period: state.res.period || "", changed: grp(res.changed), control: grp(res.control), upliftPts: res.upliftPts, products: products})})
+    .then(function(){ toast(t("resShared")); }).catch(function(e){ toast(e.message); });
+}
+function runAmazonStatus(){
+  var b = state.batch; if (!b.exp || !b.exp.result || !b.exp.result.batch) return;
+  b.amzSt = {busy:true}; render();
+  post("/api/amazon/status", {ws:state.ws, batch:b.exp.result.batch, marketplace:b.market}).then(function(j){ b.amzSt = {result:j}; }).catch(function(e){ b.amzSt = {error:e.message}; }).then(render);
 }
 function portalLink(){
   post("/api/portal/"+state.ws+"/link", {}).then(function(j){ state.ptLink[state.ws] = j.url; render(); }).catch(function(e){ toast(e.message); });
@@ -5472,6 +5517,7 @@ function ptSettingsBlock(st){
   return '<details style="margin-top:14px"><summary class="lbl" style="cursor:pointer">'+t("ptSettings")+'</summary><div style="display:grid;gap:10px;margin-top:10px">'+
     '<span class="note">'+t("ptApprovers")+'</span>'+d.approvers.map(function(a, i){ return '<div class="exp-row"><input class="cr-q" data-ptap="'+i+'|name" value="'+esc(a.name)+'" aria-label="'+t("ptApproverName")+'"><select class="sel" data-ptap="'+i+'|role">'+["marketing","legal","owner"].map(function(r){ return '<option value="'+r+'"'+(a.role === r ? " selected" : "")+'>'+t("ro_"+r)+'</option>'; }).join("")+'</select><button type="button" class="btn btn-ghost btn-sm" data-ptapdel="'+i+'">×</button></div>'; }).join("")+
     '<div><button type="button" class="btn btn-ghost btn-sm" id="pt-apadd">+ '+t("ptAddApprover")+'</button></div>'+
+    '<label class="toggle"><input type="checkbox" id="pt-allowminor"'+(d.allowMinor ? " checked" : "")+'><span>'+t("ptAllowMinor")+'</span></label>'+
     '<div class="exp-row"><label class="tpl-for">'+t("ptRemindDays")+' <input class="cr-q" style="width:80px;flex:none" type="number" min="1" max="30" id="pt-remind" value="'+(d.remindAfterDays || 3)+'"></label><label class="tpl-for">'+t("ptMonthly")+' <input class="cr-q" style="width:90px;flex:none" type="number" min="0" id="pt-monthly" value="'+(d.monthlyFixes || "")+'"></label></div>'+
     '<div><button type="button" class="btn btn-primary btn-sm" id="pt-savesettings">'+t("ptSaveSettings")+'</button></div></div></details>';
 }
@@ -5504,6 +5550,8 @@ function vPortalCard(){
       '<div class="seg" role="group">'+["new","inProgress","done"].map(function(st){ return '<button type="button" data-ptreq="'+q.id+'|'+st+'" aria-pressed="'+(q.status === st)+'">'+t("rs_"+st)+'</button>'; }).join("")+'</div></div>'; }).join("") : '<p class="note">'+t("ptNoReq")+'</p>')+'</div>'+
     '<div style="margin-top:14px"><span class="lbl">'+t("ptBrief")+'</span>'+(b ? '<div class="note" style="display:grid;gap:2px">'+[b.name && (b.name+(b.nameAr ? " · "+b.nameAr : "")), b.about, b.audience, [b.voice, b.dialect, b.languages, b.numerals].filter(Boolean).join(" · "), b.colours && b.colours.join(" "), b.useWords && b.useWords.length && "+ "+b.useWords.join(", "), b.avoidWords && b.avoidWords.length && "− "+b.avoidWords.join(", "), b.claims, b.examples].filter(Boolean).map(function(x){ return '<div>'+esc(x)+'</div>'; }).join("")+'</div>'+
       '<div style="margin-top:8px">'+(b.appliedAt ? '<span class="tag good">'+t("ptBriefApplied")+'</span>' : '<button type="button" class="btn btn-primary btn-sm" id="pt-brief">'+t("ptBriefApply")+'</button>')+'</div>' : '<p class="note">'+t("ptBriefNone")+'</p>')+'</div>'+
+    (p ? '<div style="margin-top:14px"><span class="lbl">'+t("ptFiles")+'</span>'+((p.files || []).length ? '<div class="pt-files">'+p.files.slice().reverse().map(function(f){ return '<div class="pt-file"><a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+(f.ext === "pdf" ? '<span class="pt-pdf">PDF</span>' : '<img src="'+esc(f.url)+'" alt="">')+'</a><span class="note">'+esc(f.name)+' · '+esc(f.by)+'</span><button type="button" class="btn btn-ghost btn-sm" data-ptfdel="'+f.id+'">×</button></div>'; }).join("")+'</div>' : '<p class="note">'+t("ptFilesNone")+'</p>')+
+      '<label class="btn btn-ghost btn-sm" for="pt-file" style="margin-top:8px">'+t("ptUpload")+'</label><input type="file" id="pt-file" class="vh" accept="image/png,image/jpeg,image/webp,application/pdf"></div>' : "")+
     (p ? ptSettingsBlock(p.settings) : "")+
   '</div>';
 }
@@ -5515,11 +5563,16 @@ document.addEventListener("click", function(e){
   if (e.target.closest("#pt-copy")){ var u = document.getElementById("pt-url"); if (u){ (navigator.clipboard ? navigator.clipboard.writeText(u.value) : Promise.reject()).then(function(){ toast(t("ptCopied")); }).catch(function(){ u.select(); }); } return; }
   if ((el = e.target.closest("[data-ptresolve]"))){ var a = el.dataset.ptresolve.split("|"); apiJson("/api/portal/"+state.ws+"/reviews/"+a[0]+"/items/"+a[1], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({resolve:"all"})}).then(function(){ return portalLoad(state.ws, true); }); return; }
   if ((el = e.target.closest("[data-ptreq]"))){ var b = el.dataset.ptreq.split("|"); apiJson("/api/portal/"+state.ws+"/requests/"+b[0], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status:b[1]})}).then(function(){ return portalLoad(state.ws, true); }); return; }
+  if ((el = e.target.closest("[data-checked]"))){ var qc = findQ(el.dataset.checked); if (qc){ qc.checked = true; persist(); render(); } return; }
+  if ((el = e.target.closest("[data-minor]"))){ portalMinor(el.dataset.minor); return; }
+  if ((el = e.target.closest("[data-ptfdel]"))){ apiJson("/api/portal/"+state.ws+"/files/"+el.dataset.ptfdel, {method:"DELETE"}).then(function(){ return portalLoad(state.ws, true); }); return; }
+  if (e.target.closest("#x-res-share")){ shareResults(); return; }
+  if (e.target.closest("#x-amz-st")){ runAmazonStatus(); return; }
   if (e.target.closest("#pt-apadd")){ var dd = state.ptDraft[state.ws]; if (dd){ dd.approvers.push({name:"", role:"marketing"}); render(); } return; }
   if ((el = e.target.closest("[data-ptapdel]"))){ var d2 = state.ptDraft[state.ws]; if (d2){ d2.approvers.splice(+el.dataset.ptapdel, 1); render(); } return; }
   if (e.target.closest("#pt-savesettings")){
     var d3 = state.ptDraft[state.ws], rem = document.getElementById("pt-remind"), mon = document.getElementById("pt-monthly");
-    d3.remindAfterDays = +rem.value; d3.monthlyFixes = mon.value === "" ? null : +mon.value;
+    d3.remindAfterDays = +rem.value; d3.monthlyFixes = mon.value === "" ? null : +mon.value; d3.allowMinor = Boolean((document.getElementById("pt-allowminor") || {}).checked);
     apiJson("/api/portal/"+state.ws+"/settings", {method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify(d3)}).then(function(st){ state.ptDraft[state.ws] = null; toast(t("ptSettingsSaved")); return portalLoad(state.ws, true); }).catch(function(e2){ toast(e2.message); });
     return;
   }
@@ -5531,8 +5584,8 @@ function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (h === "templates" || h === "photos"){ state.cr.tab = h; state.route = "creator"; }
-  else if (["overview","audit","catalog","reviews","approvals","creator","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
+  else if (h === "templates" || h === "photos" || h === "reviews"){ state.cr.tab = h; state.route = "creator"; }
+  else if (["overview","audit","catalog","approvals","creator","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }

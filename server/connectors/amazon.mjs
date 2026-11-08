@@ -113,6 +113,22 @@ export async function amazonSearch(query, marketplace, { limit = 12 } = {}, c = 
 }
 const AMAZON_HOSTS = { "amazon.sa": "A17E79C6D8DWNP", "amazon.ae": "A2VIGQ35RCS4UG", "amazon.eg": "ARBP9OOSHTCHU" };
 
+/**
+ * Amazon's view of one listing after publishing: whether it is buyable or discoverable, and its issues.
+ * Listings Items API GET /listings/2021-08-01/items/{sellerId}/{sku} with summaries and issues.
+ */
+export function listingStatusFrom(sku, j) {
+  const s = ((j && j.summaries) || [])[0] || {};
+  const issues = ((j && j.issues) || []).map((i) => ({ code: i.code, message: i.message, severity: i.severity }));
+  const status = Array.isArray(s.status) ? s.status : [];
+  return { sku, asin: s.asin || null, buyable: status.includes("BUYABLE"), discoverable: status.includes("DISCOVERABLE"), errors: issues.filter((i) => i.severity === "ERROR").length, issues, updated: s.lastUpdatedDate || null, mainImage: s.mainImage && s.mainImage.link || null };
+}
+export async function amazonListingStatus(sku, marketplace, c = amazonConfig()) {
+  if (!amazonConfigured(c) || !c.sellerId) throw new ConnectorError("Amazon status needs the connected seller account (SPAPI_SELLER_ID)", 503);
+  const j = await spapi(c, `/listings/2021-08-01/items/${encodeURIComponent(c.sellerId)}/${encodeURIComponent(sku)}`, { marketplaceIds: marketplace.id, includedData: "summaries,issues" });
+  return listingStatusFrom(sku, j);
+}
+
 /* ---------- publishing approved content (Listings Items API, PATCH) ---------- */
 
 /** JSON Patch for one listing: title and bullets in both languages, plus image links when hosted. */
