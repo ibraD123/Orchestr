@@ -41,6 +41,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/slidegen.mjs` | Generated slides with a guarantee: Claude reads the text back blind, digits and Arabic joining are checked, the product colour is compared; up to 3 tries, then the scene without text with the headline typeset over it. Claude also compares the product's shape and logo with the photo and notes AI-generated people; with two image models each round asks both and keeps the better image that passes |
 | `server/portal.mjs` | The client portal: a private link per client brand (no sign-in) where the client approves or asks for changes with comments pinned to a spot on an image, sends requests and fills in the brand questionnaire. Pure functions; the server stores it per workspace (`portal.json`), and only a hash of each link is kept in the server-wide index |
 | `src/portal.html` | The client's page, served at `/c/<token>`: English and Arabic, the agency's logo and colour |
+| `server/connectors/noon.mjs` | Noon Content API: service-account sign-in (RS256 JWT, then a session cookie), UpsertProduct, GetContent, category attributes |
 | `server/videogen.mjs` | Gallery videos: one approved image animated through the fal queue (MiniMax Hailuo 2.3 Fast by default; other MiniMax models, Kling and Veo 3.1 also work), no text added and no audio; frames from the start, middle and end are read by Claude for added text and compared with the product photo; one retry |
 | `server/creator.mjs` | Creator's planning, shared with the app: the slide set a product needs from reviews, audit, competitor galleries and sales results; what competitors' galleries cover; how much a main image stands out in search; season packs with roll-back |
 | `server/gallery.mjs` | Reads competitor galleries image by image with Claude (main, lifestyle, size chart, comparison…, Arabic on the image, broken Arabic) |
@@ -165,6 +166,7 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `CHROMIUM_PATH` | | Chromium binary for rendering |
 | `BASIRA_DATA_DIR` | `./data` | Leads, accounts, client workspaces, Brand DNA genomes and event logs |
 | `BASIRA_AUTH` | on | `off` runs without sign-in, as one shared workspace (private networks only) |
+| `NOON_CREDENTIALS` | | Path to the Noon service account key file (.json with `key_id`, `private_key`, `project_code`). Or `NOON_KEY_ID`, `NOON_PRIVATE_KEY`, `NOON_PROJECT_CODE`. Publishing to Noon also needs `PUBLIC_URL`: Noon fetches images by link. `NOON_ATTR_TITLE`, `NOON_ATTR_BULLETS`, `NOON_ATTR_DESCRIPTION` override which category attributes hold the copy |
 | `SPAPI_CLIENT_ID`, `SPAPI_CLIENT_SECRET`, `SPAPI_REFRESH_TOKEN` | | Amazon Selling Partner API app credentials (Login with Amazon) |
 | `SPAPI_SELLER_ID` | | The connected seller account, needed to import a whole Amazon store |
 | `SPAPI_ENDPOINT` | `https://sellingpartnerapi-eu.amazon.com` | SP-API endpoint (Saudi Arabia, UAE and Egypt use the EU one) |
@@ -193,7 +195,9 @@ Outbound requests are HTTPS only, block private addresses at every redirect, and
 
 Publishing back: Amazon listings are updated directly through SP-API (`POST /api/publish/amazon`) for the connected seller account. Noon, Salla and Zid get upload files in the export ZIP; their column names are Basira's generic ones except Amazon's, so check them against the channel's current bulk template.
 
-What isn't covered yet: Noon's Content API (opened to sellers and integrators in July 2026: UpsertProduct, GetContent with per-image review status, OAuth for integrators; not connected yet, store catalogs come from exports), reading reviews from marketplaces (paste or export them), and direct publishing to Noon, Salla and Zid.
+Noon: `POST /api/publish/noon` creates or updates each product of an exported Noon batch through the Content API (titles, points and images in both languages), and `POST /api/noon/status` reads Noon's review back: each image accepted or rejected with the reason, completeness and QC per language, live or not. Written from Noon's documentation and tested against it, not yet called live (no Noon credentials).
+
+What isn't covered yet: reading Noon store catalogs through the API (they come from exports), reading reviews from marketplaces (paste or export them), and direct publishing to Noon, Salla and Zid.
 
 ## Language
 
