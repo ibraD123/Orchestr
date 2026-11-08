@@ -1,20 +1,19 @@
 // Claude for Brand DNA: read a brand's materials into proposed traits, and write listing copy
 // with the brand's compiled genome as binding instructions.
-import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { messagesParse } from "./llm.mjs";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { MODEL, aiConfigured } from "./reviews.mjs";
 import { safeFetch } from "./connectors/net.mjs";
 import { htmlToText, decodeEntities } from "./connectors/normalise.mjs";
 
-let client = null;
 const fail = (msg, status = 400) => { const e = new Error(msg); e.status = status; throw e; };
 function ai() {
-  if (!aiConfigured()) fail("This needs ANTHROPIC_API_KEY on the server", 503);
-  return (client ||= new Anthropic());
+  if (!aiConfigured()) fail("This needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
 }
 async function ask({ system, content, schema, effort, maxTokens }) {
-  const response = await ai().beta.messages.parse({
+  ai();
+  const response = await messagesParse({ schema,
     model: MODEL,
     max_tokens: maxTokens || 8000,
     betas: ["server-side-fallback-2026-07-01"],

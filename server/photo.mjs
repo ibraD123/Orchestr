@@ -1,7 +1,7 @@
 // Photo review with Claude: critique main-image candidates and pick the one most likely to earn the click.
 // This is a model's judgement before launch, not a measured click-through rate.
-import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { messagesParse } from "./llm.mjs";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { MODEL, aiConfigured } from "./reviews.mjs";
 
@@ -33,7 +33,6 @@ List up to 3 strengths and up to 3 problems, each in plain English and natural G
 
 Then pick the winner: the photo most likely to be clicked in search results as a main image, and say why in one or two sentences. If there is only one photo, it is the winner. Judge only what you can see.`;
 
-let client = null;
 
 /** @param {{ photos: string[], product?: string, channel?: string }} input  photos are base64 data URLs */
 export async function reviewPhotos(input) {
@@ -47,12 +46,11 @@ export async function reviewPhotos(input) {
     if (m[2].length > 6_500_000) fail(`Photo ${i + 1} is larger than 5 MB; resize it first`);
     return { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } };
   });
-  if (!aiConfigured()) fail("Photo review needs ANTHROPIC_API_KEY on the server", 503);
-  client ||= new Anthropic();
+  if (!aiConfigured()) fail("Photo review needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
   const content = [];
   blocks.forEach((b, i) => { content.push({ type: "text", text: `Photo ${i} (index ${i}):` }); content.push(b); });
   content.push({ type: "text", text: `Product: ${String(input.product || "unknown").slice(0, 200)}. Channel: ${String(input.channel || "noon").slice(0, 20)}. Review every photo and pick the winner.` });
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: PhotoReview,
     model: MODEL,
     max_tokens: 8000,
     betas: ["server-side-fallback-2026-07-01"],

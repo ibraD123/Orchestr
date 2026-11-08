@@ -4021,7 +4021,7 @@ Object.assign(S, {
   batchEmpty:["Select products in the Catalog, then choose Prepare fixes.","حدد منتجات في الكتالوج ثم اختر «جهّز التعديلات»."], toCatalog:["Go to Catalog","اذهب إلى الكتالوج"],
   allCatalog:["Prepare all {n} products","جهّز كل المنتجات ({n})"],
   byRules:["Brand rules","قواعد العلامة"], byAi:["AI draft + rules","مسودة ذكاء + قواعد"],
-  aiAll:["Draft copy with AI for all","اكتب النصوص بالذكاء للكل"], aiAllBusy:["Drafting {d} of {n}…","جارٍ الكتابة {d} من {n}…"], aiNeedsKey:["AI drafts need ANTHROPIC_API_KEY on the server. Brand rules work without it.","مسودات الذكاء تحتاج مفتاح ANTHROPIC_API_KEY على الخادم. قواعد العلامة تعمل بدونه."],
+  aiAll:["Draft copy with AI for all","اكتب النصوص بالذكاء للكل"], aiAllBusy:["Drafting {d} of {n}…","جارٍ الكتابة {d} من {n}…"], aiNeedsKey:["AI drafts need FAL_KEY (or ANTHROPIC_API_KEY) on the server. Brand rules work without it.","مسودات الذكاء تحتاج مفتاح FAL_KEY (أو ANTHROPIC_API_KEY) على الخادم. قواعد العلامة تعمل بدونه."],
   approveAll:["Approve all ready ({n})","وافق على الجاهز ({n})"], skip:["Skip","تخطَّ"], undo:["Undo","تراجع"], edit:["Edit","عدّل"],
   st_draft:["Ready for review","جاهز للمراجعة"], st_approved:["Approved","تمت الموافقة"], st_skipped:["Skipped","تم التخطي"], st_busy:["Drafting…","جارٍ الكتابة…"],
   noChanges:["No rule changes needed","لا تحتاج تعديلات بالقواعد"],
@@ -4066,11 +4066,11 @@ Object.assign(S, {
   cover_hijab:["Hijab","حجاب"], cover_none:["None","بدون"], cover_any:["Any","أي"],
   set_studio:["Studio","استوديو"], set_home:["Home","منزل"], set_outdoor:["Outdoor","خارجي"], set_majlis:["Majlis","مجلس"],
   omRef:["Reference photo","الصورة المرجعية"], omRefNone:["Add the product photo in Studio or on this page first.","أضف صورة المنتج في الاستوديو أو في هذه الصفحة أولاً."],
-  omGo:["Generate","ولّد"], omBusy:["Generating…","جارٍ التوليد…"], omNeeds:["Needs an image model on the server: set IMAGE_API_URL and IMAGE_API_KEY.","يحتاج نموذج صور على الخادم: اضبط IMAGE_API_URL و IMAGE_API_KEY."],
+  omGo:["Generate","ولّد"], omBusy:["Generating…","جارٍ التوليد…"], omNeeds:["Needs an image model on the server: set FAL_KEY.","يحتاج نموذج صور على الخادم: اضبط FAL_KEY."],
   omCheckOwn:["Check a photo made elsewhere","افحص صورة وُلّدت في مكان آخر"], colourOk:["Colour matches the product ({s})","اللون يطابق المنتج ({s})"], colourBad:["Colour differs from the product ({s}): don't use","اللون مختلف عن المنتج ({s}): لا تستخدمها"], checking:["Checking colour…","جارٍ فحص اللون…"],
   addToExport:["Add to export","أضف للتصدير"], addedToExport:["Added to the export for {name}","أُضيفت إلى تصدير {name}"], inExport:["In export","في التصدير"],
   aiSlides:["Draw slides with the image model","ارسم الشرائح بنموذج الصور"], aiSlidesNote:["Every Arabic letter is read back and checked; up to 3 tries, then the headline is typeset over the scene. Lists and tables stay typeset.","يُقرأ كل حرف عربي ويُطابق؛ حتى ٣ محاولات، ثم يُكتب العنوان فوق المشهد. القوائم والجداول تبقى مكتوبة بالقالب."],
-  aiSlidesNeeds:["Needs an image model (IMAGE_PROVIDER, IMAGE_API_KEY) and ANTHROPIC_API_KEY on the server.","يحتاج نموذج صور (IMAGE_PROVIDER و IMAGE_API_KEY) و ANTHROPIC_API_KEY على الخادم."],
+  aiSlidesNeeds:["Needs FAL_KEY on the server (image models and the checks).","يحتاج FAL_KEY على الخادم (نماذج الصور والفحص)."],
   mode_generated:["AI · text checked","ذكاء · النص مُدقَّق"], mode_scene:["AI scene + typeset headline","مشهد بالذكاء + عنوان بالقالب"], mode_typeset:["Typeset","بالقالب"],
   why_structured:["lists and tables","قوائم وجداول"], why_tooMuchText:["long text","نص طويل"], why_mainImage:["main image","الصورة الرئيسية"], why_generationFailed:["AI failed the check","لم يجتز الذكاء الفحص"], why_textFailed:["text failed the check","لم يجتز النص الفحص"], attemptsN:["tries: {n}","محاولات: {n}"]
 });

@@ -216,3 +216,42 @@ test("fal.ai: one key runs both lanes, with the product and brand model as data 
   setNetwork({ lookup: async () => [{ address: "93.184.216.34" }], fetch: async () => new Response(JSON.stringify({ detail: [{ msg: "image_urls: invalid" }] }), { status: 422, headers: { "content-type": "application/json" } }) });
   await assert.rejects(generateImages({ prompt: "p", image: PX }, env), /image_urls: invalid/);
 });
+
+test("the language model goes through fal when there is no Anthropic key, and its JSON is checked", async () => {
+  const { messagesParse, extractJson, toGateway, llmProvider } = await import("../server/llm.mjs");
+  const { z } = await import("zod");
+  assert.equal(llmProvider({ FAL_KEY: "k" }), "fal");
+  assert.equal(llmProvider({ FAL_KEY: "k", ANTHROPIC_API_KEY: "a" }), "anthropic", "a direct key wins");
+  assert.equal(llmProvider({}), null);
+  assert.deepEqual(extractJson('Sure:\n```json\n{"a": "x {y}", "b": [1]}\n``` done'), { a: "x {y}", b: [1] });
+  assert.equal(extractJson("no json"), null);
+  const { jsonObjects } = await import("../server/llm.mjs");
+  assert.deepEqual(jsonObjects('thinking: maybe {"kind":"x"} … final {"kind":"main","n":1}').length, 2, "reasoning before the answer is kept apart");
+  const g = toGateway([{ role: "user", content: [{ type: "text", text: "Real product:" }, { type: "image", source: { type: "base64", media_type: "image/png", data: "AAA" } }, { type: "text", text: "Compare." }] }]);
+  assert.equal(g.prompt, "Real product:\n[attached image 1]\nCompare.");
+  assert.deepEqual(g.images, ["data:image/png;base64,AAA"]);
+
+  const schema = z.object({ kind: z.enum(["main", "other"]), n: z.number() });
+  const saved = { a: process.env.ANTHROPIC_API_KEY, t: process.env.ANTHROPIC_AUTH_TOKEN, f: process.env.FAL_KEY };
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN; process.env.FAL_KEY = "id:secret";
+  try {
+    const sent = [];
+    const answers = ['{"kind": "banner", "n": 1}', 'Here you go: {"kind": "main", "n": 2}'];
+    const net = async (url, opts) => { sent.push({ url, opts, body: JSON.parse(opts.body) }); return { status: 200, body: Buffer.from(JSON.stringify({ output: answers[sent.length - 1], usage: { cost: 0.001 } })) }; };
+    const r = await messagesParse({ schema, model: "x", max_tokens: 500, system: "Classify.", messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/png", data: "AAA" } }, { type: "text", text: "What is it?" }] }] }, { net });
+    assert.deepEqual(r.parsed_output, { kind: "main", n: 2 }, "an answer that breaks the schema is asked for again");
+    assert.equal(sent.length, 2);
+    assert.equal(sent[0].url, "https://fal.run/openrouter/router/vision");
+    assert.equal(sent[0].opts.headers.Authorization, "Key id:secret");
+    assert.equal(sent[0].body.model, "anthropic/claude-opus-5.5");
+    assert.deepEqual(sent[0].body.image_urls, ["data:image/png;base64,AAA"]);
+    assert.match(sent[0].body.system_prompt, /^Classify\.[\s\S]*JSON Schema[\s\S]*"enum":\["main","other"\]/);
+    assert.match(sent[1].body.prompt, /not valid JSON for the schema \(kind:/);
+    assert.equal(sent[0].body.reasoning, true, "the gateway needs reasoning on");
+    const bad = await messagesParse({ schema, messages: [{ role: "user", content: "x" }] }, { net: async () => ({ status: 200, body: Buffer.from('{"output":"nope"}') }) });
+    assert.equal(bad.parsed_output, null);
+    await assert.rejects(messagesParse({ schema, messages: [] }, { net: async () => ({ status: 429, body: Buffer.from('{"detail":"rate limited"}') }) }), (e) => e.status === 429 && /rate limited/.test(e.message));
+  } finally {
+    for (const [k, v] of [["ANTHROPIC_API_KEY", saved.a], ["ANTHROPIC_AUTH_TOKEN", saved.t], ["FAL_KEY", saved.f]]) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+});

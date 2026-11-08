@@ -1,8 +1,8 @@
 // Competitor galleries: find the listings a buyer sees next to ours, then read what each of
 // their images shows (main photo, size chart, lifestyle, comparison…) so Creator can plan the
 // slides they all have and the ones nobody shows (server/creator.mjs → galleryGaps, planSet).
-import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { messagesParse } from "./llm.mjs";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { MODEL, aiConfigured } from "./reviews.mjs";
 import { GALLERY_KINDS } from "./creator.mjs";
@@ -30,16 +30,14 @@ text: which languages appear in text added to the image (not text printed on the
 arabicBroken: true if Arabic text on the image has disconnected or reversed letters, or invented glyphs.
 note: five words or fewer on what the image says, in English.`;
 
-let client = null;
 
 /** Read what each image of one gallery shows. images: data URLs, in gallery order. */
 export async function classifyGallery(images) {
-  if (!aiConfigured()) { const e = new Error("Reading competitor galleries needs ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
+  if (!aiConfigured()) { const e = new Error("Reading competitor galleries needs FAL_KEY or ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
   const list = images.slice(0, MAX_IMAGES).map((src) => /^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(String(src || ""))).filter(Boolean);
   if (!list.length) return { images: [] };
-  client ||= new Anthropic();
   const content = list.flatMap((m, i) => [{ type: "text", text: `Image ${i}:` }, { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }]);
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: GalleryReading,
     model: MODEL,
     max_tokens: 3000,
     betas: ["server-side-fallback-2026-07-01"],

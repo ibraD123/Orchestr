@@ -1,10 +1,10 @@
 // Review intelligence: Claude reads buyer reviews in any Arabic dialect or English,
 // tags dialect, sentiment and aspects, and proposes content fixes.
-import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { messagesParse, llmConfigured, MODEL } from "./llm.mjs";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 
-export const MODEL = process.env.BASIRA_MODEL || "claude-opus-5-5";
+export { MODEL };
 export const ASPECTS = ["size_fit", "fabric_material", "colour_accuracy", "longevity", "scent_strength", "taste", "freshness", "quality", "packaging", "delivery", "price_value", "authenticity", "other"];
 export const DIALECTS = ["gulf", "egyptian", "levantine", "maghrebi", "msa", "english", "other"];
 const SENTIMENTS = ["positive", "negative", "mixed", "neutral"];
@@ -58,10 +58,7 @@ export function aggregate(analysis, total) {
   return { total, dialects, themes };
 }
 
-let client = null;
-export function aiConfigured() {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
-}
+export function aiConfigured() { return llmConfigured(); }
 
 /**
  * Analyse up to 200 reviews for one product.
@@ -72,11 +69,10 @@ export async function analyseReviews(input) {
   const list = (input?.reviews || []).map((r) => (typeof r === "string" ? { text: r } : r)).filter((r) => r && String(r.text || "").trim());
   if (!list.length) fail("Send at least one review");
   if (list.length > 200) fail("Send at most 200 reviews per request");
-  if (!aiConfigured()) fail("Review analysis needs ANTHROPIC_API_KEY on the server", 503);
-  client ||= new Anthropic();
+  if (!aiConfigured()) fail("Review analysis needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
 
   const numbered = list.map((r, i) => `[${i}]${r.rating ? ` (${r.rating}★)` : ""} ${String(r.text).trim().slice(0, 2000)}`).join("\n");
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: ReviewAnalysis,
     model: MODEL,
     max_tokens: 16000,
     betas: ["server-side-fallback-2026-07-01"],
@@ -121,8 +117,7 @@ export async function draftReply(input) {
   if (!review) fail("Send the review text");
   if (review.length > 3000) fail("The review is too long");
   if (!aiConfigured()) fail("Replies need ANTHROPIC_API_KEY on the server", 503);
-  client ||= new Anthropic();
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: ReplyDraft,
     model: MODEL,
     max_tokens: 4000,
     betas: ["server-side-fallback-2026-07-01"],

@@ -10,8 +10,8 @@
 //      letters best) and keeps the better image that passes. A failed round runs again, up to 3.
 //   4. If all fail, the same scene is generated without text and the headline is typeset over it.
 //   5. Long text and exact figures (size charts, specs, lists) are always typeset.
-import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { messagesParse } from "./llm.mjs";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { MODEL, aiConfigured } from "./reviews.mjs";
 import { planSlide, slidePrompt, compareTexts } from "./textcheck.mjs";
@@ -50,15 +50,13 @@ photorealPeople: true if the image shows a photorealistic person or part of one 
 
 problems: anything else wrong with the text as a design element, in short plain English ("second line cut off at the right edge", "English word misspelled as 'Parfum'"). Empty if none.`;
 
-let client = null;
 
 /** Blind transcription by Claude; the comparison happens in code (compareTexts). */
 export async function readBackText(image) {
-  if (!aiConfigured()) { const e = new Error("Checking text on images needs ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
+  if (!aiConfigured()) { const e = new Error("Checking text on images needs FAL_KEY or ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
   const m = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(image || ""));
   if (!m) { const e = new Error("The image to check must be a PNG, JPEG or WebP data URL"); e.status = 400; throw e; }
-  client ||= new Anthropic();
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: TextReadback,
     model: MODEL,
     max_tokens: 4000,
     betas: ["server-side-fallback-2026-07-01"],
@@ -81,12 +79,11 @@ problems: short plain English notes on anything that would mislead a buyer. Empt
 
 /** Claude compares the generated product with the real photo: shape, parts and logo. */
 export async function checkProduct(reference, image) {
-  if (!aiConfigured()) { const e = new Error("Checking products on images needs ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
+  if (!aiConfigured()) { const e = new Error("Checking products on images needs FAL_KEY or ANTHROPIC_API_KEY on the server"); e.status = 503; throw e; }
   const img = (src) => { const m = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(src || "")); return m && { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } }; };
   const a = img(reference), b = img(image);
   if (!a || !b) { const e = new Error("Both images must be PNG, JPEG or WebP data URLs"); e.status = 400; throw e; }
-  client ||= new Anthropic();
-  const response = await client.beta.messages.parse({
+  const response = await messagesParse({ schema: ProductCheck,
     model: MODEL,
     max_tokens: 2000,
     betas: ["server-side-fallback-2026-07-01"],

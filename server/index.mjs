@@ -7,7 +7,8 @@ import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
 import { auditBrand } from "./brand-dna.mjs";
 import { renderSlide, renderPdf, rendererAvailable, normaliseSpec } from "./render.mjs";
-import { analyseReviews, draftReply, aiConfigured, MODEL } from "./reviews.mjs";
+import { analyseReviews, draftReply, aiConfigured } from "./reviews.mjs";
+import { llmModelName, llmProvider } from "./llm.mjs";
 import { keywordCoverage } from "./keywords.mjs";
 import { safeFetch } from "./connectors/net.mjs";
 import { importLink, importCsv, connectorStatus } from "./importer.mjs";
@@ -274,7 +275,7 @@ const routes = {
   "GET /api/health": async () => {
     const c = amazonConfig();
     return {
-      ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: aiConfigured() ? MODEL : null,
+      ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: llmModelName(), llm: llmProvider(),
       imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, imageProviders: imageProviders().map((p) => p.name), slideGen: slideGenConfigured(),
       billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), amazonSearch: amazonConfigured(c),
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
@@ -373,7 +374,7 @@ const routes = {
   // Creator: the listings a buyer sees for a query, and what competitors' galleries show.
   "POST /api/creator/search": async (body) => searchMarketplace(body),
   "POST /api/creator/gallery": async (body, { store }) => {
-    if (!aiConfigured()) fail("Reading competitor galleries needs ANTHROPIC_API_KEY on the server", 503);
+    if (!aiConfigured()) fail("Reading competitor galleries needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
     await guardPlan(store);
     const r = await analyseCompetitors(body);
     await meter(store, "ai", r.competitors.filter((c) => c.kinds.length).length);
