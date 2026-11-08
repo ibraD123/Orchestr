@@ -35,9 +35,7 @@ export function parseLink(raw) {
   const isSalla = host.endsWith("salla.sa") || host.endsWith("salla.store");
   const isZid = host.endsWith("zid.store") || host.endsWith("zid.sa");
   const platform = isSalla ? "salla" : isZid ? "zid" : "web";
-  const shopifyProduct = path.match(/\/products\/([^/?#]+)/);
   const sallaProduct = /\/p\d+\/?$/.test(path) || /\/products?\/[^/]+/.test(path);
-  if (shopifyProduct) return { platform, kind: "product", url, handle: decodeURIComponent(shopifyProduct[1]) };
   if ((isSalla || isZid) && sallaProduct) return { platform, kind: "product", url };
   if (path === "/" || path === "" || /^\/(ar|en)\/?$/.test(path) || /^\/collections\//.test(path)) return { platform, kind: "store", url };
   return { platform, kind: "product", url };

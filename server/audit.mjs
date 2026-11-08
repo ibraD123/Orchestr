@@ -2,7 +2,7 @@
 // Pure functions with no imports: the server uses this module directly, and
 // scripts/build.mjs inlines it into the app so audits also run in the browser.
 
-export const AUDIT_CHANNELS = ["amazon", "noon", "salla", "zid", "shopify"];
+export const AUDIT_CHANNELS = ["amazon", "noon", "salla", "zid"];
 export const AUDIT_CATEGORIES = ["fragrance", "fashion", "food", "beauty", "home"];
 
 // Marketplace rules that differ per channel.
@@ -10,8 +10,7 @@ export const CHANNEL_RULES = {
   amazon:  { titleMax: 200, whiteMain: true,  minImages: 6, minBullets: 5 },
   noon:    { titleMax: 150, whiteMain: true,  minImages: 4, minBullets: 4 },
   salla:   { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 },
-  zid:     { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 },
-  shopify: { titleMax: 150, whiteMain: false, minImages: 4, minBullets: 3 }
+  zid:     { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 }
 };
 
 // Attributes buyers filter on, per category.

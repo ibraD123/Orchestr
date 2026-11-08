@@ -29,7 +29,7 @@ export const ReviewAnalysis = z.object({
   }))
 });
 
-const SYSTEM = `You analyse marketplace product reviews for Basira, a content tool used by sellers on Amazon, Noon, Salla, Zid and Shopify in the Gulf and Egypt.
+const SYSTEM = `You analyse marketplace product reviews for Basira, a content tool used by sellers on Amazon, Noon, Salla and Zid in the Gulf and Egypt.
 
 For every review, identify:
 - dialect: the variety of Arabic it is written in (gulf, egyptian, levantine, maghrebi, msa), or english, or other. Arabizi (Arabic in Latin letters) counts as the dialect it represents.

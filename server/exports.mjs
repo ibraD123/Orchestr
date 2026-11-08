@@ -2,11 +2,11 @@
 // Pure functions: the server packs them into the export ZIP, and the app can build them too.
 //
 // Amazon uses its inventory flat file field names (item_sku, item_name, bullet_point1…,
-// main_image_url, other_image_url1…) with update_delete = PartialUpdate. Shopify uses its product
-// CSV columns. Noon, Salla and Zid files use clear generic columns: map them onto the channel's
-// current bulk-upload template if its headers differ.
+// main_image_url, other_image_url1…) with update_delete = PartialUpdate. Noon, Salla and Zid
+// files use clear generic columns: map them onto the channel's current bulk-upload template if
+// its headers differ.
 
-export const EXPORT_CHANNELS = ["noon", "amazon", "salla", "zid", "shopify"];
+export const EXPORT_CHANNELS = ["noon", "amazon", "salla", "zid"];
 
 function cell(v, sep) {
   const s = String(v == null ? "" : v).replace(/\r?\n/g, " ").trim();
@@ -18,7 +18,6 @@ function table(rows, sep) {
   return "﻿" + rows.map((r) => r.map((c) => cell(c, sep)).join(sep)).join("\r\n") + "\r\n";
 }
 const pad = (arr, n) => Array.from({ length: n }, (_, i) => (arr && arr[i]) || "");
-const handleOf = (it) => it.handle || String(it.sku || it.name || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /**
  * @param {string} channel
@@ -40,16 +39,6 @@ export function exportFiles(channel, items, opts) {
       { name: "amazon-flat-file-en.txt", mime: "text/tab-separated-values", content: table(rows("en"), "\t") },
       { name: "amazon-flat-file-ar.txt", mime: "text/tab-separated-values", content: table(rows("ar"), "\t") }
     ];
-  }
-  if (channel === "shopify") {
-    const rows = [["Handle", "Title", "Body (HTML)", "Image Src", "Image Position", "Image Alt Text"]];
-    for (const it of list) {
-      const c = it.copy || {}, h = handleOf(it), imgs = it.images || [];
-      const body = (c.bulletsEn || []).length ? "<ul>" + c.bulletsEn.map((b) => "<li>" + String(b).replace(/</g, "&lt;") + "</li>").join("") + "</ul>" : "";
-      rows.push([h, c.titleEn || c.titleAr, body, url(imgs[0]), imgs[0] ? 1 : "", c.titleEn || ""]);
-      imgs.slice(1).forEach((f, i) => rows.push([h, "", "", url(f), i + 2, ""]));
-    }
-    return [{ name: "shopify-products.csv", mime: "text/csv", content: table(rows, ",") }];
   }
   if (channel === "salla" || channel === "zid") {
     const rows = [["sku", "name_ar", "name_en", "description_ar", "description_en"].concat(pad([], 8).map((_, i) => "image_" + (i + 1)))];
@@ -78,7 +67,6 @@ export function exportReadme(channel, count, opts) {
     o.imageBase ? `Images are also hosted at ${o.imageBase} and those links are filled in the upload file.` : "Images are not hosted: upload them from images/ or host them and fill in the image columns.",
     "",
     channel === "amazon" ? "Amazon: use the flat file in Seller Central (Catalogue → Add products via upload) for the category's template; update_delete is PartialUpdate, so only these fields change. The -ar file carries the Arabic copy for Amazon.sa / Amazon.ae." :
-      channel === "shopify" ? "Shopify: Products → Import, with “Overwrite products with matching handles” on." :
         "Columns use Basira's generic names. If the channel's current bulk template uses different headers, copy the columns across.",
     "",
     "Review every row before uploading. Basira does not change your listings until you upload this file or publish from the app."

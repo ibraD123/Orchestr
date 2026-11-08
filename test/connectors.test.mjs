@@ -34,7 +34,7 @@ test("parses marketplace links", () => {
   assert.equal(parseLink("amazon.ae/s?me=A1SELLER123").sellerId, "A1SELLER123");
   const n = parseLink("https://www.noon.com/saudi-en/oud-al-layl-100ml/N53346840A/p/?o=abc");
   assert.equal(n.platform, "noon"); assert.equal(n.sku, "N53346840A"); assert.equal(n.region, "saudi-en");
-  assert.equal(parseLink("https://shop.example.com/products/oud-100ml").handle, "oud-100ml");
+  assert.equal(parseLink("https://shop.example.com/products/oud-100ml").kind, "product");
   assert.equal(parseLink("https://layali.salla.sa/").kind, "store");
   assert.equal(parseLink("https://layali.salla.sa/oud/p123456").kind, "product");
 });
@@ -66,19 +66,6 @@ test("imports a Noon product with its Arabic page", async () => {
   assert.deepEqual(l.bulletsAr, ["ثبات طويل.", "عود مدخن."]);
   assert.ok(!r.items[0].audit.issues.some((i) => i.key === "noArabicTitle"));
   assert.ok(r.items[0].audit.issues.some((i) => i.key === "onePhoto"));
-});
-
-test("imports a Shopify store with Arabic translations", async () => {
-  const product = (title, body) => ({ id: 7, handle: "oud", title, body_html: body, product_type: "Perfume", tags: "oud, gift", options: [{ name: "Volume" }], variants: [{ sku: "OUD-100" }], images: [{ src: "https://cdn.test/1.jpg", width: 2048, height: 2048 }, { src: "https://cdn.test/2.jpg", width: 2048, height: 2048 }] });
-  routes["https://store.test/products.json"] = { products: [product("Oud Al Layl 100ml Eau de Parfum", "<ul><li>Lasts 8h</li><li>Saffron</li></ul>")] };
-  routes["https://store.test/ar/products.json"] = { products: [product("عطر عود الليل", "<ul><li>ثبات ٨ ساعات</li></ul>")] };
-  const r = await importLink("https://store.test/", { measure: false });
-  assert.equal(r.source.platform, "shopify");
-  const it = r.items[0];
-  assert.equal(it.sku, "OUD-100");
-  assert.equal(it.listing.titleAr, "عطر عود الليل");
-  assert.deepEqual(it.listing.bulletsEn, ["Lasts 8h", "Saffron"]);
-  assert.equal(it.listing.images[0].width, 2048);
 });
 
 test("maps Amazon catalog data in both languages", () => {

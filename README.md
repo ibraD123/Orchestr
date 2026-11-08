@@ -2,7 +2,7 @@
 
 **AI product content intelligence for MENA e-commerce.**
 
-Basira finds what is costing a listing sales, learns from what buyers write in reviews (Gulf, Egyptian, Levantine Arabic, MSA and English), fixes the content on brand in Arabic and English, publishes the fix to Amazon, Noon, Salla, Zid and Shopify, and measures the result.
+Basira finds what is costing a listing sales, learns from what buyers write in reviews (Gulf, Egyptian, Levantine Arabic, MSA and English), fixes the content on brand in Arabic and English, publishes the fix to Noon, Amazon, Salla and Zid, and measures the result.
 
 This repository holds the marketing site, the product app and the server that powers it.
 
@@ -13,15 +13,14 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | Path | What it is |
 | --- | --- |
 | `src/landing.html` | Landing page source (styles, markup, Arabic translations and scripts in one file) |
-| `src/app.html` | Product app: overview, Brand DNA, live listing audit, catalog, bulk fixes and export, listing diagnosis, photo check and on-model photos, reviews, templates, slide studio, approvals, results, unit economics, settings |
+| `src/app.html` | Product app: overview, Brand DNA, live listing audit, catalog, bulk fixes and export, listing diagnosis, photo check and on-model photos, reviews, templates, slide studio, approvals, results, settings |
 | `server/audit.mjs` | Listing audit engine (pure functions, shared by the server and the app) |
 | `server/templates.mjs` | 17 slide templates (shared by the server renderer and the app preview) |
 | `server/render.mjs` | Slide renderer: Arabic and English typeset by Chromium over the product image, exported as 1600 × 2000 PNG; also measures main images |
-| `server/connectors/` | Marketplace connectors: Amazon SP-API, Shopify, product pages (Noon, Salla, Zid) and safe outbound HTTP |
+| `server/connectors/` | Marketplace connectors: Amazon SP-API, product pages (Noon, Salla, Zid and stores on their own domain) and safe outbound HTTP |
 | `server/importer.mjs` | Imports a catalog from a link or CSV, measures main images and audits every listing |
 | `server/catalog-csv.mjs` | Catalog export parser (Noon Seller Lab, Amazon, Salla, Zid), shared with the app |
 | `server/keywords.mjs` | Search-term coverage with Arabic spelling normalisation, shared with the app |
-| `server/economics.mjs` | Unit economics per channel (VAT, commission, fulfilment, COD, ads, returns), shared with the app |
 | `server/photo-metrics.mjs` | Photo checks (white background, product fill) and background removal on raw pixels, shared with the app |
 | `server/photo.mjs` | Claude reviews main-image candidates and picks the one most likely to be clicked |
 | `server/brand-dna.mjs` | Brand DNA: evidence-weighted brand genome (traits used both to generate and to check, learning from edits, approvals and sales results), the record of which templates and fixes raised conversion, and the brand check in the listing audit; shared with the app |
@@ -30,7 +29,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/auth.mjs` | Accounts (one agency or one brand each), users, scrypt passwords, sessions, single-use team invites |
 | `server/store.mjs` | File store per client workspace: genome, event log, export assets; account (plan, usage, invoices); data export and deletion |
 | `server/copy-rules.mjs` | Applies the brand's checkable rules (avoided words, no "!", no emoji, digits, headline length) to existing copy without AI, shared with the app |
-| `server/exports.mjs` | Upload files per channel: Amazon flat file (PartialUpdate, English and Arabic), Shopify product CSV, Noon, Salla and Zid CSVs, shared with the app |
+| `server/exports.mjs` | Upload files per channel: Amazon flat file (PartialUpdate, English and Arabic), Noon, Salla and Zid CSVs, shared with the app |
 | `server/zip.mjs` | Minimal ZIP writer, shared with the app |
 | `server/results.mjs` | Reads marketplace sales reports, compares changed products with a control group, and judges each product's own result (z-test on its sessions), shared with the app |
 | `server/report.mjs` | Before/after report for the client as an A4 HTML document under the agency's logo (PDF on the server, print in the browser), shared with the app |
@@ -82,7 +81,7 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/audit` | `{ listing: { channel, category, titleEn, titleAr, bulletsEn[], bulletsAr[], images[{ width, height, whiteBackground, arabicTextBroken }], attributes{}, sizeChart, reviewThemes[] }, ws? }` | `{ score, breakdown, issues[{ key, sev, area, detail }] }`. With `ws`, also `brand: { score, checked, issues[] }`: the copy checked against that workspace's brand rules |
 | `POST /api/render` | `{ template, fields{}, image: data URL, language: ar \| en \| both, numerals: arabic \| western, kit{ bg, fg, accent }, brand, logo?: { src: data URL, pos }, fonts?: kufi \| naskh \| modern }` (the older `kind` + `headlineAr`… shape still works) | `image/png`, 1600 × 2000 |
 | `POST /api/reviews/analyze` | `{ product, reviews: [string \| { text, rating }] }` (up to 200) | `{ total, dialects, themes[], reviews[], fixes[] }` |
-| `POST /api/import` | `{ url, limit? }`: an Amazon, Noon, Shopify, Salla or Zid product or store link | `{ source, count, averageScore, items[{ sku, name, url, image, listing, audit }], warnings }` |
+| `POST /api/import` | `{ url, limit? }`: an Amazon, Noon, Salla or Zid product or store link | `{ source, count, averageScore, items[{ sku, name, url, image, listing, audit }], warnings }` |
 | `POST /api/import/csv` | `{ csv, channel?, category?, measure? }` | Same as above |
 | `GET /api/connectors` | | Which marketplaces are connected and what they can import |
 | `POST /api/reviews/reply` | `{ review, product, brand }` | `{ language, reply, replyEn, needsPerson, reason }` |
@@ -95,7 +94,7 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `POST /api/brand/analyze` | `{ name, url?, pdf?: data URL, images?: [data URL], texts?: [] }` | `{ proposals[], palette[], logoPos, sources }` |
 | `POST /api/copy` | `{ product, channel, category, listing, issues[], missingKeywords[], brief }` | `{ titleEn, titleAr, bulletsEn[], bulletsAr[], changes[] }` |
 | `POST /api/leads` | `{ name, whatsapp, store, lang }` | `{ ok }`, appended to `data/leads.jsonl` |
-| `POST /api/export` | `{ ws, channel: noon \| amazon \| salla \| zid \| shopify, client, style{ language, numerals, brand, logo, fonts }, items[{ sku, name, copy{ titleEn, titleAr, bulletsEn[], bulletsAr[] }, image, slides[{ template, fields, kit }], extraImages[] }] }` (up to 50 products, 9 images each) | `{ batch, zipUrl, hosted, files[], items[{ sku, images[url] }], rendered }`. Slides are rendered, stored and served at `/assets/<account>/<ws>/<batch>/images/…`; the ZIP holds `images/`, the channel's upload files and a README |
+| `POST /api/export` | `{ ws, channel: noon \| amazon \| salla \| zid, client, style{ language, numerals, brand, logo, fonts }, items[{ sku, name, copy{ titleEn, titleAr, bulletsEn[], bulletsAr[] }, image, slides[{ template, fields, kit }], extraImages[] }] }` (up to 50 products, 9 images each) | `{ batch, zipUrl, hosted, files[], items[{ sku, images[url] }], rendered }`. Slides are rendered, stored and served at `/assets/<account>/<ws>/<batch>/images/…`; the ZIP holds `images/`, the channel's upload files and a README |
 | `GET /assets/<account>/<ws>/<batch>/<file>` | | Hosted export images (public, so marketplaces can fetch them; long random account and batch ids) and the ZIP |
 | `POST /api/publish/amazon` | `{ ws, batch, marketplace: amazon.sa \| amazon.ae \| amazon.eg }` | `{ results[{ sku, status: ACCEPTED \| INVALID \| NOT_FOUND, submissionId, issues[] }], imagesIncluded }`: SP-API Listings PATCH of title, bullets (both languages) and image links |
 | `POST /api/report/pdf` | `{ result (from compareResults), agency{ name, logo, colour }, client, period, lang }` | `application/pdf`, A4 |
@@ -168,15 +167,14 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | --- | --- | --- | --- |
 | Amazon (.sa, .ae, .eg) | Yes | Your own seller account | SP-API Catalog Items (English and Arabic locales) and Listings Items, including Amazon's own listing issues |
 | Noon | Yes | Upload a Seller Lab export | The product page's schema.org data, plus its `-ar` twin for Arabic |
-| Shopify | Yes | Yes | The public `/products.json` feed, plus `/ar/` translations |
-| Salla, Zid | Yes | Upload an export | The product page's schema.org data and its Arabic `hreflang` alternate |
+| Salla, Zid, a store on its own domain | Yes | Upload an export | The product page's schema.org data and its Arabic `hreflang` alternate. A store on its own domain is audited by Salla's rules |
 | Any CSV | | Yes | Column names are matched automatically (`title_ar`, `bullet_1`, `main_image`…) |
 
 Outbound requests are HTTPS only, block private addresses at every redirect, and have size and time limits. Main images are downloaded and measured to check size and white background.
 
-Publishing back: Amazon listings are updated directly through SP-API (`POST /api/publish/amazon`) for the connected seller account. Noon, Salla, Zid and Shopify get upload files in the export ZIP; their column names are Basira's generic ones except Shopify's and Amazon's, so check them against the channel's current bulk template.
+Publishing back: Amazon listings are updated directly through SP-API (`POST /api/publish/amazon`) for the connected seller account. Noon, Salla and Zid get upload files in the export ZIP; their column names are Basira's generic ones except Amazon's, so check them against the channel's current bulk template.
 
-What isn't covered yet: Noon's partner API (not publicly available; store catalogs come from exports), reading reviews from marketplaces (paste or export them), and direct publishing to Noon, Salla, Zid and Shopify.
+What isn't covered yet: Noon's partner API (not publicly available; store catalogs come from exports), reading reviews from marketplaces (paste or export them), and direct publishing to Noon, Salla and Zid.
 
 ## Language
 
@@ -212,7 +210,6 @@ What is real:
 - **Search terms** in Audit and on each listing show which common Gulf searches the copy covers.
 - **Reviews → Draft reply** writes a reply in the buyer's own dialect with Claude, and flags reviews that need a person.
 - **Photo check** measures main-image candidates against Amazon and Noon rules, removes plain backgrounds, rebuilds a compliant 2000 × 2000 main image, and (with the server) asks Claude which photo is most likely to be clicked.
-- **Unit economics** compares profit per unit across Noon, Amazon, Salla, Zid and Shopify after VAT, fees, delivery, cash on delivery, ads and returns. Fee defaults are starting values to replace with your own.
 - **Bulk fixes**: select products in the Catalog, and the brand's rules are applied to all of them at once (with Claude drafts when a key is set). Review, approve one by one or all, then export a ZIP for the channel: upload files, README and, with the server, every slide as a PNG. Amazon can be updated directly when a seller account is connected.
 - **Results**: upload sales reports from before and after the fixes (Amazon Business Reports, Noon and other exports). Products that weren't changed are the control group, and the uplift is the changed products' gain minus theirs. The client report carries the agency's logo and colour; PDF on the server, print from the browser. **Teach Brand DNA** turns each fixed product's result into evidence: a product that beat the control group strengthens the brand rules its approved content followed, a worse one weakens only rules learned from edits, and slide templates and kinds of fix keep a record of what raised conversion. The brief, the Brand DNA screen, Templates and the audit's "Fix first" order read that record.
 - **Sign-in** (server with accounts on): create an agency or brand account, sign in, join a team from an invite link. A brand gets the simpler single-brand app.

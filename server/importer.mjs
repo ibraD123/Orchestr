@@ -1,7 +1,6 @@
 // Import a catalog from a link or a file, measure main images, and audit every listing.
 import { parseLink } from "./connectors/link.mjs";
 import { ConnectorError, safeFetch } from "./connectors/net.mjs";
-import { isShopify, shopifyStore, shopifyProduct } from "./connectors/shopify.mjs";
 import { productPage } from "./connectors/page.mjs";
 import { amazonProduct, amazonStore, amazonConfigured } from "./connectors/amazon.mjs";
 import { listingsFromCSV } from "./catalog-csv.mjs";
@@ -55,15 +54,9 @@ export async function importLink(raw, { limit = 60, measure = true } = {}) {
     if (link.kind !== "product") throw new ConnectorError("Noon doesn't publish store catalogs. Paste a product link, or export your catalog from Noon Seller Lab and upload the file.", 422);
     items = [await productPage(link.url.href, { channel: "noon" })];
   } else {
-    const origin = link.url.origin;
-    const channel = link.platform === "web" ? "shopify" : link.platform;
-    const shopify = await isShopify(origin);
-    if (shopify) {
-      source.platform = link.platform === "web" ? "shopify" : link.platform;
-      if (link.kind === "product" && link.handle) items = [(await shopifyProduct(origin, link.handle, { channel })) || (await productPage(link.url.href, { channel }))];
-      else if (link.kind === "product") items = [await productPage(link.url.href, { channel })];
-      else items = await shopifyStore(origin, { limit, channel });
-    } else if (link.kind === "product") {
+    // A store on its own domain is most often Salla in the region, so it is audited by Salla's rules.
+    const channel = link.platform === "web" ? "salla" : link.platform;
+    if (link.kind === "product") {
       items = [await productPage(link.url.href, { channel })];
     } else {
       throw new ConnectorError(`This store doesn't share its catalog publicly. Paste a product link, or upload a catalog export from ${link.platform === "salla" ? "Salla" : link.platform === "zid" ? "Zid" : "your store"}.`, 422);
@@ -88,7 +81,6 @@ export function connectorStatus() {
   return {
     amazon: { connected: amazonConfigured(), products: true, store: Boolean(process.env.SPAPI_SELLER_ID) },
     noon: { connected: true, products: true, store: false, note: "Store catalogs come from a Seller Lab export" },
-    shopify: { connected: true, products: true, store: true },
     salla: { connected: true, products: true, store: false },
     zid: { connected: true, products: true, store: false },
     file: { connected: true }

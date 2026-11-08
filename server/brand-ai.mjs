@@ -52,7 +52,7 @@ export const BrandAnalysis = z.object({
   rules: z.array(z.object({ kind: z.enum(["voice", "visual"]), statement: Bi, source: z.string() }))
 });
 
-const ANALYSE_SYSTEM = `You build the Brand DNA profile for a brand that sells on Amazon, Noon, Salla, Zid and Shopify in the Gulf and Egypt. You get some of: its brand book, its website text, its logo, product photos, ads, and examples of copy the brand liked.
+const ANALYSE_SYSTEM = `You build the Brand DNA profile for a brand that sells on Amazon, Noon, Salla and Zid in the Gulf and Egypt. You get some of: its brand book, its website text, its logo, product photos, ads, and examples of copy the brand liked.
 
 Describe only what the materials show; when something isn't shown, say so plainly in the summary instead of guessing, and use "unknown" where the schema allows it.
 - voice: how the brand writes in Arabic and English; summary in one or two sentences per language, written as an instruction a copywriter can follow ("Warm, hospitable Gulf Arabic...").
@@ -124,7 +124,7 @@ export const CopyDraft = z.object({
   changes: z.array(Bi)
 });
 
-const COPY_SYSTEM = `You write marketplace listing copy (titles and bullet points) in English and Arabic for brands selling on Amazon, Noon, Salla, Zid and Shopify in the Gulf.
+const COPY_SYSTEM = `You write marketplace listing copy (titles and bullet points) in English and Arabic for brands selling on Amazon, Noon, Salla and Zid in the Gulf.
 
 The Brand DNA block in the request is binding: follow its voice and every rule, stronger rules first, and match the approved examples' style. Where it is silent:
 - Arabic reads as natural Gulf-market copy, not a translation; English is plain and specific.
@@ -140,7 +140,7 @@ Never invent specifications, ingredients, certifications or durations that the l
 export async function writeCopy(input) {
   const l = input.listing || {};
   if (!l.titleEn && !l.titleAr) fail("Send the current title");
-  const limits = { amazon: 200, noon: 150, salla: 120, zid: 120, shopify: 150 };
+  const limits = { amazon: 200, noon: 150, salla: 120, zid: 120 };
   const text = [
     "Brand DNA (binding):\n" + String(input.brief || "No Brand DNA yet: write in a neutral, trustworthy marketplace voice.").slice(0, 12000),
     `Channel: ${input.channel || "noon"} (title limit ${limits[input.channel] || 150} characters). Category: ${input.category || "unknown"}.`,

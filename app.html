@@ -381,19 +381,7 @@ pre.brief{white-space:pre-wrap;font-family:var(--font-mono);font-size:12px;line-
 .scores{display:grid;gap:4px}
 .pactions{display:flex;flex-wrap:wrap;gap:6px}
 .win{border-color:var(--good)}
-.pf-grid{grid-template-columns:1fr 1fr}
-.pf-grid>*,.grid2>*{min-width:0}
-@media (max-width:1050px){.pf-grid{grid-template-columns:1fr}}
-.pf-cards{display:grid;gap:12px}
-.pf-card{display:grid;gap:6px}
-.pf-big{font-family:var(--font-display);font-size:30px;font-weight:700;color:var(--good);font-variant-numeric:tabular-nums}
-.pf-big.neg{color:var(--bad)}
-.stackbar{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;margin-block:8px}
-.stackbar i{display:block;min-width:2px}
-.pf-kv{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:4px 12px;font-size:13px}
-.pf-kv span{color:var(--ink-3)}.pf-kv b{font-variant-numeric:tabular-nums;font-weight:500}
-@media (max-width:480px){.pf-kv{grid-template-columns:auto 1fr}}
-.pf-lines{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;margin-top:6px}
+.grid2>*{min-width:0}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-3);margin-top:12px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
 .scroll-x{overflow-x:auto;max-width:100%}
@@ -546,7 +534,7 @@ var __shared0 = (function(){
 // Pure functions with no imports: the server uses this module directly, and
 // scripts/build.mjs inlines it into the app so audits also run in the browser.
 
-const AUDIT_CHANNELS = ["amazon", "noon", "salla", "zid", "shopify"];
+const AUDIT_CHANNELS = ["amazon", "noon", "salla", "zid"];
 const AUDIT_CATEGORIES = ["fragrance", "fashion", "food", "beauty", "home"];
 
 // Marketplace rules that differ per channel.
@@ -554,8 +542,7 @@ const CHANNEL_RULES = {
   amazon:  { titleMax: 200, whiteMain: true,  minImages: 6, minBullets: 5 },
   noon:    { titleMax: 150, whiteMain: true,  minImages: 4, minBullets: 4 },
   salla:   { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 },
-  zid:     { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 },
-  shopify: { titleMax: 150, whiteMain: false, minImages: 4, minBullets: 3 }
+  zid:     { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 }
 };
 
 // Attributes buyers filter on, per category.
@@ -1235,81 +1222,6 @@ return { KEYWORDS, normaliseArabic, keywordCoverage };
 })();
 var KEYWORDS = __shared4.KEYWORDS, normaliseArabic = __shared4.normaliseArabic, keywordCoverage = __shared4.keywordCoverage;
 var __shared5 = (function(){
-// Unit economics per sales channel. Pure functions with no imports: inlined into the app by scripts/build.mjs.
-// Fee defaults are typical starting points, not quotes: every seller should enter the numbers from their own fee sheet.
-
-const COUNTRIES = {
-  SA: { currency: "SAR", vat: 0.15, name: ["Saudi Arabia", "السعودية"] },
-  AE: { currency: "AED", vat: 0.05, name: ["UAE", "الإمارات"] },
-  EG: { currency: "EGP", vat: 0.14, name: ["Egypt", "مصر"] }
-};
-
-// referral: share of the price incl. VAT; fixed: per order; fulfilment: pick, pack and ship per unit;
-// payment: card or wallet processing share; codFee: extra per cash-on-delivery order.
-const CHANNEL_DEFAULTS = {
-  amazon:  { referral: 0.10, fixed: 0, fulfilment: 12, payment: 0, codFee: 0 },
-  noon:    { referral: 0.10, fixed: 0, fulfilment: 10, payment: 0, codFee: 0 },
-  salla:   { referral: 0, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 },
-  zid:     { referral: 0, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 },
-  shopify: { referral: 0.02, fixed: 1, fulfilment: 18, payment: 0.025, codFee: 10 }
-};
-
-const num = (v, d = 0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
-const round2 = (n) => Math.round(n * 100) / 100;
-
-/**
- * Profit per unit sold on one channel.
- * @param {object} i price (incl. VAT), cost, inbound (shipping to warehouse per unit), vat,
- *   referral, fixed, fulfilment, payment, codFee, codShare (share of orders paid on delivery),
- *   ads (ad spend as share of price), returns (share of units returned), returnCost (per return)
- */
-function unitEconomics(i) {
-  const price = Math.max(0, num(i.price));
-  const vat = Math.max(0, num(i.vat, 0.15));
-  const net = price / (1 + vat);
-  const lines = [
-    ["vat", price - net],
-    ["referral", price * num(i.referral)],
-    ["fixed", num(i.fixed)],
-    ["payment", price * num(i.payment) * (1 - num(i.codShare))],
-    ["cod", num(i.codFee) * num(i.codShare)],
-    ["fulfilment", num(i.fulfilment)],
-    ["inbound", num(i.inbound)],
-    ["ads", price * num(i.ads)],
-    ["returns", num(i.returns) * num(i.returnCost)],
-    ["cost", num(i.cost)]
-  ].map(([k, v]) => ({ key: k, amount: round2(v) }));
-  const costs = lines.reduce((s, l) => s + l.amount, 0);
-  const profit = round2(price - costs);
-  const adsAmount = lines.find((l) => l.key === "ads").amount;
-  return {
-    price: round2(price), net: round2(net), lines, profit,
-    margin: net > 0 ? round2(profit / net) : 0,
-    roi: num(i.cost) > 0 ? round2(profit / num(i.cost)) : null,
-    // Ad spend (as share of price) at which profit reaches zero.
-    breakEvenAds: price > 0 ? round2((profit + adsAmount) / price) : 0,
-    // Lowest price (incl. VAT) that still breaks even with these costs.
-    breakEvenPrice: breakEvenPrice(i)
-  };
-}
-
-function breakEvenPrice(i) {
-  const share = (1 - 1 / (1 + num(i.vat, 0.15))) + num(i.referral) + num(i.payment) * (1 - num(i.codShare)) + num(i.ads);
-  const fixedCosts = num(i.fixed) + num(i.codFee) * num(i.codShare) + num(i.fulfilment) + num(i.inbound) + num(i.returns) * num(i.returnCost) + num(i.cost);
-  const k = 1 - share;
-  return k > 0 ? round2(fixedCosts / k) : null;
-}
-
-/** Compare channels with the same product inputs. */
-function compareChannels(product, channels) {
-  return Object.keys(channels).map((ch) => ({ channel: ch, ...unitEconomics({ ...product, ...channels[ch] }) }))
-    .sort((a, b) => b.profit - a.profit);
-}
-
-return { COUNTRIES, CHANNEL_DEFAULTS, unitEconomics, compareChannels };
-})();
-var COUNTRIES = __shared5.COUNTRIES, CHANNEL_DEFAULTS = __shared5.CHANNEL_DEFAULTS, unitEconomics = __shared5.unitEconomics, compareChannels = __shared5.compareChannels;
-var __shared6 = (function(){
 // Pixel-level photo checks and background removal on raw RGBA data.
 // Pure functions with no imports: the server runs them inside Chromium on decoded images,
 // and scripts/build.mjs inlines them into the app so photos are checked in the browser.
@@ -1479,8 +1391,8 @@ function colourFidelity(orig, gen, { tolerance = 45 } = {}) {
 
 return { borderColour, measurePixels, removeBackground, fitBox, mainImageChecks, colourDiff, dominantColours, colourFidelity };
 })();
-var borderColour = __shared6.borderColour, measurePixels = __shared6.measurePixels, removeBackground = __shared6.removeBackground, fitBox = __shared6.fitBox, mainImageChecks = __shared6.mainImageChecks, colourDiff = __shared6.colourDiff, dominantColours = __shared6.dominantColours, colourFidelity = __shared6.colourFidelity;
-var __shared7 = (function(){
+var borderColour = __shared5.borderColour, measurePixels = __shared5.measurePixels, removeBackground = __shared5.removeBackground, fitBox = __shared5.fitBox, mainImageChecks = __shared5.mainImageChecks, colourDiff = __shared5.colourDiff, dominantColours = __shared5.dominantColours, colourFidelity = __shared5.colourFidelity;
+var __shared6 = (function(){
 // Brand DNA: an evidence-weighted brand genome.
 //
 // A genome is a set of traits. Every trait is used twice: the expression compiler turns it into
@@ -2068,8 +1980,8 @@ function editTrend(g) {
 
 return { DIMS, TRAIT_TYPES, FONT_PAIRS, LEARN, normaliseWord, stem, tokens, colourDistance, contrast, kitFromPalette, extractPalette, newGenome, traitKey, describe, strength, evidenceSummary, addEvidence, touch, setStatus, declare, observeEdit, REJECT_REASONS, observeReject, learn, performanceOf, fixBoost, listingContent, auditBrand, activeTraits, exemplars, express, check, editTrend };
 })();
-var DIMS = __shared7.DIMS, TRAIT_TYPES = __shared7.TRAIT_TYPES, FONT_PAIRS = __shared7.FONT_PAIRS, LEARN = __shared7.LEARN, normaliseWord = __shared7.normaliseWord, stem = __shared7.stem, tokens = __shared7.tokens, colourDistance = __shared7.colourDistance, contrast = __shared7.contrast, kitFromPalette = __shared7.kitFromPalette, extractPalette = __shared7.extractPalette, newGenome = __shared7.newGenome, traitKey = __shared7.traitKey, describe = __shared7.describe, strength = __shared7.strength, evidenceSummary = __shared7.evidenceSummary, addEvidence = __shared7.addEvidence, touch = __shared7.touch, setStatus = __shared7.setStatus, declare = __shared7.declare, observeEdit = __shared7.observeEdit, REJECT_REASONS = __shared7.REJECT_REASONS, observeReject = __shared7.observeReject, learn = __shared7.learn, performanceOf = __shared7.performanceOf, fixBoost = __shared7.fixBoost, listingContent = __shared7.listingContent, auditBrand = __shared7.auditBrand, activeTraits = __shared7.activeTraits, exemplars = __shared7.exemplars, express = __shared7.express, check = __shared7.check, editTrend = __shared7.editTrend;
-var __shared8 = (function(){
+var DIMS = __shared6.DIMS, TRAIT_TYPES = __shared6.TRAIT_TYPES, FONT_PAIRS = __shared6.FONT_PAIRS, LEARN = __shared6.LEARN, normaliseWord = __shared6.normaliseWord, stem = __shared6.stem, tokens = __shared6.tokens, colourDistance = __shared6.colourDistance, contrast = __shared6.contrast, kitFromPalette = __shared6.kitFromPalette, extractPalette = __shared6.extractPalette, newGenome = __shared6.newGenome, traitKey = __shared6.traitKey, describe = __shared6.describe, strength = __shared6.strength, evidenceSummary = __shared6.evidenceSummary, addEvidence = __shared6.addEvidence, touch = __shared6.touch, setStatus = __shared6.setStatus, declare = __shared6.declare, observeEdit = __shared6.observeEdit, REJECT_REASONS = __shared6.REJECT_REASONS, observeReject = __shared6.observeReject, learn = __shared6.learn, performanceOf = __shared6.performanceOf, fixBoost = __shared6.fixBoost, listingContent = __shared6.listingContent, auditBrand = __shared6.auditBrand, activeTraits = __shared6.activeTraits, exemplars = __shared6.exemplars, express = __shared6.express, check = __shared6.check, editTrend = __shared6.editTrend;
+var __shared7 = (function(){
 // Sample workspaces for the demo: two clients of one agency.
 // Layali's genome is not hand-written: it is built by replaying a realistic history of edits,
 // rejections and approvals through the learner, so every rule carries real evidence.
@@ -2153,8 +2065,8 @@ function sampleData() {
 
 return { SAMPLE_WORKSPACES, sampleData };
 })();
-var SAMPLE_WORKSPACES = __shared8.SAMPLE_WORKSPACES, sampleData = __shared8.sampleData;
-var __shared9 = (function(){
+var SAMPLE_WORKSPACES = __shared7.SAMPLE_WORKSPACES, sampleData = __shared7.sampleData;
+var __shared8 = (function(){
 // Rule-based copy cleanup: apply the brand's checkable rules to existing titles and bullets
 // without an AI model. Used by bulk processing before (or instead of) AI drafts.
 // Pure functions: inlined into the app by scripts/build.mjs (the import line is dropped there).
@@ -2278,8 +2190,8 @@ function cleanupCopy(copy, g, ctx) {
 
 return { trimAtSeparator, trimHeadline, cleanupCopy };
 })();
-var trimAtSeparator = __shared9.trimAtSeparator, trimHeadline = __shared9.trimHeadline, cleanupCopy = __shared9.cleanupCopy;
-var __shared10 = (function(){
+var trimAtSeparator = __shared8.trimAtSeparator, trimHeadline = __shared8.trimHeadline, cleanupCopy = __shared8.cleanupCopy;
+var __shared9 = (function(){
 // Before/after results from marketplace sales reports.
 // Reads Amazon Business Reports (Detail Page Sales and Traffic by Child Item), Noon and other
 // exports by matching common column names, and compares products that were changed with those
@@ -2401,8 +2313,8 @@ function productOutcomes(result, opts) {
 
 return { parseSalesReport, compareResults, OUTCOME, productOutcomes };
 })();
-var parseSalesReport = __shared10.parseSalesReport, compareResults = __shared10.compareResults, OUTCOME = __shared10.OUTCOME, productOutcomes = __shared10.productOutcomes;
-var __shared11 = (function(){
+var parseSalesReport = __shared9.parseSalesReport, compareResults = __shared9.compareResults, OUTCOME = __shared9.OUTCOME, productOutcomes = __shared9.productOutcomes;
+var __shared10 = (function(){
 // Plans, usage metering and payments.
 // Plans mirror the landing page. A "fix" is one product whose copy or slides were approved.
 // Payments use Moyasar (Saudi Arabia: Mada, cards, Apple Pay) through its Invoices API:
@@ -2464,17 +2376,17 @@ function billingConfigured(env = process.env) { return Boolean(env.MOYASAR_SECRE
 
 return { PLANS, VAT_SA, monthKey, newAccount, recordUsage, effectivePlan, applyPayment, usageStatus, invoiceAmount, billingConfigured };
 })();
-var PLANS = __shared11.PLANS, VAT_SA = __shared11.VAT_SA, monthKey = __shared11.monthKey, newAccount = __shared11.newAccount, recordUsage = __shared11.recordUsage, effectivePlan = __shared11.effectivePlan, applyPayment = __shared11.applyPayment, usageStatus = __shared11.usageStatus, invoiceAmount = __shared11.invoiceAmount, billingConfigured = __shared11.billingConfigured;
-var __shared12 = (function(){
+var PLANS = __shared10.PLANS, VAT_SA = __shared10.VAT_SA, monthKey = __shared10.monthKey, newAccount = __shared10.newAccount, recordUsage = __shared10.recordUsage, effectivePlan = __shared10.effectivePlan, applyPayment = __shared10.applyPayment, usageStatus = __shared10.usageStatus, invoiceAmount = __shared10.invoiceAmount, billingConfigured = __shared10.billingConfigured;
+var __shared11 = (function(){
 // Marketplace upload files built from approved fixes.
 // Pure functions: the server packs them into the export ZIP, and the app can build them too.
 //
 // Amazon uses its inventory flat file field names (item_sku, item_name, bullet_point1…,
-// main_image_url, other_image_url1…) with update_delete = PartialUpdate. Shopify uses its product
-// CSV columns. Noon, Salla and Zid files use clear generic columns: map them onto the channel's
-// current bulk-upload template if its headers differ.
+// main_image_url, other_image_url1…) with update_delete = PartialUpdate. Noon, Salla and Zid
+// files use clear generic columns: map them onto the channel's current bulk-upload template if
+// its headers differ.
 
-const EXPORT_CHANNELS = ["noon", "amazon", "salla", "zid", "shopify"];
+const EXPORT_CHANNELS = ["noon", "amazon", "salla", "zid"];
 
 function cell(v, sep) {
   const s = String(v == null ? "" : v).replace(/\r?\n/g, " ").trim();
@@ -2486,7 +2398,6 @@ function table(rows, sep) {
   return "﻿" + rows.map((r) => r.map((c) => cell(c, sep)).join(sep)).join("\r\n") + "\r\n";
 }
 const pad = (arr, n) => Array.from({ length: n }, (_, i) => (arr && arr[i]) || "");
-const handleOf = (it) => it.handle || String(it.sku || it.name || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /**
  * @param {string} channel
@@ -2508,16 +2419,6 @@ function exportFiles(channel, items, opts) {
       { name: "amazon-flat-file-en.txt", mime: "text/tab-separated-values", content: table(rows("en"), "\t") },
       { name: "amazon-flat-file-ar.txt", mime: "text/tab-separated-values", content: table(rows("ar"), "\t") }
     ];
-  }
-  if (channel === "shopify") {
-    const rows = [["Handle", "Title", "Body (HTML)", "Image Src", "Image Position", "Image Alt Text"]];
-    for (const it of list) {
-      const c = it.copy || {}, h = handleOf(it), imgs = it.images || [];
-      const body = (c.bulletsEn || []).length ? "<ul>" + c.bulletsEn.map((b) => "<li>" + String(b).replace(/</g, "&lt;") + "</li>").join("") + "</ul>" : "";
-      rows.push([h, c.titleEn || c.titleAr, body, url(imgs[0]), imgs[0] ? 1 : "", c.titleEn || ""]);
-      imgs.slice(1).forEach((f, i) => rows.push([h, "", "", url(f), i + 2, ""]));
-    }
-    return [{ name: "shopify-products.csv", mime: "text/csv", content: table(rows, ",") }];
   }
   if (channel === "salla" || channel === "zid") {
     const rows = [["sku", "name_ar", "name_en", "description_ar", "description_en"].concat(pad([], 8).map((_, i) => "image_" + (i + 1)))];
@@ -2546,7 +2447,6 @@ function exportReadme(channel, count, opts) {
     o.imageBase ? `Images are also hosted at ${o.imageBase} and those links are filled in the upload file.` : "Images are not hosted: upload them from images/ or host them and fill in the image columns.",
     "",
     channel === "amazon" ? "Amazon: use the flat file in Seller Central (Catalogue → Add products via upload) for the category's template; update_delete is PartialUpdate, so only these fields change. The -ar file carries the Arabic copy for Amazon.sa / Amazon.ae." :
-      channel === "shopify" ? "Shopify: Products → Import, with “Overwrite products with matching handles” on." :
         "Columns use Basira's generic names. If the channel's current bulk template uses different headers, copy the columns across.",
     "",
     "Review every row before uploading. Basira does not change your listings until you upload this file or publish from the app."
@@ -2555,8 +2455,8 @@ function exportReadme(channel, count, opts) {
 
 return { EXPORT_CHANNELS, exportFiles, exportReadme };
 })();
-var EXPORT_CHANNELS = __shared12.EXPORT_CHANNELS, exportFiles = __shared12.exportFiles, exportReadme = __shared12.exportReadme;
-var __shared13 = (function(){
+var EXPORT_CHANNELS = __shared11.EXPORT_CHANNELS, exportFiles = __shared11.exportFiles, exportReadme = __shared11.exportReadme;
+var __shared12 = (function(){
 // Minimal ZIP writer (stored entries, UTF-8 names). PNGs are already compressed, so storing is fine.
 // Works on Uint8Array, so the same code runs on the server and inlined in the app (scripts/build.mjs).
 const CRC = new Uint32Array(256).map((_, n) => {
@@ -2626,8 +2526,8 @@ function readZip(buf) {
 
 return { crc32, makeZip, readZip };
 })();
-var crc32 = __shared13.crc32, makeZip = __shared13.makeZip, readZip = __shared13.readZip;
-var __shared14 = (function(){
+var crc32 = __shared12.crc32, makeZip = __shared12.makeZip, readZip = __shared12.readZip;
+var __shared13 = (function(){
 // Before/after results report as one self-contained HTML document (A4).
 // The server prints it to PDF with Chromium; the app shows the same document and can print it
 // without a server. Pure: inlined into the app by scripts/build.mjs.
@@ -2750,7 +2650,7 @@ ${svg}
 
 return { reportHTML };
 })();
-var reportHTML = __shared14.reportHTML;
+var reportHTML = __shared13.reportHTML;
 /* ---------- strings ---------- */
 var S = {
   overview:["Overview","نظرة عامة"], catalog:["Catalog","الكتالوج"], reviews:["Reviews","التقييمات"], studio:["Studio","الاستوديو"], approvals:["Approvals","الموافقات"],
@@ -2855,17 +2755,11 @@ var S = {
   wsClients:["Clients","العملاء"], wsNew:["New client","عميل جديد"], wsNewPh:["Client name","اسم العميل"], wsCreate:["Create","أنشئ"], wsRules:["{n} rules","{n} قواعد"], ovSub2:["{name} · {n} listings","{name} · {n} منتجاً"],
   noProducts:["No products for this client yet","لا توجد منتجات لهذا العميل بعد"], noProductsSub:["Import a catalog to audit it, or set up the brand first.","استورد كتالوجاً لتدقيقه، أو جهّز هوية العلامة أولاً."], goImport:["Import catalog","استورد الكتالوج"], goBrand:["Set up Brand DNA","جهّز هوية العلامة"],
   bdReloaded:["Brand DNA was changed elsewhere. Loaded the latest version.","تغيّرت هوية العلامة في مكان آخر. حُمّلت أحدث نسخة."], brandKitName:["Brand","العلامة"],
-  uploadPhoto:["Upload photo","ارفع صورة"], changePhoto:["Change photo","غيّر الصورة"], add:["Add","أضف"], mostProfit:["Most profitable","الأعلى ربحاً"],
+  uploadPhoto:["Upload photo","ارفع صورة"], changePhoto:["Change photo","غيّر الصورة"], add:["Add","أضف"],
   pcStep1:["Add up to 4 photos you're considering for the main image.","أضف حتى ٤ صور تفكر في استخدامها كصورة رئيسية."],
   pcStep2:["Each is checked against the channel's rules: size, white background, how much of the frame the product fills.","تُفحص كل صورة وفق قواعد القناة: المقاس، والخلفية البيضاء، ومساحة المنتج في الإطار."],
   pcStep3:["Fix a failing photo in one click, then send the best one to Studio.","أصلح الصورة المخالفة بنقرة، ثم أرسل الأفضل إلى الاستوديو."],
-  profit:["Unit economics","اقتصاديات الوحدة"], profitSub:["Profit per unit on each channel after VAT, fees, delivery, ads and returns.","الربح لكل وحدة في كل قناة بعد الضريبة والعمولات والتوصيل والإعلانات والمرتجعات."],
-  country:["Country","الدولة"], priceL:["Price incl. VAT","السعر شامل الضريبة"], costL:["Product cost","تكلفة المنتج"], inboundL:["Inbound shipping per unit","شحن للمستودع لكل وحدة"],
-  adsL:["Ad spend, % of price","الإعلانات، ٪ من السعر"], returnsL:["Return rate, %","نسبة المرتجعات ٪"], returnCostL:["Cost per return","تكلفة كل مرتجع"], codL:["Paid on delivery, %","الدفع عند الاستلام ٪"],
-  feesT:["Channel fees","عمولات القنوات"], feesNote:["Typical starting values. Replace them with the numbers from your own fee sheet.","قيم أولية شائعة. استبدلها بأرقام جدول العمولات الخاص بك."],
-  f_referral:["Commission %","العمولة ٪"], f_fixed:["Per order","لكل طلب"], f_fulfilment:["Fulfilment","التنفيذ والشحن"], f_payment:["Payment %","الدفع ٪"], f_codFee:["COD fee","رسوم الاستلام"],
-  perUnit:["profit per unit","ربح لكل وحدة"], marginL:["Margin","الهامش"], roiL:["Return on cost","العائد على التكلفة"], beAds:["Break-even ad spend","الحد الأعلى للإعلانات"], bePrice:["Break-even price","سعر التعادل"],
-  l_vat:["VAT","الضريبة"], l_referral:["Commission","العمولة"], l_fixed:["Order fee","رسوم الطلب"], l_payment:["Payment","الدفع"], l_cod:["Cash on delivery","الدفع عند الاستلام"], l_fulfilment:["Fulfilment","التنفيذ"], l_inbound:["Inbound","الشحن الوارد"], l_ads:["Ads","الإعلانات"], l_returns:["Returns","المرتجعات"], l_cost:["Product cost","تكلفة المنتج"], l_profit:["Profit","الربح"], loss:["Loss","خسارة"], copied:["Copied","تم النسخ"], needsPerson:["Needs a person:","يحتاج متابعة شخصية:"], dialectsT:["Dialects","اللهجات"], reviewsN:["reviews","تقييمات"]
+  copied:["Copied","تم النسخ"], needsPerson:["Needs a person:","يحتاج متابعة شخصية:"], dialectsT:["Dialects","اللهجات"], reviewsN:["reviews","تقييمات"]
 };
 var THEMES = {
   longevity:["Longevity","الثبات"], sizeVsPhoto:["Size vs photo","الحجم مقارنة بالصورة"], packaging:["Packaging","التغليف"], size:["Runs small","المقاس صغير"],
@@ -2898,7 +2792,7 @@ var ISSUES = {
   productSmall:{sev:"med",slide:0,t:["Product is too small in the main image","المنتج صغير في الصورة الرئيسية"],d:["Amazon asks for the product to fill 85% of the frame.","تطلب أمازون أن يملأ المنتج ٨٥٪ من الإطار."]},
   reviewGap:{sev:"med",slide:1,t:["A frequent complaint isn't answered","شكوى متكررة بلا إجابة"],d:["No image or bullet addresses it.","لا توجد صورة أو نقطة تجيب عنها."]}
 };
-var CH = {noon:{n:"Noon",bg:"#FEEE00",fg:"#1A1A1A",m:"n"},amazon:{n:"Amazon.sa",bg:"#232F3E",fg:"#FF9900",m:"a"},salla:{n:"Salla",bg:"#004956",fg:"#BAF3E6",m:"S"},zid:{n:"Zid",bg:"#5B2BE0",fg:"#fff",m:"Z"},shopify:{n:"Shopify",bg:"#5E8E3E",fg:"#fff",m:"S"}};
+var CH = {noon:{n:"Noon",bg:"#FEEE00",fg:"#1A1A1A",m:"n"},amazon:{n:"Amazon.sa",bg:"#232F3E",fg:"#FF9900",m:"a"},salla:{n:"Salla",bg:"#004956",fg:"#BAF3E6",m:"S"},zid:{n:"Zid",bg:"#5B2BE0",fg:"#fff",m:"Z"}};
 var KITS = [{id:"night",bg:"#2A1A0E",fg:"#F2C88A",ac:"#F4E9D8"},{id:"sand",bg:"#EFE6DA",fg:"#3B2A1A",ac:"#8B5E3C"},{id:"emerald",bg:"#0F3B33",fg:"#E8D9B0",ac:"#CFE6DF"},{id:"rose",bg:"#5C1E1E",fg:"#F3D58C",ac:"#F4E2D8"}];
 
 /* ---------- sample data ---------- */
@@ -2939,13 +2833,13 @@ var P = [
    quotes:[["الكتان بارد ومريح بالصيف","gulf","fabric"]],
    st:{headAr:"كتان بارد للصيف",headEn:"Cool linen for summer",bAr:"كتان 100%\nياقة سعودية\nأطوال 52 إلى 62",bEn:"100% linen\nSaudi collar\nLengths 52 to 62",oAr:"إطلالة الجمعة",oEn:"Friday ready",kit:1},
    newTitle:"Men's Linen Thobe, Ivory · Saudi Collar, Lengths 52 to 62"},
-  {id:"musk",sku:"LF-MSK-050",sym:"musk",color:"#B8A77E",name:["Musk Tahara 50ml","مسك الطهارة ٥٠ مل"],ch:["noon","shopify"],score:71,target:92,imgs:5,rating:4.4,rev:304,
+  {id:"musk",sku:"LF-MSK-050",sym:"musk",color:"#B8A77E",name:["Musk Tahara 50ml","مسك الطهارة ٥٠ مل"],ch:["noon","salla"],score:71,target:92,imgs:5,rating:4.4,rev:304,
    br:{images:80,title:75,arabic:65,attrs:70,reviewFit:65},issues:["mt"],
    themes:[["scent",28,0],["packaging",18,1]],
    quotes:[["ريحته ناعمة بس خفيفة شوي","gulf","scent"]],
    st:{headAr:"نعومة تدوم",headEn:"Soft and lasting",bAr:"مسك أبيض\nبدون كحول\n50 مل",bEn:"White musk\nAlcohol-free\n50 ml",oAr:"لكل يوم",oEn:"For every day",kit:1},
    newTitle:"Musk Tahara 50ml · White Musk, Alcohol-Free"},
-  {id:"burner",sku:"LF-BKH-BRN",sym:"burner",color:"#8C6A3F",name:["Bakhoor Burner · Brass","مبخرة نحاسية"],ch:["shopify"],score:88,target:94,imgs:6,rating:4.7,rev:58,
+  {id:"burner",sku:"LF-BKH-BRN",sym:"burner",color:"#8C6A3F",name:["Bakhoor Burner · Brass","مبخرة نحاسية"],ch:["noon"],score:88,target:94,imgs:6,rating:4.7,rev:58,
    br:{images:90,title:85,arabic:90,attrs:85,reviewFit:88},issues:["lowRes"],
    themes:[["packaging",10,1]],
    quotes:[["المبخرة ثقيلة وشغلها نظيف","gulf","packaging"]],
@@ -2958,7 +2852,6 @@ var state = {lang:"en", route:"overview", pid:"oud", q:"", chan:"all", sort:"sco
   al:{channel:"noon", category:"fragrance", titleEn:"Perfume Oud 100ml Men Women Long Lasting Best Gift Perfume", titleAr:"", bulletsEn:"Long lasting\nBest gift for men and women", bulletsAr:"", images:1, res:800, white:false, sizeChart:false, attrs:{volume:true}},
   rev:{text:"الريحة حلوة بس ما تثبت، بعد ساعتين راحت\nالعطر حلو بس بيروح بسرعة خالص\nالتغليف فخم ومناسب للهدايا\nريحة العود قوية ومميزة، بس الثبات ضعيف\nوصل متأخر يومين\nSmells great but fades within two hours", busy:false, result:null, error:null},
   pc:{channel:"noon", items:[], review:null, busy:false, error:null},
-  pf:{country:"SA", price:230, cost:60, inbound:3, ads:10, returns:5, returnCost:20, cod:40, fees: JSON.parse(JSON.stringify(CHANNEL_DEFAULTS))},
   ws:"layali", wsMenu:false, bd:{}, copy:{}, kitWarned:{}, lastLearned:null,
   slide:1, langMode:"both", num:"ar", gen:{}, sets:{}, kitBy:{}, tgroup:"all", src:"all", imp:{busy:false, error:null, note:null}, connectors:null, replies:{}, queue:[
     {id:"q1",pid:"abaya",by:"Omar",status:"pending",issue:"noSizeChart"},
@@ -3006,13 +2899,12 @@ var ICONS = {
   audit:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/>',
   brand:'<path d="M7 3c0 6 10 6 10 12s-10 6-10 6M17 3c0 6-10 6-10 12s10 6 10 6"/><path d="M8.5 7.5h7M8.5 16.5h7"/>',
   photos:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/>',
-  profit:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
   templates:'<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/>'
 };
 function navHTML(mobile){
   var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","brand","audit","catalog","batch","photos","reviews","templates","studio","approvals","results","profit","settings"].map(function(k){
+  return ["overview","brand","audit","catalog","batch","photos","reviews","templates","studio","approvals","results","settings"].map(function(k){
     var href = k === "studio" ? (state.pid ? "studio-"+state.pid : "catalog") : k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -3079,7 +2971,7 @@ function vCatalog(){
   }).sort(function(a,b){ return state.sort === "score" ? a.score-b.score : state.sort === "reviews" ? b.rev-a.rev : tr(a.name).localeCompare(tr(b.name)); });
   state.shown = rows.map(function(p){ return p.id; });
   var allOn = rows.length && rows.every(function(p){ return state.sel[p.id]; });
-  return '<div class="head"><div><h1>'+t("catalog")+'</h1><p>'+P.length+' · Noon, Amazon, Salla, Zid, Shopify</p></div></div>'+
+  return '<div class="head"><div><h1>'+t("catalog")+'</h1><p>'+P.length+' · Noon, Amazon, Salla, Zid</p></div></div>'+
   importCard()+
   '<div class="toolbar">'+(nImp ? '<div class="chips" role="group">'+["all","imported","sample"].map(function(k){ return '<button type="button" class="chip" data-src="'+k+'" aria-pressed="'+(state.src === k)+'">'+t("src_"+k)+(k === "imported" ? " · "+nImp : "")+'</button>'; }).join("")+'</div>' : "")+'<div class="chips" role="group">'+
     ["all"].concat(Object.keys(CH)).map(function(c){ return '<button type="button" class="chip" data-chan="'+c+'" aria-pressed="'+(state.chan === c)+'">'+(c === "all" ? t("all") : CH[c].n)+'</button>'; }).join("")+
@@ -3410,7 +3302,7 @@ function runPhotoReview(){
 }
 function vPhotos(){
   var pc = state.pc, rv = pc.review, ok = state.api && state.api.ai;
-  var chOpts = ["amazon","noon","salla","zid","shopify"].map(function(c){ return '<option value="'+c+'"'+(pc.channel === c ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("");
+  var chOpts = ["noon","amazon","salla","zid"].map(function(c){ return '<option value="'+c+'"'+(pc.channel === c ? " selected" : "")+'>'+CH[c].n+'</option>'; }).join("");
   return '<div class="head"><div><h1>'+t("photos")+'</h1><p>'+t("photosSub")+'</p></div><label class="tpl-for">'+t("channel")+' <select class="sel" id="pc-channel">'+chOpts+'</select></label></div>'+
   '<div class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><label class="btn btn-primary" for="pc-file">'+t("addPhotos")+'</label><input type="file" id="pc-file" class="vh" accept="image/png,image/jpeg,image/webp" multiple><button type="button" class="btn btn-ghost" id="pc-sample">'+t("trySample")+'</button><span class="note">'+t("upTo4")+'</span>'+
     '<span style="margin-inline-start:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+(ok ? "" : '<span class="note">'+t("photoNeeds")+'</span>')+'<button type="button" class="btn btn-primary" id="pc-review"'+(ok && pc.items.length && !pc.busy ? "" : " disabled")+'>'+(pc.busy ? t("reviewing") : t("reviewAi"))+'</button></span></div>'+
@@ -3435,42 +3327,6 @@ function pcReplace(id, fn, label){
   it.busy = true; render();
   fn(it.url).then(function(url){ it.url = url; it.label = label; return analysePhoto(url).then(function(m){ it.m = m; }); })
     .catch(function(e){ it.error = e.message; }).then(function(){ it.busy = false; state.pc.review = null; render(); });
-}
-
-/* unit economics */
-var PF_CH = ["noon","amazon","salla","zid","shopify"];
-function pfResults(){
-  var f = state.pf, ct = COUNTRIES[f.country], cur = ct.currency;
-  var product = {price:+f.price, cost:+f.cost, inbound:+f.inbound, vat:ct.vat, ads:f.ads/100, returns:f.returns/100, returnCost:+f.returnCost, codShare:f.cod/100};
-  var chs = {}; PF_CH.forEach(function(c){ var x = f.fees[c]; chs[c] = {referral:x.referral, fixed:x.fixed, fulfilment:x.fulfilment, payment:x.payment, codFee:x.codFee, codShare: c === "amazon" || c === "noon" ? 0 : f.cod/100}; });
-  var rows = compareChannels(product, chs);
-  var money = function(v){ return (v < 0 ? "−" : "")+Math.abs(v).toLocaleString("en", {minimumFractionDigits:2, maximumFractionDigits:2})+" "+cur; };
-  var pct = function(v){ return v == null ? "—" : Math.round(v * 100)+"%"; };
-  var SEG = {vat:"var(--ink-3)", referral:"var(--saffron)", fixed:"var(--saffron)", payment:"var(--saffron)", cod:"var(--saffron)", fulfilment:"#5B8DEF", inbound:"#5B8DEF", ads:"#C2569B", returns:"var(--bad)", cost:"var(--ink-2)"};
-  return '<div class="pf-cards">'+rows.map(function(r, ri){
-    var segs = r.lines.filter(function(l){ return l.amount > 0; });
-    return '<div class="card pf-card"><div class="card-h"><h2 style="display:flex;gap:8px;align-items:center"><span class="chan-mk" style="background:'+CH[r.channel].bg+';color:'+CH[r.channel].fg+'">'+CH[r.channel].m+'</span>'+CH[r.channel].n+'</h2>'+(ri === 0 && r.profit > 0 ? '<span class="tag good">'+t("mostProfit")+'</span>' : "")+'</div>'+
-      '<div class="pf-big '+(r.profit < 0 ? "neg" : "")+'">'+money(r.profit)+'</div><span class="note">'+(r.profit < 0 ? t("loss") : t("perUnit"))+'</span>'+
-      '<div class="stackbar" aria-hidden="true">'+segs.map(function(l){ return '<i title="'+t("l_"+l.key)+'" style="flex:'+l.amount+';background:'+SEG[l.key]+'"></i>'; }).join("")+(r.profit > 0 ? '<i style="flex:'+r.profit+';background:var(--good)"></i>' : "")+'</div>'+
-      '<div class="pf-kv"><span>'+t("marginL")+'</span><b>'+pct(r.margin)+'</b><span>'+t("roiL")+'</span><b>'+pct(r.roi)+'</b><span>'+t("beAds")+'</span><b>'+pct(r.breakEvenAds)+'</b><span>'+t("bePrice")+'</span><b>'+(r.breakEvenPrice == null ? "—" : money(r.breakEvenPrice))+'</b></div>'+
-      '<details><summary class="note">'+t("priceL")+' → '+t("l_profit")+'</summary><div class="pf-lines">'+r.lines.map(function(l){ return '<span>'+t("l_"+l.key)+'</span><span class="mono">−'+l.amount.toFixed(2)+'</span>'; }).join("")+'</div></details>'+
-    '</div>';
-  }).join("")+'</div>'+
-  '<div class="legend">'+[["vat","var(--ink-3)"],["referral","var(--saffron)"],["fulfilment","#5B8DEF"],["ads","#C2569B"],["returns","var(--bad)"],["cost","var(--ink-2)"],["profit","var(--good)"]].map(function(x){ return '<span><i style="background:'+x[1]+'"></i>'+t("l_"+x[0])+(x[0] === "referral" ? " · "+t("l_payment") : "")+'</span>'; }).join("")+'</div>';
-}
-function vProfit(){
-  var f = state.pf, cur = COUNTRIES[f.country].currency;
-  var num = function(key, label, step){ return '<div class="field"><label for="pf-'+key+'">'+label+'</label><input id="pf-'+key+'" type="number" min="0" step="'+(step || "any")+'" data-pf="'+key+'" value="'+f[key]+'"></div>'; };
-  return '<div class="head"><div><h1>'+t("profit")+'</h1><p>'+t("profitSub")+'</p></div></div>'+
-  '<div class="grid2 pf-grid">'+
-    '<div style="display:grid;gap:18px;align-content:start">'+
-      '<div class="card" style="display:grid;gap:12px"><div class="form-grid"><div class="field"><label for="pf-country">'+t("country")+'</label><select id="pf-country">'+Object.keys(COUNTRIES).map(function(k){ return '<option value="'+k+'"'+(k === f.country ? " selected" : "")+'>'+tr(COUNTRIES[k].name)+' · '+COUNTRIES[k].currency+' · VAT '+Math.round(COUNTRIES[k].vat * 100)+'%</option>'; }).join("")+'</select></div>'+num("price", t("priceL")+" ("+cur+")")+'</div>'+
-        '<div class="form-grid">'+num("cost", t("costL")+" ("+cur+")")+num("inbound", t("inboundL"))+num("ads", t("adsL"))+num("returns", t("returnsL"))+num("returnCost", t("returnCostL"))+num("cod", t("codL"))+'</div></div>'+
-      '<div class="card"><div class="card-h"><h2>'+t("feesT")+'</h2></div><p class="note" style="margin-bottom:10px">'+t("feesNote")+'</p><div class="scroll-x"><table class="fees"><thead><tr><th></th>'+["referral","fixed","fulfilment","payment","codFee"].map(function(k){ return '<th>'+t("f_"+k)+'</th>'; }).join("")+'</tr></thead><tbody>'+
-        PF_CH.map(function(c){ return '<tr><td><b>'+CH[c].n+'</b></td>'+["referral","fixed","fulfilment","payment","codFee"].map(function(k){ var pc = k === "referral" || k === "payment"; var v = f.fees[c][k]; return '<td><input type="number" min="0" step="any" aria-label="'+CH[c].n+' '+t("f_"+k)+'" data-fee="'+c+'.'+k+'" value="'+(pc ? Math.round(v * 1000) / 10 : v)+'"></td>'; }).join("")+'</tr>'; }).join("")+'</tbody></table></div></div>'+
-    '</div>'+
-    '<div id="pf-out">'+pfResults()+'</div>'+
-  '</div>';
 }
 
 /* import */
@@ -4862,7 +4718,7 @@ function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","audit","catalog","reviews","approvals","templates","photos","profit","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
+  else if (["overview","audit","catalog","reviews","approvals","templates","photos","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
@@ -4878,7 +4734,7 @@ function render(scroll){
   renderSide();
   var r = state.route;
   if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
-  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "profit" ? vProfit() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
+  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
   hydrate(view); paintReport();
   document.title = "Basira · " + t(r === "listing" || r === "empty" ? "catalog" : r);
   if (scroll){
@@ -4957,8 +4813,6 @@ document.addEventListener("input", function(e){
     document.getElementById("audit-out").innerHTML = auditOut(); return;
   }
   if (el.id === "imp-url"){ state.imp.url = el.value; return; }
-  if (el.dataset && el.dataset.pf){ state.pf[el.dataset.pf] = el.value === "" ? 0 : +el.value; document.getElementById("pf-out").innerHTML = pfResults(); return; }
-  if (el.dataset && el.dataset.fee){ var fk = el.dataset.fee.split("."), fv = el.value === "" ? 0 : +el.value; state.pf.fees[fk[0]][fk[1]] = fk[1] === "referral" || fk[1] === "payment" ? fv / 100 : fv; document.getElementById("pf-out").innerHTML = pfResults(); return; }
   if (el.dataset && el.dataset.sf){ var sp = PM[state.pid], ss = setOf(sp)[state.slide]; ss.fields[el.dataset.sf] = el.value; var g = state.gen[state.pid]; if (g && g.phase === "sent") g.phase = "done"; repaint(sp.id, state.slide); var bsc = document.getElementById("bscore"); if (bsc) bsc.outerHTML = scoreCard(slideCheck(sp, ss), "bscore"); persist(); return; }
   if (el.dataset && el.dataset.cp){ var cs = state.copy[state.pid]; if (cs){ var key = el.dataset.cp; cs.edit[key] = /^bullets/.test(key) ? el.value.split("\n") : el.value; var cps = document.getElementById("cpscore"); if (cps) cps.outerHTML = scoreCard(copyCheck(PM[state.pid], cs.edit), "cpscore"); } return; }
   if (el.dataset && el.dataset.id){ var gi = genome(); gi.identity[el.dataset.id] = el.value; persist(); return; }
@@ -4981,7 +4835,6 @@ document.addEventListener("change", function(e){
   if (e.target.id === "bd-imgs" && e.target.files){ readBrandImages(Array.prototype.slice.call(e.target.files, 0, 6)); }
   if (e.target.id === "bd-pdf" && e.target.files && e.target.files[0]){ var pf = e.target.files[0]; if (pf.size > 20 * 1024 * 1024){ state.bd.error = "The PDF is larger than 20 MB"; render(); return; } var pr2 = new FileReader(); pr2.onload = function(){ state.bd.pdf = String(pr2.result); state.bd.pdfName = pf.name; render(); }; pr2.readAsDataURL(pf); }
   if (e.target.id === "pc-channel"){ state.pc.channel = e.target.value; render(); }
-  if (e.target.id === "pf-country"){ state.pf.country = e.target.value; render(); }
   if (e.target.id === "pc-file" && e.target.files){
     Array.prototype.slice.call(e.target.files, 0, Math.max(0, 4 - state.pc.items.length)).forEach(function(file){
       if (file.size > 15 * 1024 * 1024) return;

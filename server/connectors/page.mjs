@@ -1,6 +1,6 @@
 // Read a public product page through the structured data it publishes for search
 // engines (schema.org Product in JSON-LD), with Open Graph tags as a fallback.
-// Works for Noon, Salla, Zid, Shopify and most storefronts.
+// Works for Noon, Salla, Zid and most storefronts.
 import { safeFetch, ConnectorError } from "./net.mjs";
 import { decodeEntities, htmlToText, bulletsFromHtml, hasArabic, makeListing } from "./normalise.mjs";
 

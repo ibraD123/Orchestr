@@ -1,6 +1,6 @@
 # Basira
 
-AI product content intelligence for e-commerce agencies selling on Amazon, Noon, Salla, Zid and Shopify (Arabic and English). The user writes in Russian; answer in Russian.
+AI product content intelligence for e-commerce agencies selling on Noon, Amazon, Salla and Zid (Arabic and English). The user writes in Russian; answer in Russian.
 
 ## Project status and plan
 

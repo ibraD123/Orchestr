@@ -101,9 +101,6 @@ test("every channel gets a file, CSV quoting holds, readme explains the upload",
   }
   const noon = exportFiles("noon", ITEMS, {})[0].content;
   assert.ok(noon.includes('"Smoked oud, ""dark"" amber"'));
-  const shop = exportFiles("shopify", ITEMS, { imageBase: "https://x.test" })[0].content.split("\r\n");
-  assert.ok(shop[1].startsWith('oud-100,Oud Al Layl EDP 100ml,"<ul><li>Lasts 12 hours</li>'), shop[1]);
-  assert.ok(shop[2].startsWith("oud-100,,,https://x.test/OUD-100/2.png,2"));
   assert.match(exportReadme("amazon", 2, { client: "Layali" }), /PartialUpdate/);
 });
 
