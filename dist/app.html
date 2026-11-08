@@ -5311,12 +5311,14 @@ document.addEventListener("click", function(e){
 });
 document.addEventListener("change", function(e){
   var el = e.target, p = PM[state.pid];
+  if (el.dataset && el.dataset.ptap){ var pa = el.dataset.ptap.split("|"), dr = state.ptDraft[state.ws]; if (dr && dr.approvers[+pa[0]]) dr.approvers[+pa[0]][pa[1]] = el.value; return; }
   if (el.id === "cr-pick"){ state.pid = el.value; render(); return; }
   if (el.dataset && el.dataset.crhit != null && p){ var sr = state.cr.search[p.id]; if (sr){ sr.items[+el.dataset.crhit].on = el.checked; render(); } return; }
   if (el.dataset && el.dataset.crsel){ state.cr.sel[el.dataset.crsel] = el.checked; return; }
   if (el.id === "cr-model-file" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ setBrandModel(fr.result); }; fr.readAsDataURL(el.files[0]); return; }
 });
 document.addEventListener("input", function(e){
+  if (e.target.dataset && e.target.dataset.ptap){ var pa = e.target.dataset.ptap.split("|"), dr = state.ptDraft[state.ws]; if (dr && dr.approvers[+pa[0]]) dr.approvers[+pa[0]][pa[1]] = e.target.value; return; }
   if (e.target.id === "cr-links"){ state.cr.links = e.target.value; var b = document.getElementById("cr-read"); if (b) b.disabled = !(state.api && state.api.ai) || state.cr.galBusy || !(state.cr.links.split(/\s+/).some(function(x){ return /^https?:\/\//.test(x); }) || (state.cr.search[state.pid] && state.cr.search[state.pid].items.some(function(x){ return x.on; }))); }
   if (e.target.id === "cr-q" && state.pid){ state.cr.query[state.pid] = e.target.value; }
 });
@@ -5332,9 +5334,14 @@ Object.assign(S, {
   ptReq:["Client requests","طلبات العميل"], ptNoReq:["No requests yet.","لا طلبات بعد."], rk_season:["Season pack","حزمة موسمية"], rk_newProducts:["New products","منتجات جديدة"], rk_fix:["Fix listings","تعديل منتجات"], rk_other:["Other","أخرى"],
   rs_new:["New","جديد"], rs_inProgress:["In progress","قيد التنفيذ"], rs_done:["Done","تم"],
   ptBrief:["Brand questionnaire","استبيان العلامة"], ptBriefNone:["The client hasn't filled it in yet. It's in their portal link.","لم يملأه العميل بعد. هو في رابط البوابة."], ptBriefApply:["Apply to Brand DNA","طبّقه على هوية العلامة"], ptBriefApplied:["Applied to Brand DNA","طُبّق على هوية العلامة"],
-  ptBriefDone:["Brand DNA updated from the questionnaire","حُدّثت هوية العلامة من الاستبيان"]
+  ptBriefDone:["Brand DNA updated from the questionnaire","حُدّثت هوية العلامة من الاستبيان"],
+  ptSettings:["Approvals and package","الموافقات والباقة"], ptApprovers:["Who approves for the client","من يوافق عن العميل"], ptAddApprover:["Add","أضف"], ptApproverName:["Name","الاسم"],
+  ro_marketing:["Marketing","التسويق"], ro_legal:["Legal (claims)","الشؤون القانونية (الادعاءات)"], ro_owner:["Owner","المالك"],
+  ptRemindDays:["Remind after (days)","ذكّر بعد (أيام)"], ptMonthly:["Fixes in the monthly package","التعديلات في الباقة الشهرية"], ptSaveSettings:["Save","احفظ"], ptSettingsSaved:["Saved","تم الحفظ"],
+  ptRemind:["Remind on WhatsApp ({d} days waiting)","ذكّر عبر واتساب (بانتظار منذ {d} أيام)"], ptRemindText:["A reminder: {n} products for {brand} are waiting for your approval:","تذكير: {n} منتجات لـ{brand} بانتظار موافقتك:"],
+  ptLegalWait:["waiting for legal","بانتظار القانوني"], ptPackageUse:["Package: {used} of {limit} this month","الباقة: {used} من {limit} هذا الشهر"], ptOver:["{n} over","{n} فوق الباقة"]
 });
-Object.assign(state, {portal:{}, ptLink:{}, ptBusy:false});
+Object.assign(state, {portal:{}, ptLink:{}, ptBusy:false, ptDraft:{}});
 
 function portalLoad(ws, force){
   ws = ws || state.ws;
@@ -5383,7 +5390,7 @@ function portalSend(){
     var p = PM[q.pid];
     return Promise.all([ensureDataImage(p).then(shrinkForAi).catch(function(){ return null; }), slideImages(p)]).then(function(x){
       if (!x[1].length) return;
-      items.push({key: q.id+"|"+p.id, name: tr(p.name), before:{image: x[0], copy:{titleEn: p.name[0], titleAr: p.name[1]}}, after:{images: x[1], copy:{titleEn: p.newTitle || p.name[0], titleAr: p.name[1]}}});
+      items.push({key: q.id+"|"+p.id, name: tr(p.name), needsLegal: (p.issues || []).indexOf("claim") > -1, before:{image: x[0], copy:{titleEn: p.name[0], titleAr: p.name[1]}}, after:{images: x[1], copy:{titleEn: p.newTitle || p.name[0], titleAr: p.name[1]}}});
     });
   }); }, Promise.resolve()).then(function(){
     if (!items.length) throw new Error(t("ptNeedsRender"));
@@ -5410,6 +5417,14 @@ function applyBrief(b){
   return apiJson("/api/portal/"+state.ws+"/brief/applied", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"}).then(function(){ toast(t("ptBriefDone")); return portalLoad(state.ws, true); });
 }
 
+function ptSettingsBlock(st){
+  var d = state.ptDraft[state.ws] || (state.ptDraft[state.ws] = JSON.parse(JSON.stringify(st || {approvers:[], remindAfterDays:3, monthlyFixes:null})));
+  return '<details style="margin-top:14px"><summary class="lbl" style="cursor:pointer">'+t("ptSettings")+'</summary><div style="display:grid;gap:10px;margin-top:10px">'+
+    '<span class="note">'+t("ptApprovers")+'</span>'+d.approvers.map(function(a, i){ return '<div class="exp-row"><input class="cr-q" data-ptap="'+i+'|name" value="'+esc(a.name)+'" aria-label="'+t("ptApproverName")+'"><select class="sel" data-ptap="'+i+'|role">'+["marketing","legal","owner"].map(function(r){ return '<option value="'+r+'"'+(a.role === r ? " selected" : "")+'>'+t("ro_"+r)+'</option>'; }).join("")+'</select><button type="button" class="btn btn-ghost btn-sm" data-ptapdel="'+i+'">×</button></div>'; }).join("")+
+    '<div><button type="button" class="btn btn-ghost btn-sm" id="pt-apadd">+ '+t("ptAddApprover")+'</button></div>'+
+    '<div class="exp-row"><label class="tpl-for">'+t("ptRemindDays")+' <input class="cr-q" style="width:80px;flex:none" type="number" min="1" max="30" id="pt-remind" value="'+(d.remindAfterDays || 3)+'"></label><label class="tpl-for">'+t("ptMonthly")+' <input class="cr-q" style="width:90px;flex:none" type="number" min="0" id="pt-monthly" value="'+(d.monthlyFixes || "")+'"></label></div>'+
+    '<div><button type="button" class="btn btn-primary btn-sm" id="pt-savesettings">'+t("ptSaveSettings")+'</button></div></div></details>';
+}
 function vPortalCard(){
   var server = state.api && state.api.store, p = state.portal[state.ws], s = p && p.summary, link = state.ptLink[state.ws] || (p && p.url);
   if (!server) return "";
@@ -5427,9 +5442,11 @@ function vPortalCard(){
   }).join(""); }).join("") : "";
   var reqs = p ? p.requests.slice().reverse() : [];
   var b = p && p.brief;
-  return '<div class="card"><div class="card-h"><h2>'+t("ptT")+'</h2>'+(s ? '<span class="note">'+s.waiting+' '+t("ptWaiting")+(s.openComments ? ' · '+s.openComments+' '+t("ptOpenC") : "")+'</span>' : "")+'</div>'+
+  var pk = s && s.report && s.report.package;
+  return '<div class="card"><div class="card-h"><h2>'+t("ptT")+'</h2>'+(s ? '<span class="note">'+s.waiting+' '+t("ptWaiting")+(s.waitingLegal ? ' · '+s.waitingLegal+' '+t("ptLegalWait") : "")+(s.openComments ? ' · '+s.openComments+' '+t("ptOpenC") : "")+(pk ? ' · '+tf("ptPackageUse", {used: pk.used, limit: pk.limit})+(pk.over ? ' ('+tf("ptOver", {n: pk.over})+')' : "") : "")+'</span>' : "")+'</div>'+
     '<p class="note" style="margin-bottom:12px">'+t("ptSub")+'</p>'+
     '<div class="exp-row">'+(link ? '<input class="cr-q" readonly value="'+esc(link)+'" id="pt-url" dir="ltr"><button type="button" class="btn btn-ghost btn-sm" id="pt-copy">'+t("ptCopy")+'</button><a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(tf("ptWaText", {brand: brand})+" "+link)+'">'+t("ptWa")+'</a>' : "")+
+      (s && s.remind && link ? '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(tf("ptRemindText", {n: s.waiting, brand: brand})+" "+link)+'">'+tf("ptRemind", {d: s.oldestPendingDays})+'</a>' : "")+
       '<button type="button" class="btn btn-ghost btn-sm" id="pt-link">'+t(link ? "ptNewLink" : "ptLink")+'</button>'+
       '<button type="button" class="btn btn-primary btn-sm" id="pt-send"'+(state.ptBusy ? " disabled" : "")+'>'+t(state.ptBusy ? "ptSending" : "ptSend")+'</button></div>'+
     (answers ? '<div style="margin-top:14px;display:grid;gap:10px"><span class="lbl">'+t("ptAnswers")+'</span>'+answers+'</div>' : "")+
@@ -5437,6 +5454,7 @@ function vPortalCard(){
       '<div class="seg" role="group">'+["new","inProgress","done"].map(function(st){ return '<button type="button" data-ptreq="'+q.id+'|'+st+'" aria-pressed="'+(q.status === st)+'">'+t("rs_"+st)+'</button>'; }).join("")+'</div></div>'; }).join("") : '<p class="note">'+t("ptNoReq")+'</p>')+'</div>'+
     '<div style="margin-top:14px"><span class="lbl">'+t("ptBrief")+'</span>'+(b ? '<div class="note" style="display:grid;gap:2px">'+[b.name && (b.name+(b.nameAr ? " · "+b.nameAr : "")), b.about, b.audience, [b.voice, b.dialect, b.languages, b.numerals].filter(Boolean).join(" · "), b.colours && b.colours.join(" "), b.useWords && b.useWords.length && "+ "+b.useWords.join(", "), b.avoidWords && b.avoidWords.length && "− "+b.avoidWords.join(", "), b.claims, b.examples].filter(Boolean).map(function(x){ return '<div>'+esc(x)+'</div>'; }).join("")+'</div>'+
       '<div style="margin-top:8px">'+(b.appliedAt ? '<span class="tag good">'+t("ptBriefApplied")+'</span>' : '<button type="button" class="btn btn-primary btn-sm" id="pt-brief">'+t("ptBriefApply")+'</button>')+'</div>' : '<p class="note">'+t("ptBriefNone")+'</p>')+'</div>'+
+    (p ? ptSettingsBlock(p.settings) : "")+
   '</div>';
 }
 
@@ -5447,6 +5465,14 @@ document.addEventListener("click", function(e){
   if (e.target.closest("#pt-copy")){ var u = document.getElementById("pt-url"); if (u){ (navigator.clipboard ? navigator.clipboard.writeText(u.value) : Promise.reject()).then(function(){ toast(t("ptCopied")); }).catch(function(){ u.select(); }); } return; }
   if ((el = e.target.closest("[data-ptresolve]"))){ var a = el.dataset.ptresolve.split("|"); apiJson("/api/portal/"+state.ws+"/reviews/"+a[0]+"/items/"+a[1], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({resolve:"all"})}).then(function(){ return portalLoad(state.ws, true); }); return; }
   if ((el = e.target.closest("[data-ptreq]"))){ var b = el.dataset.ptreq.split("|"); apiJson("/api/portal/"+state.ws+"/requests/"+b[0], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status:b[1]})}).then(function(){ return portalLoad(state.ws, true); }); return; }
+  if (e.target.closest("#pt-apadd")){ var dd = state.ptDraft[state.ws]; if (dd){ dd.approvers.push({name:"", role:"marketing"}); render(); } return; }
+  if ((el = e.target.closest("[data-ptapdel]"))){ var d2 = state.ptDraft[state.ws]; if (d2){ d2.approvers.splice(+el.dataset.ptapdel, 1); render(); } return; }
+  if (e.target.closest("#pt-savesettings")){
+    var d3 = state.ptDraft[state.ws], rem = document.getElementById("pt-remind"), mon = document.getElementById("pt-monthly");
+    d3.remindAfterDays = +rem.value; d3.monthlyFixes = mon.value === "" ? null : +mon.value;
+    apiJson("/api/portal/"+state.ws+"/settings", {method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify(d3)}).then(function(st){ state.ptDraft[state.ws] = null; toast(t("ptSettingsSaved")); return portalLoad(state.ws, true); }).catch(function(e2){ toast(e2.message); });
+    return;
+  }
   if (e.target.closest("#pt-brief")){ var p = state.portal[state.ws]; if (p && p.brief) applyBrief(p.brief); return; }
 });
 

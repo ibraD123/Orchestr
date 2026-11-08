@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { emptyPortal, newReview, decide, newRequest, normaliseBrief, clientView, portalSummary } from "../server/portal.mjs";
+import { emptyPortal, newReview, decide, newRequest, normaliseBrief, clientView, portalSummary, normaliseSettings, monthReport, library, waitingOn } from "../server/portal.mjs";
 
 const PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
@@ -42,6 +42,40 @@ test("requests and the questionnaire are cleaned up before they are stored", () 
   assert.equal(b.logo, null, "only images are kept as a logo");
   const v = clientView({ ...emptyPortal(), brief: { ...b, logo: "data:image/png;base64,AA" } }, { brand: { name: "L" }, agency: { name: "A" } });
   assert.equal(v.brief.logo, true, "the logo isn't sent back to the page");
+});
+
+test("claims need the client's legal approver; reminders, the monthly package, report and library", () => {
+  const p = emptyPortal();
+  p.settings = normaliseSettings({ approvers: [{ name: "Huda", role: "marketing" }, { name: "Omar", role: "legal" }, { name: "", role: "legal" }], remindAfterDays: 2, monthlyFixes: "1" });
+  assert.equal(p.settings.approvers.length, 2, "an approver needs a name");
+  assert.equal(p.settings.monthlyFixes, 1);
+  assert.equal(normaliseSettings({ remindAfterDays: 99 }, p.settings).remindAfterDays, 2, "out-of-range days keep the old value");
+  const [huda, omar] = p.settings.approvers;
+  const r = newReview({ items: [{ key: "q1|cream", name: "Cream", needsLegal: true, after: { images: ["/a.png"] } }, { key: "q2|oud", name: "Oud", after: { images: ["/b.png"] } }] }, "2026-11-01T10:00:00.000Z");
+  p.reviews.push(r);
+  decide(p, r.id, 0, { decision: "approve", approver: huda.id }, "2026-11-02T10:00:00.000Z");
+  assert.equal(r.items[0].status, "pending", "marketing alone can't approve a product with claims");
+  assert.equal(waitingOn(r.items[0], p.settings), "legal");
+  decide(p, r.id, 0, { decision: "approve", approver: omar.id }, "2026-11-03T10:00:00.000Z");
+  assert.equal(r.items[0].status, "approved");
+  assert.equal(r.items[0].comments.length, 0);
+  // Without a legal approver on the client's side, anyone's approval is enough.
+  const q = emptyPortal(); q.reviews.push(newReview({ items: [{ key: "x", name: "X", needsLegal: true, after: { images: ["/c.png"] } }] }));
+  decide(q, q.reviews[0].id, 0, { decision: "approve" });
+  assert.equal(q.reviews[0].items[0].status, "approved");
+
+  decide(p, r.id, 1, { decision: "approve", approver: huda.id }, "2026-11-04T10:00:00.000Z");
+  const rep = monthReport(p, new Date("2026-11-20T00:00:00Z"));
+  assert.deepEqual([rep.sent, rep.approved, rep.package.used, rep.package.over], [2, 2, 2, 1]);
+  assert.equal(monthReport(p, new Date("2026-12-05T00:00:00Z")).approved, 0, "a new month starts from zero");
+  assert.deepEqual(library(p).map((x) => x.name), ["Cream", "Oud"]);
+  const view = clientView(p, { brand: {}, agency: {} }, new Date("2026-11-20T00:00:00Z"));
+  assert.deepEqual(view.approvers.map((a) => a.role), ["marketing", "legal"]);
+  assert.equal(view.reviews[0].items[0].needs.includes("legal"), true);
+
+  const w = emptyPortal(); w.settings = normaliseSettings({ remindAfterDays: 3 });
+  w.reviews.push(newReview({ items: [{ key: "k", name: "K", after: { images: ["/d.png"] } }] }, "2026-11-01T00:00:00.000Z"));
+  assert.deepEqual([portalSummary(w, new Date("2026-11-02T12:00:00Z")).remind, portalSummary(w, new Date("2026-11-05T00:00:00Z")).remind, portalSummary(w, new Date("2026-11-05T00:00:00Z")).oldestPendingDays], [false, true, 4]);
 });
 
 let dir, server, base;
@@ -92,6 +126,9 @@ test("end to end: link, send, the client answers through the link, the agency se
   await call("PATCH", `/api/portal/layali/reviews/${rid}/items/0`, { synced: true, resolve: "all" });
   await call("PATCH", `/api/portal/layali/requests/${agency.body.requests[0].id}`, { status: "inProgress" });
   await call("POST", "/api/portal/layali/brief/applied", {});
+  const st = await call("PUT", "/api/portal/layali/settings", { approvers: [{ name: "Omar", role: "legal" }], monthlyFixes: 20 });
+  assert.equal(st.body.monthlyFixes, 20);
+  assert.equal((await call("GET", "/api/c/" + token)).body.approvers[0].role, "legal", "the client sees who approves");
   const after2 = await call("GET", "/api/portal/layali");
   assert.deepEqual([after2.body.summary.unsynced, after2.body.summary.openComments, after2.body.requests[0].status, after2.body.summary.briefWaiting], [0, 0, "inProgress", false]);
 

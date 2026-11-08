@@ -5,13 +5,32 @@
 
 export const REQUEST_KINDS = ["season", "newProducts", "fix", "other"];
 export const REQUEST_STATUS = ["new", "inProgress", "done"];
+export const ROLES = ["marketing", "legal", "owner"];
 const MAX = { reviewItems: 30, images: 12, comment: 1500, pins: 20, requestText: 2000, links: 20, words: 30 };
 
 const str = (v, n) => String(v == null ? "" : v).trim().slice(0, n);
 const id = (prefix) => prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const fail = (msg, status = 400) => { const e = new Error(msg); e.status = status; throw e; };
 
-export function emptyPortal() { return { reviews: [], requests: [], brief: null, events: [] }; }
+export function emptyPortal() { return { reviews: [], requests: [], brief: null, events: [], settings: defaultSettings() }; }
+export function defaultSettings() { return { approvers: [], remindAfterDays: 3, monthlyFixes: null }; }
+
+/**
+ * Who approves for the client, when to remind them, and how many fixes the monthly package holds.
+ * approvers: [{ name, role: marketing | legal | owner }]. A product with health or other regulated
+ * claims needs a "legal" approver as well when the client has one.
+ */
+export function normaliseSettings(b, prev) {
+  const base = Object.assign(defaultSettings(), prev || {});
+  const approvers = Array.isArray(b.approvers) ? b.approvers.slice(0, 10).map((a) => ({ id: str(a.id, 20) || id("a"), name: str(a.name, 80), role: ROLES.includes(a.role) ? a.role : "marketing" })).filter((a) => a.name) : base.approvers;
+  const days = Number(b.remindAfterDays);
+  const fixes = b.monthlyFixes === null || b.monthlyFixes === "" ? null : Number(b.monthlyFixes);
+  return {
+    approvers,
+    remindAfterDays: Number.isFinite(days) && days >= 1 && days <= 30 ? Math.round(days) : base.remindAfterDays,
+    monthlyFixes: b.monthlyFixes === undefined ? base.monthlyFixes : Number.isFinite(fixes) && fixes > 0 ? Math.round(fixes) : null
+  };
+}
 
 /**
  * A package the agency sends for approval. Images are already stored; here they are URLs.
@@ -22,6 +41,8 @@ export function newReview(input, at = new Date().toISOString()) {
     key: str(it.key, 80), name: str(it.name, 200),
     before: { image: it.before && it.before.image ? str(it.before.image, 500) : null, copy: copyOf(it.before && it.before.copy) },
     after: { images: (it.after && Array.isArray(it.after.images) ? it.after.images : []).slice(0, MAX.images).map((u) => str(u, 500)), copy: copyOf(it.after && it.after.copy) },
+    // "legal" means the product carries claims (health, certificates) that the client's legal approver must see.
+    needs: it.needsLegal ? ["any", "legal"] : ["any"], approvals: {},
     status: "pending", comments: [], decidedAt: null, synced: false
   })).filter((it) => it.key && it.after.images.length);
   if (!items.length) fail("Nothing to send: add products with images first");
@@ -49,10 +70,30 @@ export function decide(portal, reviewId, index, body, at = new Date().toISOStrin
   })).filter((p) => p.text);
   const text = str(body.comment, MAX.comment);
   if (decision === "changes" && !text && !pins.length) fail("Say what to change, or pin a comment on the image");
-  if (text || pins.length) it.comments.push({ id: id("c"), by: str(body.name, 80) || "Client", text, pins, at, resolved: false });
-  if (decision) { it.status = decision; it.decidedAt = at; it.synced = false; }
+  const settings = Object.assign(defaultSettings(), portal.settings || {});
+  const approver = settings.approvers.find((a) => a.id === body.approver);
+  const who = approver ? approver.name : str(body.name, 80) || "Client";
+  if (text || pins.length) it.comments.push({ id: id("c"), by: who, role: approver ? approver.role : null, text, pins, at, resolved: false });
+  if (decision === "changes") { it.status = "changes"; it.decidedAt = at; it.synced = false; }
+  if (decision === "approved") {
+    // Every approval the item needs: anyone for "any"; a legal approver for "legal", when the client has one.
+    it.approvals = it.approvals || {};
+    it.approvals.any = { by: who, at };
+    if (approver && approver.role === "legal") it.approvals.legal = { by: who, at };
+    const hasLegal = settings.approvers.some((a) => a.role === "legal");
+    const needs = (it.needs || ["any"]).filter((n) => n !== "legal" || hasLegal);
+    if (needs.every((n) => it.approvals[n])) { it.status = "approved"; it.decidedAt = at; it.synced = false; }
+  }
   portal.events.push({ type: decision || "comment", review: r.id, item: it.key, at });
   return it;
+}
+
+/** What still waits on someone: "legal" when only the legal approval is missing. */
+export function waitingOn(it, settings) {
+  if (it.status !== "pending") return null;
+  const hasLegal = (settings && settings.approvers || []).some((a) => a.role === "legal");
+  if (it.approvals && it.approvals.any && (it.needs || []).includes("legal") && hasLegal && !(it.approvals.legal)) return "legal";
+  return "any";
 }
 const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
 
@@ -87,19 +128,56 @@ export function normaliseBrief(b, at = new Date().toISOString()) {
 }
 
 /** What the client sees: no internal notes, no other clients, comments marked resolved when the agency fixed them. */
-export function clientView(portal, { brand, agency }) {
+export function clientView(portal, { brand, agency }, now = new Date()) {
+  const settings = Object.assign(defaultSettings(), portal.settings || {});
   return {
     brand, agency,
-    reviews: portal.reviews.slice(-20).reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments })) })),
+    approvers: settings.approvers.map((a) => ({ id: a.id, name: a.name, role: a.role })),
+    report: monthReport(portal, now),
+    library: library(portal),
+    reviews: portal.reviews.slice(-20).reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments, needs: it.needs || ["any"], approvals: it.approvals || {}, waitingOn: waitingOn(it, settings) })) })),
     requests: portal.requests.slice(-30).reverse(),
     brief: portal.brief ? { ...portal.brief, logo: portal.brief.logo ? true : null } : null
   };
 }
 
-/** Counts for the agency: what waits on the client, what the client answered and hasn't been handled. */
-export function portalSummary(portal) {
-  const items = portal.reviews.flatMap((r) => r.items);
+/** This month for the client: what was sent, approved, waits, and how much of the package is used. */
+export function monthReport(portal, now = new Date()) {
+  const month = now.toISOString().slice(0, 7);
+  const items = portal.reviews.flatMap((r) => r.items.map((it) => ({ ...it, sentAt: r.sentAt })));
+  const inMonth = (d) => String(d || "").slice(0, 7) === month;
+  const approved = items.filter((i) => i.status === "approved" && inMonth(i.decidedAt));
+  const limit = (portal.settings && portal.settings.monthlyFixes) || null;
   return {
+    month,
+    sent: items.filter((i) => inMonth(i.sentAt)).length,
+    approved: approved.length,
+    waiting: items.filter((i) => i.status === "pending").length,
+    changes: items.filter((i) => i.status === "changes").length,
+    requestsOpen: portal.requests.filter((q) => q.status !== "done").length,
+    requestsDone: portal.requests.filter((q) => q.status === "done" && inMonth(q.doneAt || q.at)).length,
+    package: limit ? { limit, used: approved.length, over: Math.max(0, approved.length - limit) } : null,
+    recent: approved.slice(-8).reverse().map((i) => ({ name: i.name, image: i.after.images[0] || null, at: i.decidedAt }))
+  };
+}
+
+/** Everything the client approved, newest first: the images they can reuse anywhere. */
+export function library(portal) {
+  return portal.reviews.slice().reverse().flatMap((r) => r.items.filter((it) => it.status === "approved").map((it) => ({ name: it.name, at: it.decidedAt, images: it.after.images }))).slice(0, 60);
+}
+
+/** Counts for the agency: what waits on the client, what the client answered and hasn't been handled. */
+export function portalSummary(portal, now = new Date()) {
+  const items = portal.reviews.flatMap((r) => r.items.map((it) => ({ ...it, sentAt: r.sentAt })));
+  const settings = Object.assign(defaultSettings(), portal.settings || {});
+  const pending = items.filter((i) => i.status === "pending");
+  const oldest = pending.reduce((m, i) => Math.min(m, new Date(i.sentAt).getTime()), Infinity);
+  const days = Number.isFinite(oldest) ? Math.floor((now.getTime() - oldest) / 86400000) : 0;
+  return {
+    oldestPendingDays: days,
+    remind: pending.length > 0 && days >= settings.remindAfterDays,
+    waitingLegal: pending.filter((i) => waitingOn(i, settings) === "legal").length,
+    report: monthReport(portal, now),
     waiting: items.filter((i) => i.status === "pending").length,
     approved: items.filter((i) => i.status === "approved").length,
     changes: items.filter((i) => i.status === "changes").length,

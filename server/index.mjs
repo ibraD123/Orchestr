@@ -25,7 +25,7 @@ import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } fr
 import { generateSlide, slideGenConfigured, readBackText, checkProduct } from "./slidegen.mjs";
 import { generateVideo, falVideo, videoInput, videoGenConfigured, VIDEO_MODEL } from "./videogen.mjs";
 import { labelImage } from "./ai-label.mjs";
-import { emptyPortal, newReview, decide, newRequest, normaliseBrief, clientView, portalSummary, REQUEST_STATUS } from "./portal.mjs";
+import { newReview, decide, newRequest, normaliseBrief, normaliseSettings, defaultSettings, clientView, portalSummary, REQUEST_STATUS } from "./portal.mjs";
 import { analyseCompetitors } from "./gallery.mjs";
 import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
@@ -340,6 +340,7 @@ const paramRoutes = [
   }],
   ["GET", /^\/api\/portal\/([a-z0-9-]+)$/, async (m, body, { store, req }) => {
     const { link, ...p } = await store.getPortal(m[1]);
+    p.settings = Object.assign(defaultSettings(), p.settings || {});
     return { ...p, url: link ? `${origin(req)}/c/${link.token}` : null, summary: portalSummary(p) };
   }],
   // Send products for approval: images come as data URLs and are stored with the client's assets.
@@ -377,9 +378,11 @@ const paramRoutes = [
   ["PATCH", /^\/api\/portal\/([a-z0-9-]+)\/requests\/([a-z0-9]+)$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => {
     const q = p.requests.find((x) => x.id === m[2]);
     if (!q) fail("Unknown request", 404);
-    if (REQUEST_STATUS.includes(body.status)) q.status = body.status;
+    if (REQUEST_STATUS.includes(body.status)) { q.status = body.status; q.doneAt = body.status === "done" ? new Date().toISOString() : null; }
     return q;
   })],
+  // Who approves for the client, when to remind, the monthly package.
+  ["PUT", /^\/api\/portal\/([a-z0-9-]+)\/settings$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.settings = normaliseSettings(body || {}, p.settings); return p.settings; })],
   ["POST", /^\/api\/portal\/([a-z0-9-]+)\/brief\/applied$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { if (p.brief) p.brief.appliedAt = new Date().toISOString(); return { ok: true }; })],
   // Hosted export files: images marketplaces fetch by link, and the ZIP. Public on purpose: account and batch ids are long and random.
   ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|zip))$/, async (m) => {

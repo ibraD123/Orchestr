@@ -67,7 +67,7 @@ label.f{display:grid;gap:6px;font-size:13.5px;color:var(--ink-2)}
 <header><div class="wrap">
   <div class="top"><img id="logo" alt="" hidden><div><h1 id="brand">…</h1><small id="agency"></small></div>
     <div class="lang" role="group"><button type="button" data-lang="en">EN</button><button type="button" data-lang="ar">ع</button></div></div>
-  <nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="reviews"></button><button type="button" role="tab" data-tab="requests"></button><button type="button" role="tab" data-tab="brief"></button></nav>
+  <nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="reviews"></button><button type="button" role="tab" data-tab="requests"></button><button type="button" role="tab" data-tab="report"></button><button type="button" role="tab" data-tab="library"></button><button type="button" role="tab" data-tab="brief"></button></nav>
 </div></header>
 <main class="wrap" id="main"><p class="empty">…</p></main>
 <script>
@@ -93,6 +93,11 @@ var T = {
   bColours:["Brand colours (hex, e.g. #2A1A0E)","ألوان العلامة (مثل ‎#2A1A0E)"], bUse:["Words you like to use","كلمات تحب استخدامها"], bAvoid:["Words never to use","كلمات لا تُستخدم أبداً"],
   bClaims:["Claims that need care (health, certificates)","ادعاءات تحتاج حذراً (صحية، شهادات)"], bExamples:["Brands or listings you like, and ones you don't","علامات أو صفحات تعجبك وأخرى لا تعجبك"], bLogo:["Logo (PNG, JPEG, WebP or SVG, up to 1 MB)","الشعار (PNG أو JPEG أو WebP أو SVG حتى 1 ميغابايت)"],
   bSave:["Send to the agency","أرسل إلى الوكالة"], bSaved:["Received. Your agency will apply it to your brand rules.","تم الاستلام. ستطبقه الوكالة على قواعد علامتك."], bApplied:["Applied by the agency","طبقته الوكالة"], choose:["Choose…","اختر…"],
+  report:["Report","التقرير"], library:["Library","المكتبة"], who:["Who is answering?","من يجيب؟"], waitLegal:["Waiting for legal approval","بانتظار موافقة الشؤون القانونية"], needsLegal:["Has claims: legal approves too","يتضمن ادعاءات: توافق الشؤون القانونية أيضاً"],
+  ro_marketing:["Marketing","التسويق"], ro_legal:["Legal","الشؤون القانونية"], ro_owner:["Owner","المالك"],
+  rpMonth:["This month","هذا الشهر"], rpSent:["Sent for approval","أُرسل للموافقة"], rpApproved:["Approved","تمت الموافقة"], rpWaiting:["Waiting for you","بانتظارك"], rpChanges:["Changes requested","طُلبت تعديلات"],
+  rpReqOpen:["Requests in work","طلبات قيد العمل"], rpReqDone:["Requests done","طلبات منجزة"], rpPackage:["Monthly package","الباقة الشهرية"], rpUsed:["{used} of {limit} fixes used","استُخدم {used} من {limit} تعديلاً"], rpOver:["{n} over the package","{n} فوق الباقة"], rpRecent:["Recently approved","تمت الموافقة مؤخراً"],
+  libEmpty:["Approved images appear here.","تظهر هنا الصور المعتمدة."], download:["Download","تنزيل"],
   err:["Something went wrong:","حدث خطأ:"], gone:["This link isn't valid any more. Ask your agency for a new one.","هذا الرابط لم يعد صالحاً. اطلب رابطاً جديداً من الوكالة."]
 };
 var token = location.pathname.split("/").pop(), data = null, tab = "reviews", drafts = {}, lang = "en";
@@ -102,6 +107,7 @@ function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c
 function api(path, opts){ return fetch("/api/c/" + token + path, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); }); }
 function send(path, method, body){ return api(path, {method: method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)}); }
 function name(){ try { return localStorage.getItem("basira-portal-name") || ""; } catch (e) { return ""; } }
+function approver(){ try { return localStorage.getItem("basira-portal-approver") || ""; } catch (e) { return ""; } }
 function setLang(l){ lang = l; document.documentElement.lang = l; document.documentElement.dir = l === "ar" ? "rtl" : "ltr"; try { localStorage.setItem("basira-portal-lang", l); } catch (e) {} render(); }
 function load(){ return api("").then(function(j){ data = j; render(); }).catch(function(e){ document.getElementById("main").innerHTML = '<p class="empty">' + (e.status === 404 ? t("gone") : esc(t("err") + " " + e.message)) + "</p>"; }); }
 
@@ -116,7 +122,7 @@ function render(){
   var waiting = data.reviews.reduce(function(n, r){ return n + r.items.filter(function(i){ return i.status === "pending"; }).length; }, 0);
   document.querySelectorAll("[data-tab]").forEach(function(b){ b.setAttribute("aria-selected", String(b.dataset.tab === tab)); b.innerHTML = esc(t(b.dataset.tab)) + (b.dataset.tab === "reviews" && waiting ? '<span class="badge">' + waiting + "</span>" : ""); });
   var m = document.getElementById("main");
-  m.innerHTML = tab === "requests" ? vRequests() : tab === "brief" ? vBrief() : vReviews();
+  m.innerHTML = tab === "requests" ? vRequests() : tab === "brief" ? vBrief() : tab === "report" ? vReport() : tab === "library" ? vLibrary() : vReviews();
 }
 
 function copyHTML(c){
@@ -128,14 +134,15 @@ function vReviews(){
   var items = [];
   data.reviews.forEach(function(r){ r.items.forEach(function(it, i){ items.push({r: r, it: it, i: i}); }); });
   if (!items.length) return '<p class="empty">' + t("nothing") + "</p>";
+  var whoSel = data.approvers && data.approvers.length ? '<div class="card"><label class="f">' + t("who") + '<select id="who"><option value="">' + t("choose") + "</option>" + data.approvers.map(function(a){ return '<option value="' + esc(a.id) + '"' + (approver() === a.id ? " selected" : "") + ">" + esc(a.name) + " · " + t("ro_" + a.role) + "</option>"; }).join("") + "</select></label></div>" : "";
   items.sort(function(a, b){ return (a.it.status === "pending" ? 0 : 1) - (b.it.status === "pending" ? 0 : 1); });
-  return items.map(function(x){
+  return whoSel + items.map(function(x){
     var it = x.it, k = x.r.id + ":" + x.i, d = drafts[k] || (drafts[k] = {pins: [], text: ""});
     var n = 0, pinsByImg = {};
     it.comments.forEach(function(c){ c.pins.forEach(function(p){ n++; (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: n, done: c.resolved}); }); });
     d.pins.forEach(function(p, j){ (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: "+" + (j + 1), draft: true}); });
     var st = it.status === "pending" ? "warn" : it.status === "approved" ? "good" : "bad";
-    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + '</h2><span class="tag ' + st + '">' + t("st_" + it.status) + '</span><span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
+    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
       '<div class="ba"><div class="before"><span class="lbl">' + t("before") + "</span>" + (it.before.image ? '<div class="shot"><img src="' + esc(it.before.image) + '" alt=""></div>' : "") + copyHTML(it.before.copy) + "</div>" +
       '<div><span class="lbl">' + t("after") + '</span><div class="imgs">' + it.after.images.map(function(src, j){
         return '<div class="shot" data-img="' + j + '"><img src="' + esc(src) + '" alt="">' + (pinsByImg[j] || []).map(function(p){ return '<span class="pin' + (p.draft ? " draft" : p.done ? " done" : "") + '" style="left:' + (p.x * 100) + "%;top:" + (p.y * 100) + '%">' + p.n + "</span>"; }).join("") + "</div>";
@@ -149,6 +156,17 @@ function vReviews(){
 }
 
 function opt(key, list, cur){ return '<select data-b="' + key + '"><option value="">' + t("choose") + "</option>" + list.map(function(v){ return '<option value="' + v + '"' + (cur === v ? " selected" : "") + ">" + t(v.length > 2 && T[key[0] + "_" + v] ? key[0] + "_" + v : v) + "</option>"; }).join("") + "</select>"; }
+function vReport(){
+  var r = data.report, stat = function(k, v){ return '<div class="card" style="margin:0"><div class="note">' + t(k) + '</div><div style="font-size:28px;font-weight:700">' + v + "</div></div>"; };
+  return '<section class="card"><h2>' + t("rpMonth") + ' <span class="note">' + esc(r.month) + "</span></h2>" +
+    '<div class="imgs" style="margin-top:12px">' + stat("rpSent", r.sent) + stat("rpApproved", r.approved) + stat("rpWaiting", r.waiting) + stat("rpChanges", r.changes) + stat("rpReqOpen", r.requestsOpen) + stat("rpReqDone", r.requestsDone) + "</div>" +
+    (r.package ? '<div style="margin-top:14px"><span class="lbl">' + t("rpPackage") + '</span><div style="height:10px;border-radius:6px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, Math.round(r.package.used / r.package.limit * 100)) + '%;background:var(--accent)"></i></div><p class="note" style="margin-top:6px">' + t("rpUsed").replace("{used}", r.package.used).replace("{limit}", r.package.limit) + (r.package.over ? " · " + t("rpOver").replace("{n}", r.package.over) : "") + "</p></div>" : "") + "</section>" +
+    (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? '<img src="' + esc(x.image) + '" alt="">' : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
+}
+function vLibrary(){
+  if (!data.library.length) return '<p class="empty">' + t("libEmpty") + "</p>";
+  return data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default"><img src="' + esc(src) + '" alt=""></div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
+}
 var req = {kind: "season", text: "", links: "", due: "", msg: null};
 function vRequests(){
   return '<section class="card"><h2>' + t("reqNew") + '</h2><div style="display:grid;gap:12px;margin-top:10px">' +
@@ -185,7 +203,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-act]"))){
     var a = el.dataset.act.split("|"), key = a[1], parts = key.split(":"), dd = drafts[key] || {pins: [], text: ""};
     dd.err = null; dd.ok = false;
-    send("/reviews/" + parts[0] + "/items/" + parts[1], "POST", {decision: a[0], comment: dd.text, pins: dd.pins, name: name()})
+    send("/reviews/" + parts[0] + "/items/" + parts[1], "POST", {decision: a[0], comment: dd.text, pins: dd.pins, name: name(), approver: approver()})
       .then(function(){ drafts[key] = {pins: [], text: "", ok: true}; return load(); })
       .catch(function(err){ dd.err = err.message; render(); });
     return;
@@ -211,6 +229,7 @@ document.addEventListener("input", function(e){
 document.addEventListener("change", function(e){
   var el = e.target;
   if (el.id === "rq-kind") req.kind = el.value;
+  if (el.id === "who"){ try { localStorage.setItem("basira-portal-approver", el.value); } catch (x) {} }
   if (el.dataset.b && brief) brief[el.dataset.b] = el.value;
   if (el.id === "bf-logo" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ brief.logo = fr.result; }; fr.readAsDataURL(el.files[0]); }
 });
