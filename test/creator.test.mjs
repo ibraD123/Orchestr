@@ -255,3 +255,34 @@ test("the language model goes through fal when there is no Anthropic key, and it
     for (const [k, v] of [["ANTHROPIC_API_KEY", saved.a], ["ANTHROPIC_AUTH_TOKEN", saved.t], ["FAL_KEY", saved.f]]) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
   }
 });
+
+test("Noon: JPEG exports, a search card on white, its rules as a risk, and the AI label in JPEGs", async () => {
+  const { templateHTML, templateById } = await import("../server/templates.mjs");
+  const { planSlide, slidePrompt } = await import("../server/textcheck.mjs");
+  const { auditListing } = await import("../server/audit.mjs");
+  const { mainImageChecks } = await import("../server/photo-metrics.mjs");
+  const { labelJpeg, labelImage } = await import("../server/ai-label.mjs");
+  assert.equal(templateById("searchcard").risk, "noonMain");
+  const html = templateHTML("searchcard", { headAr: "ثبات 12 ساعة", headEn: "Lasts 12 hours", badgeAr: "عود", badgeEn: "Oud" }, { image: PX, language: "both", numerals: "arabic" });
+  assert.ok(html.includes("#FFFFFF") && html.includes("ثبات ١٢ ساعة") && html.includes("Oud"));
+  assert.equal(planSlide("searchcard", { headAr: "ثبات حتى 12 ساعة", headEn: "Lasts" }).mode, "generate");
+  assert.match(slidePrompt({ templateId: "searchcard", texts: [] }), /pure white background[\s\S]*No border, no price/);
+  assert.equal(TEMPLATE_KIND.searchcard, "main");
+
+  const listing = { channel: "noon", category: "fragrance", titleEn: "Oud Al Layl Eau de Parfum 100ml for men and women", titleAr: "عطر عود الليل ١٠٠ مل", bulletsEn: ["a", "b", "c", "d"], bulletsAr: ["أ"], images: [{ whiteBackground: false, width: 1600, height: 2000, fill: 0.75 }, {}, {}, {}] };
+  const noon = auditListing(listing).issues.find((i) => i.key === "mainRule");
+  assert.equal(noon.sev, "low", "on Noon a designed main image is a risk, not a sure rejection");
+  assert.equal(auditListing({ ...listing, channel: "amazon" }).issues.find((i) => i.key === "mainRule").sev, "med");
+  assert.ok(!auditListing(listing).issues.some((i) => i.key === "productSmall"), "75% of the frame is enough on Noon");
+  const checks = Object.fromEntries(mainImageChecks({ width: 800, height: 1000, whiteShare: 0.95, fill: 0.72, transparent: false }, "noon").map((c) => [c.key, c.ok]));
+  assert.deepEqual(checks, { size: true, white: true, fill: true, square: true }, "4:5 at 800 px passes Noon");
+  assert.equal(mainImageChecks({ width: 800, height: 1000, whiteShare: 0.95, fill: 0.72 }, "amazon").find((c) => c.key === "square").ok, false);
+
+  const jpg = Buffer.from([0xff, 0xd8, 0xff, 0xdb, 0, 4, 0, 0, 0xff, 0xd9]);
+  const out = labelJpeg(jpg);
+  assert.deepEqual([...out.subarray(0, 4)], [0xff, 0xd8, 0xff, 0xe1]);
+  assert.equal(out.readUInt16BE(4) + 2, out.length - jpg.length, "the APP1 length covers the segment after its marker");
+  assert.ok(hasAiLabel(out));
+  assert.ok(hasAiLabel(labelImage(Buffer.from(PX.split(",")[1], "base64"))), "PNG goes the PNG way");
+  assert.match(exportReadme("noon", 1, {}), /JPEG/);
+});

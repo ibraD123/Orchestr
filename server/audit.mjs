@@ -7,8 +7,10 @@ export const AUDIT_CATEGORIES = ["fragrance", "fashion", "food", "beauty", "home
 
 // Marketplace rules that differ per channel.
 export const CHANNEL_RULES = {
-  amazon:  { titleMax: 200, whiteMain: true,  minImages: 6, minBullets: 5 },
-  noon:    { titleMax: 150, whiteMain: true,  minImages: 4, minBullets: 4 },
+  // Noon (Seller Help Center, image requirements): white primary image (light grey for fashion),
+  // the product covering 70–80% of the frame, JPEG only, width ≥ 660 px.
+  amazon:  { titleMax: 200, whiteMain: true,  minImages: 6, minBullets: 5, fillMin: 0.85 },
+  noon:    { titleMax: 150, whiteMain: true,  minImages: 4, minBullets: 4, fillMin: 0.7 },
   salla:   { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 },
   zid:     { titleMax: 120, whiteMain: false, minImages: 4, minBullets: 3 }
 };
@@ -94,9 +96,11 @@ export function auditListing(listing) {
   else if (images.length < rules.minImages) add("fewImages", "low", "images", { count: images.length, min: rules.minImages });
   const main = images[0];
   if (main) {
-    if (rules.whiteMain && main.whiteBackground === false) add("mainRule", "med", "images", { channel });
+    // Noon applies the rule loosely in search (ads and brands often show text or texture on the
+    // main image), so there it is a rejection risk rather than a sure rejection.
+    if (rules.whiteMain && main.whiteBackground === false && !(channel === "noon" && category === "fashion" && main.lightBackground)) add("mainRule", channel === "noon" ? "low" : "med", "images", { channel, risk: channel === "noon" });
     if (main.width && main.height && Math.min(main.width, main.height) < 1000) add("lowRes", "low", "images", { width: main.width, height: main.height });
-    if (typeof main.fill === "number" && main.fill < (rules.whiteMain ? 0.85 : 0.7)) add("productSmall", main.fill < 0.6 ? "med" : "low", "images", { fill: main.fill });
+    if (typeof main.fill === "number" && main.fill < (rules.fillMin || 0.7)) add("productSmall", main.fill < 0.6 ? "med" : "low", "images", { fill: main.fill });
   }
 
   // Attributes

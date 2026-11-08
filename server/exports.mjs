@@ -63,7 +63,7 @@ export function exportReadme(channel, count, opts) {
     `Basira export · ${o.client || ""} · ${new Date(o.at || Date.now()).toISOString().slice(0, 10)}`,
     `${count} products for ${channel}.`,
     "",
-    "images/   1600 × 2000 PNG slides, in the order to upload (the first is the main image).",
+    channel === "noon" ? "images/   1600 × 2000 JPEG slides (Noon accepts JPEG only), in the order to upload (the first is the main image)." : "images/   1600 × 2000 PNG slides, in the order to upload (the first is the main image).",
     o.imageBase ? `Images are also hosted at ${o.imageBase} and those links are filled in the upload file.` : "Images are not hosted: upload them from images/ or host them and fill in the image columns.",
     "",
     channel === "amazon" ? "Amazon: use the flat file in Seller Central (Catalogue → Add products via upload) for the category's template; update_delete is PartialUpdate, so only these fields change. The -ar file carries the Arabic copy for Amazon.sa / Amazon.ae." :

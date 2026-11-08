@@ -94,6 +94,14 @@ export function mainImageChecks(m, channel) {
   const strict = channel === "amazon" || channel === "noon";
   const out = [];
   const short = Math.min(m.width || 0, m.height || 0);
+  if (channel === "noon") {
+    // Noon: width ≥ 660 px, width/height ≥ 0.5, product on 70–80% of the frame; no square rule.
+    out.push({ key: "size", ok: (m.width || 0) >= 660, value: (m.width || 0) + " × " + (m.height || 0), need: "width ≥ 660 px" });
+    out.push({ key: "white", ok: m.whiteShare >= 0.9 && !m.transparent, value: Math.round(m.whiteShare * 100) + "%", need: "≥ 90%" });
+    out.push({ key: "fill", ok: m.fill >= 0.7, value: Math.round(m.fill * 100) + "%", need: "≥ 70%" });
+    out.push({ key: "square", ok: m.width && m.height ? m.width / m.height >= 0.5 : false, value: m.width && m.height ? (m.width / m.height).toFixed(2) : "?", need: "≥ 0.5" });
+    return out;
+  }
   out.push({ key: "size", ok: short >= 1000, value: (m.width || 0) + " × " + (m.height || 0), need: "≥ 1000 px" });
   if (strict) out.push({ key: "white", ok: m.whiteShare >= 0.9 && !m.transparent, value: Math.round(m.whiteShare * 100) + "%", need: "≥ 90%" });
   out.push({ key: "fill", ok: m.fill >= (strict ? 0.85 : 0.7), value: Math.round(m.fill * 100) + "%", need: strict ? "≥ 85%" : "≥ 70%" });

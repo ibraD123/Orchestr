@@ -40,6 +40,12 @@ const LINES = [f("linesAr", "lines", ["Points (Arabic), one per line", "النق
 
 export const TEMPLATES = [
   { id: "cover", group: "essentials", name: ["Main image", "الصورة الرئيسية"], question: ["Rule-safe first impression", "انطباع أول مطابق للقواعد"], fields: [], sample: {} },
+  // A designed main image for search results: the product large on white, one short claim and one badge.
+  // Noon's rules ask for a plain white main image, but ads and brands often run cards like this,
+  // so Creator offers it next to the strict main image and marks the rejection risk.
+  { id: "searchcard", group: "essentials", name: ["Search card", "بطاقة البحث"], question: ["Stands out in search results", "تبرز في نتائج البحث"], risk: "noonMain",
+    fields: HEAD.concat([f("badgeAr", "text", ["Badge (Arabic)", "الشارة (عربي)"], { dir: "rtl", lang: "ar" }), f("badgeEn", "text", ["Badge (English)", "الشارة (إنجليزي)"], { dir: "ltr", lang: "en" })]),
+    sample: { headAr: "ثبات حتى 12 ساعة", headEn: "Lasts up to 12 hours", badgeAr: "عود كمبودي", badgeEn: "Cambodian oud" } },
   { id: "benefit", group: "essentials", name: ["Key benefit", "الميزة الأهم"], question: ["Answers the top doubt", "يجيب عن أكبر شك"], fields: HEAD,
     sample: { headAr: "ثبات حتى 12 ساعة", headEn: "Lasts up to 12 hours" } },
   { id: "details", group: "essentials", name: ["Details", "التفاصيل"], question: ["What is it made of?", "مِمّ صُنع؟"], fields: TITLE.concat(LINES),
@@ -171,6 +177,24 @@ export function templateHTML(id, fields, ctx) {
       bg = "#FFFFFF";
       body = img("inset:120px");
       break;
+    case "searchcard": {
+      // White card: text in the brand's dark colour (--bg is white here), a soft brand-colour shape
+      // behind the product. The photo is multiplied onto the card, so its own white background
+      // disappears into the shape instead of showing as a box.
+      bg = "#FFFFFF";
+      const ink = kit.bg, soft = "color-mix(in srgb," + kit.bg + " 62%,#fff)";
+      body = '<div style="position:absolute;width:1500px;height:1500px;border-radius:50%;inset-inline-end:-420px;top:520px;background:color-mix(in srgb,' + kit.fg + ' 38%,#fff)"></div>' +
+        '<div class="prod" style="top:540px;bottom:100px;inset-inline-start:420px;inset-inline-end:60px"><img src="' + ctx.image + '" alt="" style="mix-blend-mode:multiply;filter:none"></div>' +
+        '<div style="position:absolute;top:130px;inset-inline:120px;display:flex;flex-direction:column;gap:18px;color:' + ink + '">' +
+          (ar && v.headAr ? '<div class="h1" dir="rtl" style="font-size:136px">' + A(v.headAr) + "</div>" : "") +
+          (en && v.headEn ? '<div class="' + (ar ? "sub" : "h1 en") + '" dir="ltr" style="color:' + soft + (ar ? ";text-align:right" : "") + '">' + E(v.headEn) + "</div>" : "") +
+        "</div>" +
+        ((ar && v.badgeAr) || (en && v.badgeEn) ? '<div style="position:absolute;top:720px;inset-inline-start:120px;display:flex;flex-direction:column;gap:14px;align-items:flex-start">' +
+          '<span class="pill" style="background:' + ink + ';color:#fff" dir="' + (ar && v.badgeAr ? "rtl" : "ltr") + '">' + (ar && v.badgeAr ? A(v.badgeAr) : E(v.badgeEn)) + "</span>" +
+          (ar && en && v.badgeAr && v.badgeEn ? '<span class="en-sub" style="color:' + soft + ';padding-inline:12px">' + E(v.badgeEn) + "</span>" : "") +
+        "</div>" : "");
+      break;
+    }
     case "benefit":
       body = '<div class="stack" style="top:170px">' + head(v.headAr, v.headEn) + "</div>" + img("inset:700px 300px 120px 300px");
       break;

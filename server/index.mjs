@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
 import { auditBrand } from "./brand-dna.mjs";
-import { renderSlide, renderPdf, rendererAvailable, normaliseSpec } from "./render.mjs";
+import { renderSlide, renderPdf, rendererAvailable, normaliseSpec, toJpeg } from "./render.mjs";
 import { analyseReviews, draftReply, aiConfigured } from "./reviews.mjs";
 import { llmModelName, llmProvider } from "./llm.mjs";
 import { keywordCoverage } from "./keywords.mjs";
@@ -23,7 +23,7 @@ import { PLANS, newAccount, recordUsage, usageStatus, invoiceAmount, billingConf
 import { createCheckout, verifyCheckout } from "./payments.mjs";
 import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } from "./imagegen.mjs";
 import { generateSlide, slideGenConfigured } from "./slidegen.mjs";
-import { labelPng } from "./ai-label.mjs";
+import { labelImage } from "./ai-label.mjs";
 import { analyseCompetitors } from "./gallery.mjs";
 import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
@@ -154,6 +154,7 @@ async function buildExport(body, ctx) {
   if (!items.length) fail("Pick at least one approved product to export");
   if (items.length > 50) fail("Export up to 50 products at a time");
   await store.getGenome(ws); // the workspace must exist
+  const jpegOnly = channel === "noon";
   const slidesTotal = items.reduce((s, it) => s + (Array.isArray(it.slides) ? it.slides.length : 0), 0);
   if (slidesTotal && !(await rendererAvailable())) fail("Slide rendering needs Chromium on the server", 503);
   const style = body.style || {};
@@ -177,8 +178,9 @@ async function buildExport(body, ctx) {
     used.add(folder);
     const images = [];
     for (const [i, sl] of (Array.isArray(it.slides) ? it.slides : []).slice(0, 9).entries()) {
-      const png = await renderSlide(specOf(it, sl));
-      const rel = `${folder}/${String(i + 1).padStart(2, "0")}.png`;
+      // Noon accepts JPEG only; the other channels get lossless PNG.
+      const png = await renderSlide(specOf(it, sl), { format: jpegOnly ? "jpeg" : "png" });
+      const rel = `${folder}/${String(i + 1).padStart(2, "0")}.${jpegOnly ? "jpg" : "png"}`;
       await store.saveAsset(ws, batch, "images/" + rel, png);
       zipFiles.push({ name: "images/" + rel, data: png });
       images.push(rel); rendered++;
@@ -189,9 +191,13 @@ async function buildExport(body, ctx) {
       const src = x && typeof x === "object" ? x.src : x;
       const m = EXTRA_IMAGE.exec(String(src || ""));
       if (!m) continue;
-      let data = Buffer.from(m[2], "base64");
-      if (x && x.aiPeople && m[1] === "png") data = labelPng(data);
-      const rel = `${folder}/${String(images.length + 1).padStart(2, "0")}.${m[1] === "jpeg" ? "jpg" : m[1]}`;
+      let data = Buffer.from(m[2], "base64"), ext = m[1] === "jpeg" ? "jpg" : m[1];
+      if (jpegOnly && ext !== "jpg") {
+        if (!(await rendererAvailable())) fail("Noon accepts JPEG only, and converting images needs Chromium on the server", 503);
+        data = await toJpeg(src); ext = "jpg";
+      }
+      if (x && x.aiPeople) data = labelImage(data);
+      const rel = `${folder}/${String(images.length + 1).padStart(2, "0")}.${ext}`;
       await store.saveAsset(ws, batch, "images/" + rel, data);
       zipFiles.push({ name: "images/" + rel, data });
       images.push(rel);

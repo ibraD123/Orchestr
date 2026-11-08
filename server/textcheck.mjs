@@ -55,7 +55,9 @@ export function slidePrompt({ templateId, texts, product, category, kit, visual,
     `Vertical 4:5 e-commerce infographic slide for an online marketplace listing (${tpl.name[0]}: ${tpl.question[0]}).`,
     `The product is ${product || "the product in the reference image"}${category ? ` (${category})` : ""}.`,
     "Use the reference photo for the product and keep it exactly as it is: same shape, colour, label, proportions and details. Do not redraw or restyle the product.",
-    "Premium, clean composition with soft natural light; the product is the hero and clearly visible.",
+    templateId === "searchcard"
+      ? "This is the first image buyers see in marketplace search results: pure white background, the product shown from the front and filling most of the frame, one soft brand-colour shape behind it at most. No border, no price, no discount, no scene."
+      : "Premium, clean composition with soft natural light; the product is the hero and clearly visible.",
     colours,
     visual ? `Brand visual style: ${visual}` : ""
   ];

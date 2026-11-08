@@ -23,5 +23,16 @@ export function labelPng(png, xmp = aiXmp()) {
   return Buffer.concat([buf.subarray(0, ihdrEnd), len, type, data, crc, buf.subarray(ihdrEnd)]);
 }
 
-/** Whether a PNG carries the AI label. */
+/** A copy of the JPEG with an XMP APP1 segment right after SOI. Non-JPEG input comes back unchanged. */
+export function labelJpeg(jpg, xmp = aiXmp()) {
+  const buf = Buffer.from(jpg);
+  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return buf;
+  const payload = Buffer.concat([Buffer.from("http://ns.adobe.com/xap/1.0/\0", "latin1"), Buffer.from(xmp, "utf8")]);
+  const head = Buffer.from([0xff, 0xe1, 0, 0]); head.writeUInt16BE(payload.length + 2, 2);
+  return Buffer.concat([buf.subarray(0, 2), head, payload, buf.subarray(2)]);
+}
+/** Label either format. */
+export function labelImage(bytes) { const b = Buffer.from(bytes); return b[0] === 0xff && b[1] === 0xd8 ? labelJpeg(b) : labelPng(b); }
+
+/** Whether a PNG or JPEG carries the AI label. */
 export function hasAiLabel(png) { return Buffer.from(png).includes(Buffer.from(AI_SOURCE_TYPE)); }

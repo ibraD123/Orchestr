@@ -1083,7 +1083,7 @@ function vStudio(){
   return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
     '<select class="sel" id="pick" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
   '<div class="studio">'+
-    '<div class="slist">'+set.map(function(x, j){ var tj = templateById(x.tpl); return '<button type="button" class="sitem" data-slide="'+j+'" aria-pressed="'+(i === j)+'"><span class="mini">'+pv('data-pid="'+p.id+'" data-idx="'+j+'"')+'</span><span><b>'+tr(tj.name)+'</b><small>'+(x.why && x.why.length ? esc(crReason(x.why.filter(function(r){ return r.source !== "category"; })[0] || x.why[0])) : tr(tj.question))+'</small></span></button>'; }).join("")+
+    '<div class="slist">'+set.map(function(x, j){ var tj = templateById(x.tpl); return '<button type="button" class="sitem" data-slide="'+j+'" aria-pressed="'+(i === j)+'"><span class="mini">'+pv('data-pid="'+p.id+'" data-idx="'+j+'"')+'</span><span><b>'+tr(tj.name)+'</b><small>'+(x.why && x.why.length ? esc(crReason(x.why.filter(function(r){ return r.source === "risk"; })[0] || x.why.filter(function(r){ return r.source !== "category"; })[0] || x.why[0])) : tr(tj.question))+'</small></span></button>'; }).join("")+
       '<a class="btn btn-ghost" href="#templates">+ '+t("addSlide")+'</a></div>'+
     '<div class="stage"><div class="stage-box" id="canvas-wrap">'+pv('data-pid="'+p.id+'" data-idx="'+i+'"', "big")+(g.phase === "run" ? '<div class="scan"></div>' : "")+'</div>'+
       '<div class="stage-meta">'+
@@ -2634,7 +2634,10 @@ Object.assign(S, {
   crGenProgress:["Generating {i} of {n}…","جارٍ إنشاء {i} من {n}…"], crSelectSome:["Select products first","حدد منتجات أولاً"], crSeasoned:["Season pack applied to {n} products","طُبقت حزمة الموسم على {n} منتجات"], crRolled:["Rolled back {n} products","أُرجعت {n} منتجات"],
   crModelT:["Brand model","عارضة العلامة"], crModelSub:["One person across the whole catalog. Every on-model photo and every slide with a person uses this face.","شخص واحد في كل الكتالوج. كل صورة على عارضة وكل شريحة فيها شخص تستخدم هذا الوجه."],
   crModelUpload:["Upload a photo of the model","ارفع صورة العارضة"], crModelRemove:["Remove","إزالة"], crModelNone:["No brand model yet. Upload a photo, or pick one of the generated on-model photos.","لا عارضة بعد. ارفع صورة أو اختر إحدى الصور المُنشأة."], crModelSet:["Brand model saved","حُفظت عارضة العلامة"],
-  crMakeModel:["Make brand model","اجعلها عارضة العلامة"], crAiPeople:["AI people · labelled","أشخاص بالذكاء الاصطناعي · موسومة"]
+  crMakeModel:["Make brand model","اجعلها عارضة العلامة"],
+  crMain:["Main image","الصورة الرئيسية"], crMainStrict:["Strict: white background","صارمة: خلفية بيضاء"], crMainCard:["Search card","بطاقة البحث"],
+  crMainCardNote:["Noon's rules ask for a plain white main image. Ads and big brands often run cards like this, but a seller's card can be rejected. The strict main image stays second, so it is one swap away.","تطلب قواعد نون صورة رئيسية بخلفية بيضاء. الإعلانات والعلامات الكبرى تستخدم بطاقات كهذه كثيراً، لكن بطاقة البائع قد تُرفض. تبقى الصورة الصارمة ثانية ليسهل التبديل."],
+  why_risk:["may be rejected as Noon's main image","قد تُرفض كصورة رئيسية على نون"], crShowing:["Showing: {v}","المعروض: {v}"], crCardNeeds:["The search card preview needs the server's renderer.","معاينة بطاقة البحث تحتاج محرك العرض على الخادم."], crAiPeople:["AI people · labelled","أشخاص بالذكاء الاصطناعي · موسومة"]
 });
 ICONS.creator = '<path d="M12 3l1.8 3.9L18 8.5l-3.1 2.9.8 4.3L12 13.6l-3.7 2.1.8-4.3L6 8.5l4.2-1.6z"/><path d="M5 20h14"/>';
 Object.assign(state, {cr:{tab:"card", channel:"noon", region:"saudi-ar", query:{}, search:{}, searching:false, error:null, links:"", gallery:{}, galBusy:false, plan:{}, grid:{}, gridBusy:false, season:"ramadan", sel:{}, progress:null}});
@@ -2648,6 +2651,7 @@ function crGaps(p){ var g = state.cr.gallery[p.id]; return g ? galleryGaps(g.com
 
 function crReason(r){
   if (r.source === "main") return t("why_main");
+  if (r.source === "risk") return t("why_risk");
   if (r.source === "category") return t("why_category");
   if (r.source === "review") return r.positive ? tf("why_reviewPos", {k: themeName(r.key)}) : tf("why_review", {p: Math.round(r.share * 100), k: themeName(r.key)});
   if (r.source === "audit") return tf("why_audit", {k: issueName(r.key)});
@@ -2655,7 +2659,7 @@ function crReason(r){
   if (r.source === "sales") return t(r.hurts ? "why_hurts" : "why_sales") + (r.pts ? " (" + (r.pts > 0 ? "+" : "") + r.pts + ")" : "");
   return "";
 }
-function crTag(r){ return r.source === "review" ? (r.positive ? "good" : "bad") : r.source === "competitors" ? "warn" : r.source === "sales" ? (r.hurts ? "bad" : "good") : r.source === "audit" ? "bad" : ""; }
+function crTag(r){ if (r.source === "risk") return "warn"; return r.source === "review" ? (r.positive ? "good" : "bad") : r.source === "competitors" ? "warn" : r.source === "sales" ? (r.hurts ? "bad" : "good") : r.source === "audit" ? "bad" : ""; }
 
 function vCreator(){
   var tab = state.cr.tab;
@@ -2717,12 +2721,15 @@ function crSearchView(p){
   var cr = state.cr, grid = cr.grid[p.id], near = crNeighbours(p);
   if (!near.length) return "";
   var rtl = cr.channel === "noon" ? /-ar$/.test(cr.region) : false;
-  var others = near.slice(0, 7), cells = others.slice(0, 2).concat([{you:true, image: imgFor(p), title: tr(p.name)}], others.slice(2, 7));
+  var showCard = crMainMode(p) === "card" && cr.cardImg && cr.cardImg[p.id];
+  var others = near.slice(0, 7), cells = others.slice(0, 2).concat([{you:true, image: showCard ? cr.cardImg[p.id] : imgFor(p), title: tr(p.name)}], others.slice(2, 7));
   return '<div class="card"><div class="card-h"><h2>'+t("crSearchView")+'</h2>'+(grid ? '<span class="tag '+(grid.score >= 60 ? "good" : grid.score >= 40 ? "warn" : "bad")+'">'+t("crStandout")+' '+grid.score+'/100</span>' : "")+'</div>'+
     '<p class="note" style="margin-bottom:12px">'+t("crSearchSub")+'</p>'+
     '<div class="cr-phone" dir="'+(rtl ? "rtl" : "ltr")+'"><div class="cr-grid">'+cells.map(function(x){
       return '<div class="cr-cell'+(x.you ? " you" : "")+'"><div class="cr-img"><img src="'+esc(x.image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">'+(x.you ? '<span class="tag good">'+t("crYou")+'</span>' : "")+'</div><span>'+esc(x.title).slice(0, 48)+'</span></div>';
     }).join("")+'</div></div>'+
+    '<div class="exp-row" style="margin-top:12px"><div class="seg" role="group"><button type="button" data-crmain="strict" aria-pressed="'+(crMainMode(p) === "strict")+'">'+t("crMainStrict")+'</button><button type="button" data-crmain="card" aria-pressed="'+(crMainMode(p) === "card")+'">'+t("crMainCard")+'</button></div>'+
+      (crMainMode(p) === "card" && !(state.api && state.api.render) ? '<span class="note">'+t("crCardNeeds")+'</span>' : "")+'</div>'+
     '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost" id="cr-measure"'+(cr.gridBusy ? " disabled" : "")+'>'+t(cr.gridBusy ? "crComparing" : "crCompare")+'</button>'+
       (grid ? grid.notes.map(function(n){ return '<span class="tag'+(n === "distinctColour" || n === "fillsFrame" ? " good" : n === "noData" ? "" : " warn")+'">'+t("so_"+n)+'</span>'; }).join("") : "")+'</div>'+
   '</div>';
@@ -2731,20 +2738,34 @@ function crSearchView(p){
 function crPlanCard(p){
   var plan = state.cr.plan[p.id];
   return '<div class="card"><div class="card-h"><h2>'+t("crPlan")+'</h2><button type="button" class="btn btn-ghost btn-sm" id="cr-plan">'+t("crMakePlan")+'</button></div><p class="note" style="margin-bottom:12px">'+t("crPlanSub")+'</p>'+
-    (plan ? '<ol class="cr-plan">'+plan.map(function(x){ var tp = templateById(x.tpl);
+    (plan ? '<div class="field" style="margin-bottom:12px"><span class="lbl">'+t("crMain")+'</span><div class="seg" role="group"><button type="button" data-crmain="strict" aria-pressed="'+(crMainMode(p) === "strict")+'">'+t("crMainStrict")+'</button><button type="button" data-crmain="card" aria-pressed="'+(crMainMode(p) === "card")+'">'+t("crMainCard")+'</button></div>'+(crMainMode(p) === "card" ? '<p class="note" style="margin-top:6px">'+t("crMainCardNote")+'</p>' : "")+'</div>'+
+      '<ol class="cr-plan">'+crPlanWithMain(p, plan).map(function(x){ var tp = templateById(x.tpl);
       return '<li><b>'+esc(tr(tp.name))+'</b><span class="note">'+esc(tr(tp.question))+'</span><span class="cr-why">'+x.reasons.map(function(r){ return '<span class="tag '+crTag(r)+'">'+esc(crReason(r))+'</span>'; }).join("")+'</span></li>';
     }).join("")+'</ol>'+
     '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost" id="cr-apply">'+t("crApply")+'</button><button type="button" class="btn btn-primary" id="cr-applygen">'+t("crApplyGen")+'</button></div>' : "")+
   '</div>';
 }
 
+function crMainMode(p){ return (state.cr.main || {})[p.id] || "strict"; }
+/** The plan with the chosen main image: the search card goes first and the strict main image second. */
+function crPlanWithMain(p, plan){
+  if (crMainMode(p) !== "card") return plan;
+  var rest = plan.filter(function(x){ return x.tpl !== "searchcard"; });
+  return [{tpl:"searchcard", score:0, reasons:[{source:"main"}, {source:"risk"}]}].concat(rest);
+}
 function crMakePlan(p){
   return planSet({category: catOf(p), templates: TEMPLATES, themes: p.themes || [], issues: openIssues(p), gaps: crGaps(p), performance: performanceOf(genome()).templates});
 }
 function crApplyPlan(p){
-  var plan = state.cr.plan[p.id] || (state.cr.plan[p.id] = crMakePlan(p));
-  var old = setOf(p), base = defaultSet(p);
-  var fieldsFor = function(tpl){ var a = old.filter(function(s){ return s.tpl === tpl; })[0] || base.filter(function(s){ return s.tpl === tpl; })[0]; return a ? Object.assign({}, a.fields) : {}; };
+  var plan = crPlanWithMain(p, state.cr.plan[p.id] || (state.cr.plan[p.id] = crMakePlan(p)));
+  var old = setOf(p), base = defaultSet(p), st = p.st || {};
+  var fieldsFor = function(tpl){
+    var a = old.filter(function(s){ return s.tpl === tpl; })[0] || base.filter(function(s){ return s.tpl === tpl; })[0];
+    if (a) return Object.assign({}, a.fields);
+    // The search card carries the product's key benefit as its claim.
+    if (tpl === "searchcard") return JSON.parse(JSON.stringify({headAr: st.headAr, headEn: st.headEn}));
+    return {};
+  };
   state.sets[p.id] = plan.map(function(x){ return {tpl: x.tpl, fields: fieldsFor(x.tpl), why: x.reasons}; });
   state.slide = Math.min(1, state.sets[p.id].length - 1);
   persist();
@@ -2784,7 +2805,8 @@ function crNeighbours(p){
 function crMeasure(p){
   var cr = state.cr, near = crNeighbours(p); if (!near.length) return;
   cr.gridBusy = true; render();
-  Promise.all([ensureDataImage(p).then(measureImage)].concat(near.slice(0, 7).map(function(x){ return measureImage(x.image).catch(function(){ return null; }); })))
+  var ours = crMainMode(p) === "card" && cr.cardImg && cr.cardImg[p.id] ? measureImage(cr.cardImg[p.id]) : ensureDataImage(p).then(measureImage);
+  Promise.all([ours].concat(near.slice(0, 7).map(function(x){ return measureImage(x.image).catch(function(){ return null; }); })))
     .then(function(ms){ cr.grid[p.id] = standout(ms[0], ms.slice(1).filter(Boolean)); })
     .catch(function(){ cr.grid[p.id] = {score: 0, notes: ["noData"]}; })
     .then(function(){ cr.gridBusy = false; render(); });
@@ -2807,6 +2829,19 @@ function crCatalog(){
       '<button type="button" class="btn btn-ghost" id="cr-send-sel">'+t("crSendSel")+'</button>'+
     '</div>'+
   '</div>';
+}
+/** Render the search card for the preview: the product's photo with its key benefit. */
+function crRenderCard(p){
+  if (!(state.api && state.api.render)) return;
+  state.cr.cardImg = state.cr.cardImg || {};
+  if (state.cr.cardImg[p.id]) return;
+  var st = p.st || {}, c = ctxFor(p, {tpl:"searchcard"});
+  ensureDataImage(p).then(function(image){
+    return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({template:"searchcard", fields:{headAr:st.headAr, headEn:st.headEn}, image:image, language:c.language, numerals:c.numerals, kit:c.kit, brand:c.brand, logo:c.logo, fonts:c.fonts})});
+  }).then(function(r){ return r.ok ? r.blob() : null; }).then(function(b){
+    if (!b) return;
+    return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ state.cr.cardImg[p.id] = fr.result; res(); }; fr.readAsDataURL(b); });
+  }).catch(function(){}).then(function(){ if (state.route === "creator") render(); });
 }
 function crSelected(){ return WP().filter(function(p){ return state.cr.sel[p.id]; }); }
 function crSeasonApply(){
@@ -2858,6 +2893,7 @@ document.addEventListener("click", function(e){
   var el, p = PM[state.pid];
   if ((el = e.target.closest("[data-crtab]"))){ state.cr.tab = el.dataset.crtab; render(); return; }
   if ((el = e.target.closest("[data-crch]"))){ state.cr.channel = el.dataset.crch; state.cr.region = el.dataset.crch === "noon" ? "saudi-ar" : state.cr.region; render(); return; }
+  if ((el = e.target.closest("[data-crmain]")) && p){ (state.cr.main = state.cr.main || {})[p.id] = el.dataset.crmain; state.cr.grid[p.id] = null; if (el.dataset.crmain === "card") crRenderCard(p); render(); return; }
   if ((el = e.target.closest("[data-crseason]"))){ state.cr.season = el.dataset.crseason; render(); return; }
   if (e.target.closest("#cr-find") && p){ crSearch(p); return; }
   if (e.target.closest("#cr-read") && p){ crRead(p); return; }

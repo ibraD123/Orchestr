@@ -140,8 +140,8 @@ async function newPage(opts) {
   }
 }
 
-/** Render one slide to a PNG buffer. */
-export async function renderSlide(input) {
+/** Render one slide to a PNG buffer, or JPEG with { format: "jpeg" } (Noon accepts JPEG only). */
+export async function renderSlide(input, { format = "png" } = {}) {
   const spec = normaliseSpec(input);
   const page = await newPage({ viewport: { width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
   try {
@@ -151,10 +151,25 @@ export async function renderSlide(input) {
     // Load every embedded face before the screenshot: fonts.ready alone can resolve before
     // the browser has started loading the faces a slide uses.
     await page.evaluate(() => Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready));
-    return await page.screenshot({ type: "png", clip: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
+    return await page.screenshot(format === "jpeg" ? { type: "jpeg", quality: 92, clip: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT } } : { type: "png", clip: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT } });
   } finally {
     await page.close();
   }
+}
+
+/** Any PNG or WebP data URL → JPEG bytes at the same size, transparency on white (Noon accepts JPEG only). */
+export async function toJpeg(dataUrl, quality = 0.92) {
+  const page = await newPage();
+  try {
+    await page.route("**/*", (route) => route.request().url().startsWith("data:") ? route.continue() : route.abort());
+    const b64 = await page.evaluate(async ({ src, q }) => {
+      const img = new Image(); img.src = src; await img.decode();
+      const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0);
+      return c.toDataURL("image/jpeg", q).split(",")[1];
+    }, { src: dataUrl, q: quality });
+    return Buffer.from(b64, "base64");
+  } finally { await page.close(); }
 }
 
 /**

@@ -19,6 +19,7 @@ const KIND_TEMPLATE = {
 };
 export const TEMPLATE_KIND = Object.fromEntries(Object.entries(KIND_TEMPLATE).filter(([k]) => k !== "model").map(([k, t]) => [t, k]));
 TEMPLATE_KIND.icons = "benefit";
+TEMPLATE_KIND.searchcard = "main";
 TEMPLATE_KIND.ramadan = TEMPLATE_KIND.eid = TEMPLATE_KIND.nationalday = TEMPLATE_KIND.whitefriday = "seasonal";
 
 // What buyers complain or ask about → the slide that answers it.
