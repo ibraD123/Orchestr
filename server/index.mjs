@@ -1,7 +1,7 @@
 // Basira HTTP server: serves the site and app, plus the JSON/PNG API.
 import { createServer } from "node:http";
-import { readFile, appendFile, mkdir } from "node:fs/promises";
-import { randomBytes } from "node:crypto";
+import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
+import { randomBytes, createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
@@ -25,6 +25,7 @@ import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } fr
 import { generateSlide, slideGenConfigured, readBackText, checkProduct } from "./slidegen.mjs";
 import { generateVideo, falVideo, videoInput, videoGenConfigured, VIDEO_MODEL } from "./videogen.mjs";
 import { labelImage } from "./ai-label.mjs";
+import { emptyPortal, newReview, decide, newRequest, normaliseBrief, clientView, portalSummary, REQUEST_STATUS } from "./portal.mjs";
 import { analyseCompetitors } from "./gallery.mjs";
 import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
@@ -46,7 +47,8 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json"
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
 
 function send(res, status, body, type = "application/json", headers = {}) {
-  const data = type === "application/json" ? JSON.stringify(body) : body;
+  // Objects become JSON; a file that is already JSON text (a data export) goes out as it is.
+  const data = type === "application/json" && typeof body !== "string" && !Buffer.isBuffer(body) ? JSON.stringify(body) : body;
   res.writeHead(status, { "Content-Type": type, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", ...headers });
   res.end(data);
 }
@@ -121,6 +123,42 @@ async function context(req, url) {
   if (!s) return { req, url, key: null, store: null, user: null, account: null };
   return { req, url, key: s.account.id, store: storeFor(s.account.id, s.account.type), user: s.user, account: s.account };
 }
+
+/* ---------- client portal links ---------- */
+
+// One private link per client brand. Only a hash of the token is kept, in one index for the server,
+// so a link can be checked without knowing which account it belongs to.
+const LINKS = join(DATA, "portal-links.json");
+const hashToken = (t) => createHash("sha256").update(String(t)).digest("hex");
+async function readLinks() { try { return JSON.parse(await readFile(LINKS, "utf8")); } catch { return {}; } }
+let linksQueue = Promise.resolve();
+function writeLinks(fn) {
+  const run = linksQueue.then(async () => { const l = await readLinks(); const out = fn(l); await mkdir(DATA, { recursive: true }); await writeFile(LINKS, JSON.stringify(l)); return out; });
+  linksQueue = run.catch(() => {});
+  return run;
+}
+/** A new link for a client brand; the previous one stops working. */
+function createPortalLink(account, ws) {
+  const token = randomBytes(18).toString("base64url");
+  return writeLinks((l) => {
+    for (const [h, v] of Object.entries(l)) if (v.account === account && v.ws === ws) delete l[h];
+    l[hashToken(token)] = { account, ws, at: new Date().toISOString() };
+    return token;
+  });
+}
+const TOKEN = /^[A-Za-z0-9_-]{20,40}$/;
+/** The client's side of a link: the store and workspace it opens, or 404. */
+async function portalContext(token) {
+  if (!TOKEN.test(token)) fail("This link isn't valid", 404);
+  const v = (await readLinks())[hashToken(token)];
+  if (!v) fail("This link has expired. Ask your agency for a new one.", 404);
+  const store = storeFor(v.account);
+  const list = await store.listWorkspaces();
+  const ws = list.find((w) => w.id === v.ws);
+  if (!ws) fail("This link has expired. Ask your agency for a new one.", 404);
+  return { store, ws, key: v.account };
+}
+const DATA_URL_IMG = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/;
 
 /* ---------- plan and usage ---------- */
 
@@ -270,6 +308,79 @@ const paramRoutes = [
   ["DELETE", /^\/api\/workspaces\/([a-z0-9-]+)$/, (m, body, { store }) => store.deleteWorkspace(m[1])],
   ["GET", /^\/api\/workspaces\/([a-z0-9-]+)\/export$/, async (m, body, { store }) => file(JSON.stringify(await store.exportWorkspace(m[1]), null, 2), "application/json", `basira-${m[1]}-data.json`)],
   ["DELETE", /^\/api\/team\/([a-z0-9]+)$/, (m, body, ctx) => { if (!AUTH) fail("Teams need accounts on this server", 404); return auth.removeMember(ctx.account.id, ctx.user, m[1]); }],
+  // Client portal, the client's side: a private link, no sign-in.
+  ["GET", /^\/api\/c\/([A-Za-z0-9_-]{20,40})$/, async (m) => {
+    const { store, ws } = await portalContext(m[1]);
+    const a = await store.getAccount(newAccount);
+    return clientView(await store.getPortal(ws.id), { brand: { name: ws.name, nameAr: ws.nameAr || "" }, agency: { name: (a.agency && a.agency.name) || "", colour: (a.agency && a.agency.colour) || null, logo: (a.agency && a.agency.logo) || null } });
+  }, true],
+  ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/reviews\/([a-z0-9]+)\/items\/(\d+)$/, async (m, body) => {
+    const { store, ws } = await portalContext(m[1]);
+    return store.updatePortal(ws.id, (p) => decide(p, m[2], m[3], body));
+  }, true],
+  ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/requests$/, async (m, body) => {
+    const { store, ws } = await portalContext(m[1]);
+    const r = newRequest(body);
+    await store.updatePortal(ws.id, (p) => { p.requests.push(r); p.events.push({ type: "request", at: r.at }); });
+    return r;
+  }, true],
+  ["PUT", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/brief$/, async (m, body) => {
+    const { store, ws } = await portalContext(m[1]);
+    const b = normaliseBrief(body);
+    await store.updatePortal(ws.id, (p) => { p.brief = b; p.events.push({ type: "brief", at: b.at }); });
+    return { ok: true };
+  }, true],
+  // Client portal, the agency's side.
+  ["POST", /^\/api\/portal\/([a-z0-9-]+)\/link$/, async (m, body, { store, key, req }) => {
+    await store.getGenome(m[1]);
+    const token = await createPortalLink(key, m[1]);
+    // The agency can open and share the current link again; the server-wide index keeps only its hash.
+    await store.updatePortal(m[1], (p) => { p.link = { token, at: new Date().toISOString() }; });
+    return { url: `${origin(req)}/c/${token}` };
+  }],
+  ["GET", /^\/api\/portal\/([a-z0-9-]+)$/, async (m, body, { store, req }) => {
+    const { link, ...p } = await store.getPortal(m[1]);
+    return { ...p, url: link ? `${origin(req)}/c/${link.token}` : null, summary: portalSummary(p) };
+  }],
+  // Send products for approval: images come as data URLs and are stored with the client's assets.
+  ["POST", /^\/api\/portal\/([a-z0-9-]+)\/reviews$/, async (m, body, { store, key }) => {
+    const ws = m[1];
+    await store.getGenome(ws);
+    const batch = "review-" + Date.now().toString(36) + randomBytes(4).toString("hex");
+    const save = async (src, name) => {
+      if (typeof src !== "string") return null;
+      if (/^\/assets\//.test(src)) return src;
+      const im = DATA_URL_IMG.exec(src);
+      if (!im) return null;
+      const ext = im[1] === "jpeg" ? "jpg" : im[1];
+      await store.saveAsset(ws, batch, `${name}.${ext}`, Buffer.from(im[2], "base64"));
+      return `/assets/${key}/${ws}/${batch}/${name}.${ext}`;
+    };
+    const items = [];
+    for (const [i, it] of (Array.isArray(body.items) ? body.items : []).slice(0, 30).entries()) {
+      const after = [];
+      for (const [j, src] of (it.after && Array.isArray(it.after.images) ? it.after.images : []).slice(0, 12).entries()) { const u = await save(src, `p${i}-after-${j}`); if (u) after.push(u); }
+      items.push({ ...it, before: { ...(it.before || {}), image: await save(it.before && it.before.image, `p${i}-before`) }, after: { ...(it.after || {}), images: after } });
+    }
+    const review = newReview({ title: body.title, items });
+    await store.updatePortal(ws, (p) => { p.reviews.push(review); p.events.push({ type: "sent", review: review.id, at: review.sentAt }); });
+    return review;
+  }],
+  // The agency marks client answers as handled (synced into the queue) or comments as resolved.
+  ["PATCH", /^\/api\/portal\/([a-z0-9-]+)\/reviews\/([a-z0-9]+)\/items\/(\d+)$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => {
+    const r = p.reviews.find((x) => x.id === m[2]); const it = r && r.items[Number(m[3])];
+    if (!it) fail("Unknown item", 404);
+    if (body.synced) it.synced = true;
+    if (body.resolve) for (const c of it.comments) if (body.resolve === "all" || c.id === body.resolve) c.resolved = true;
+    return it;
+  })],
+  ["PATCH", /^\/api\/portal\/([a-z0-9-]+)\/requests\/([a-z0-9]+)$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => {
+    const q = p.requests.find((x) => x.id === m[2]);
+    if (!q) fail("Unknown request", 404);
+    if (REQUEST_STATUS.includes(body.status)) q.status = body.status;
+    return q;
+  })],
+  ["POST", /^\/api\/portal\/([a-z0-9-]+)\/brief\/applied$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { if (p.brief) p.brief.appliedAt = new Date().toISOString(); return { ok: true }; })],
   // Hosted export files: images marketplaces fetch by link, and the ZIP. Public on purpose: account and batch ids are long and random.
   ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|zip))$/, async (m) => {
     const known = AUTH ? await auth.accountExists(m[1]) : m[1] === "local";
@@ -499,6 +610,10 @@ export const server = createServer(async (req, res) => {
         return send(res, 200, f.data, f.type, headers);
       }
       return send(res, 200, out);
+    }
+    // The client portal page; its data comes from /api/c/<token>.
+    if (req.method === "GET" && /^\/c\/[A-Za-z0-9_-]{20,40}$/.test(url.pathname)) {
+      return send(res, 200, await readFile(join(ROOT, "src", "portal.html")), "text/html; charset=utf-8", { "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" });
     }
     if (req.method === "GET" && STATIC[url.pathname]) {
       const f = normalize(join(ROOT, STATIC[url.pathname]));

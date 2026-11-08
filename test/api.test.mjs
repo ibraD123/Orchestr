@@ -132,7 +132,8 @@ test("a client's data can be exported, consent recorded, and everything deleted"
   const ex = await api("GET", `/api/workspaces/${ws.id}/export`);
   assert.equal(ex.status, 200);
   assert.match(ex.headers.get("content-disposition"), /attachment/);
-  const data = JSON.parse(ex.body.toString());
+  const data = ex.body;
+  assert.equal(typeof data, "object", "the export is a JSON document, not JSON text inside JSON");
   assert.equal(data.workspace.id, ws.id); assert.equal(data.events.length, 1); assert.ok(data.genome);
   const d = await api("DELETE", `/api/workspaces/${ws.id}`);
   assert.equal(d.body.deleted, ws.id);

@@ -52,6 +52,7 @@ export function createStore(dir, { seed = true } = {}) {
     if (!parts.length || parts.some((p) => !SEGMENT.test(p))) throw new StoreError("Not found", 404);
     return join(wsDir(id), "assets", batch, ...parts);
   };
+  const portalQueues = new Map();
   // Account writes go one at a time so two requests can't lose each other's usage counts.
   const accountFile = join(dir, "account.json");
   let accountQueue = Promise.resolve();
@@ -82,7 +83,7 @@ export function createStore(dir, { seed = true } = {}) {
           assets.push({ batch: b, createdAt: m && m.createdAt, channel: m && m.channel, products: m ? m.items.length : null });
         }
       } catch (e) { if (e.code !== "ENOENT") throw e; }
-      return { exportedAt: new Date().toISOString(), workspace: ws, genome: await this.getGenome(id), events: await this.listEvents(id, { limit: 1e9 }), assets };
+      return { exportedAt: new Date().toISOString(), workspace: ws, genome: await this.getGenome(id), events: await this.listEvents(id, { limit: 1e9 }), portal: await this.getPortal(id), assets };
     },
 
     /** Delete a client and everything stored for it (PDPL right of erasure). */
@@ -154,6 +155,23 @@ export function createStore(dir, { seed = true } = {}) {
       if (JSON.stringify(out).length > 8_000_000) throw new StoreError("Brand DNA profile is too large (logo over 5 MB?)", 413);
       await writeJson(join(wsDir(id), "genome.json"), out);
       return { version: out.version };
+    },
+
+    /** The client portal's data for one workspace (server/portal.mjs). */
+    async getPortal(id) {
+      await this.getGenome(id);
+      return readJson(join(wsDir(id), "portal.json"), { reviews: [], requests: [], brief: null, events: [] });
+    },
+    /** Change the portal data one write at a time, so a client and the agency can't overwrite each other. */
+    async updatePortal(id, fn) {
+      const run = (portalQueues.get(id) || Promise.resolve()).then(async () => {
+        const p = await this.getPortal(id);
+        const out = await fn(p);
+        await writeJson(join(wsDir(id), "portal.json"), p);
+        return out;
+      });
+      portalQueues.set(id, run.catch(() => {}));
+      return run;
     },
 
     async appendEvents(id, events) {

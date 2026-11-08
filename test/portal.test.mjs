@@ -1,0 +1,106 @@
+// Client portal: a private link per client brand, approvals with pinned comments, requests, the brand questionnaire.
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { emptyPortal, newReview, decide, newRequest, normaliseBrief, clientView, portalSummary } from "../server/portal.mjs";
+
+const PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+test("a review: the client approves, or asks for changes with pins on the image", () => {
+  const p = emptyPortal();
+  const r = newReview({ title: "Week 45", items: [{ key: "q1|oud", name: "Oud", before: { image: "/assets/a/b/c/0.jpg" }, after: { images: ["/assets/a/b/c/1.png", "/assets/a/b/c/2.png"], copy: { titleEn: "Oud", bulletsEn: "a\nb" } } }, { key: "empty", name: "x", after: { images: [] } }] });
+  assert.equal(r.items.length, 1, "an item without images is dropped");
+  assert.deepEqual(r.items[0].after.copy.bulletsEn, ["a", "b"]);
+  p.reviews.push(r);
+  assert.throws(() => decide(p, r.id, 0, { decision: "changes" }), /Say what to change/);
+  decide(p, r.id, 0, { decision: "changes", comment: "Logo bigger", pins: [{ image: 9, x: 1.4, y: 0.2, text: "here" }, { image: 0, x: 0.1, y: 0.1, text: "" }], name: "Huda" });
+  const it = p.reviews[0].items[0];
+  assert.equal(it.status, "changes");
+  assert.deepEqual(it.comments[0].pins, [{ image: 1, x: 1, y: 0.2, text: "here" }], "pins are clamped to the image and need text");
+  assert.equal(it.comments[0].by, "Huda");
+  decide(p, r.id, 0, { decision: "approve" });
+  assert.equal(it.status, "approved");
+  assert.equal(it.synced, false, "a new answer waits for the agency");
+  assert.throws(() => decide(p, "nope", 0, { decision: "approve" }), (e) => e.status === 404);
+  assert.throws(() => newReview({ items: [] }), /Nothing to send/);
+  const s = portalSummary(p);
+  assert.deepEqual([s.approved, s.unsynced, s.openComments], [1, 1, 1]);
+});
+
+test("requests and the questionnaire are cleaned up before they are stored", () => {
+  const q = newRequest({ kind: "season", text: "Ramadan for 20 products", links: "https://noon.com/a  javascript:alert(1) https://noon.com/b", due: "2027-02-01" });
+  assert.deepEqual(q.links, ["https://noon.com/a", "https://noon.com/b"]);
+  assert.equal(q.status, "new");
+  assert.equal(newRequest({ kind: "weird", text: "x" }).kind, "other");
+  assert.throws(() => newRequest({}), /Describe the request/);
+  const b = normaliseBrief({ name: "Layali", voice: "luxury", dialect: "klingon", colours: "#2A1A0E, red, #F2C88A", avoidWords: "رخيص، cheap\nbest", logo: "data:text/html;base64,AAAA" });
+  assert.deepEqual(b.colours, ["#2A1A0E", "#F2C88A"]);
+  assert.deepEqual(b.avoidWords, ["رخيص", "cheap", "best"]);
+  assert.equal(b.dialect, null);
+  assert.equal(b.logo, null, "only images are kept as a logo");
+  const v = clientView({ ...emptyPortal(), brief: { ...b, logo: "data:image/png;base64,AA" } }, { brand: { name: "L" }, agency: { name: "A" } });
+  assert.equal(v.brief.logo, true, "the logo isn't sent back to the page");
+});
+
+let dir, server, base;
+before(async () => {
+  dir = await mkdtemp(join(tmpdir(), "basira-portal-"));
+  process.env.BASIRA_DATA_DIR = dir;
+  process.env.BASIRA_AUTH = "off";
+  ({ server } = await import("../server/index.mjs"));
+  await new Promise((r) => server.listen(0, r));
+  base = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => { server.close(); const { closeRenderer } = await import("../server/render.mjs"); await closeRenderer(); await rm(dir, { recursive: true, force: true }); });
+const call = async (method, path, body) => {
+  const r = await fetch(base + path, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const type = r.headers.get("content-type") || "";
+  return { status: r.status, headers: r.headers, body: type.startsWith("application/json") ? await r.json() : await r.text() };
+};
+
+test("end to end: link, send, the client answers through the link, the agency sees it", async () => {
+  const link = await call("POST", "/api/portal/layali/link", {});
+  assert.equal(link.status, 200);
+  const token = link.body.url.split("/c/")[1];
+  assert.match(token, /^[A-Za-z0-9_-]{20,40}$/);
+  const page = await call("GET", "/c/" + token);
+  assert.equal(page.status, 200);
+  assert.match(page.body, /<title>Approvals<\/title>/);
+  assert.equal(page.headers.get("x-robots-tag"), "noindex");
+
+  const sent = await call("POST", "/api/portal/layali/reviews", { title: "Week 45", items: [{ key: "q1|oud", name: "Oud", before: { image: PX }, after: { images: [PX, PX] } }] });
+  assert.equal(sent.status, 200);
+  const img = sent.body.items[0].after.images[0];
+  assert.match(img, /^\/assets\/local\/layali\/review-[a-z0-9]+\/p0-after-0\.png$/);
+  assert.equal((await fetch(base + img)).status, 200, "images are served to the client");
+
+  const view = await call("GET", "/api/c/" + token);
+  assert.equal(view.body.brand.name, "Layali Fragrances");
+  assert.equal(view.body.reviews[0].items[0].status, "pending");
+  const rid = view.body.reviews[0].id;
+  const ans = await call("POST", `/api/c/${token}/reviews/${rid}/items/0`, { decision: "changes", comment: "Gold cap looks grey", pins: [{ image: 1, x: 0.5, y: 0.2, text: "cap colour" }], name: "Huda" });
+  assert.equal(ans.status, 200);
+  await call("POST", `/api/c/${token}/requests`, { kind: "season", text: "Ramadan pack", links: "https://www.noon.com/saudi-en/x/N1/p/" });
+  await call("PUT", `/api/c/${token}/brief`, { name: "Layali", colours: "#2A1A0E", avoidWords: "cheap" });
+
+  const agency = await call("GET", "/api/portal/layali");
+  assert.equal(agency.body.url, link.body.url, "the agency can share the current link again");
+  assert.equal(agency.body.link, undefined);
+  assert.deepEqual([agency.body.summary.changes, agency.body.summary.openComments, agency.body.summary.newRequests, agency.body.summary.briefWaiting], [1, 1, 1, true]);
+  await call("PATCH", `/api/portal/layali/reviews/${rid}/items/0`, { synced: true, resolve: "all" });
+  await call("PATCH", `/api/portal/layali/requests/${agency.body.requests[0].id}`, { status: "inProgress" });
+  await call("POST", "/api/portal/layali/brief/applied", {});
+  const after2 = await call("GET", "/api/portal/layali");
+  assert.deepEqual([after2.body.summary.unsynced, after2.body.summary.openComments, after2.body.requests[0].status, after2.body.summary.briefWaiting], [0, 0, "inProgress", false]);
+
+  // A new link replaces the old one; unknown links say so.
+  await call("POST", "/api/portal/layali/link", {});
+  assert.equal((await call("GET", "/api/c/" + token)).status, 404);
+  assert.equal((await call("GET", "/api/c/short")).status, 404);
+  assert.equal((await call("POST", `/api/c/${token}/requests`, { text: "x" })).status, 404);
+  // The client data export carries the portal too (PDPL).
+  const exp = await fetch(base + "/api/workspaces/layali/export").then((r) => r.json());
+  assert.equal(exp.portal.requests.length, 1);
+});

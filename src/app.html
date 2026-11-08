@@ -506,6 +506,14 @@ button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13p
 .cr-plan li{display:grid;gap:3px}
 .cr-why{display:flex;gap:6px;flex-wrap:wrap}
 .cr-cat{display:grid;gap:6px;margin-top:12px}
+.pt-ans{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:12px}
+.pt-imgs{display:flex;gap:6px}
+.pt-shot{position:relative;width:64px;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+.pt-shot img{display:block;width:100%;height:auto}
+.pt-pin{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--bad);color:#fff;font-size:9px;font-style:normal;font-weight:700;display:grid;place-items:center;border:1px solid #fff}
+.pt-pin.done{background:var(--ink-3)}
+.pt-req{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+@media (max-width:600px){.pt-ans{grid-template-columns:1fr}}
 .cr-video{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:16px;margin-top:14px}
 .cr-video video{width:100%;border-radius:12px;background:#000}
 @media (max-width:600px){.cr-video{grid-template-columns:1fr}}
@@ -1131,7 +1139,7 @@ function vTemplates(){
 function wsQueue(){ return state.queue.filter(function(q){ return PM[q.pid] && PM[q.pid].ws === state.ws; }); }
 function vApprovals(){
   var q = wsQueue();
-  return '<div class="head"><div><h1>'+t("approvals")+'</h1><p>'+t("apprSub")+'</p></div></div>'+
+  return '<div class="head"><div><h1>'+t("approvals")+'</h1><p>'+t("apprSub")+'</p></div></div>'+vPortalCard()+
   (q.length ? '<div style="display:grid;gap:12px">'+q.map(function(it){ var p = PM[it.pid], iss = ISSUES[it.issue];
     var stTag = it.status === "pending" ? '<span class="tag warn">'+t("pending")+'</span>' : it.status === "approved" ? '<span class="tag good"><span class="dot"></span>'+t("approvedReady")+'</span>' : '<span class="tag">'+t("changesReq")+'</span>';
     return '<div class="card appr">'+
@@ -2961,6 +2969,135 @@ document.addEventListener("change", function(e){
 document.addEventListener("input", function(e){
   if (e.target.id === "cr-links"){ state.cr.links = e.target.value; var b = document.getElementById("cr-read"); if (b) b.disabled = !(state.api && state.api.ai) || state.cr.galBusy || !(state.cr.links.split(/\s+/).some(function(x){ return /^https?:\/\//.test(x); }) || (state.cr.search[state.pid] && state.cr.search[state.pid].items.some(function(x){ return x.on; }))); }
   if (e.target.id === "cr-q" && state.pid){ state.cr.query[state.pid] = e.target.value; }
+});
+
+/* ---------- client portal: link, sending for approval, client answers, requests, brand questionnaire ---------- */
+Object.assign(S, {
+  ptT:["Client portal","بوابة العميل"], ptSub:["One private link for this client: they approve or comment on images, send requests and fill in the brand questionnaire. No sign-in.","رابط خاص لهذا العميل: يوافق أو يعلّق على الصور، ويرسل الطلبات، ويملأ استبيان العلامة. دون تسجيل دخول."],
+  ptLink:["Create client link","أنشئ رابط العميل"], ptNewLink:["New link (the old one stops working)","رابط جديد (يتوقف القديم)"], ptCopy:["Copy","انسخ"], ptCopied:["Link copied","تم نسخ الرابط"], ptWa:["Send on WhatsApp","أرسل عبر واتساب"],
+  ptWaText:["Hi! The new images for {brand} are ready for your approval:","مرحباً! الصور الجديدة لـ{brand} جاهزة لموافقتك:"],
+  ptSend:["Send pending to the client","أرسل المعلّق إلى العميل"], ptSending:["Preparing images…","جارٍ تجهيز الصور…"], ptSent:["Sent to the client: {n} products","أُرسل إلى العميل: {n} منتجات"], ptNothing:["Nothing pending to send","لا شيء معلّق للإرسال"], ptNeedsRender:["Sending images needs the renderer on the server, or generate the slides in Studio first.","إرسال الصور يحتاج محرك العرض على الخادم، أو أنشئ الشرائح في الاستوديو أولاً."],
+  ptWaiting:["waiting for the client","بانتظار العميل"], ptAnswers:["Client answers","ردود العميل"], ptApplied:["Client answers applied: {n}","طُبقت ردود العميل: {n}"],
+  ptResolve:["Mark fixed","علّمه مُصلحاً"], ptOpenC:["open comments","تعليقات مفتوحة"],
+  ptReq:["Client requests","طلبات العميل"], ptNoReq:["No requests yet.","لا طلبات بعد."], rk_season:["Season pack","حزمة موسمية"], rk_newProducts:["New products","منتجات جديدة"], rk_fix:["Fix listings","تعديل منتجات"], rk_other:["Other","أخرى"],
+  rs_new:["New","جديد"], rs_inProgress:["In progress","قيد التنفيذ"], rs_done:["Done","تم"],
+  ptBrief:["Brand questionnaire","استبيان العلامة"], ptBriefNone:["The client hasn't filled it in yet. It's in their portal link.","لم يملأه العميل بعد. هو في رابط البوابة."], ptBriefApply:["Apply to Brand DNA","طبّقه على هوية العلامة"], ptBriefApplied:["Applied to Brand DNA","طُبّق على هوية العلامة"],
+  ptBriefDone:["Brand DNA updated from the questionnaire","حُدّثت هوية العلامة من الاستبيان"]
+});
+Object.assign(state, {portal:{}, ptLink:{}, ptBusy:false});
+
+function portalLoad(ws, force){
+  ws = ws || state.ws;
+  if (!(state.api && state.api.store)) return Promise.resolve(null);
+  if (state.portal[ws] && !force) return Promise.resolve(state.portal[ws]);
+  return apiJson("/api/portal/"+ws).then(function(p){ state.portal[ws] = p; return portalSync(ws, p); }).then(function(){ if (state.route === "approvals") render(); }).catch(function(){});
+}
+/** Client answers become decisions in the agency's queue (and teach Brand DNA), once each. */
+function portalSync(ws, p){
+  var n = 0, done = [];
+  p.reviews.forEach(function(r){ r.items.forEach(function(it, i){
+    if (it.status === "pending" || it.synced) return;
+    var qid = it.key.split("|")[0], q = findQ(qid);
+    if (q && q.status === "pending"){
+      if (it.status === "approved") approve(qid);
+      else { var last = it.comments[it.comments.length - 1]; q.reasons = q.reasons || []; q.clientNote = last ? last.text || (last.pins[0] && last.pins[0].text) : ""; sendFeedback(qid); }
+      n++;
+    }
+    it.synced = true; done.push(apiJson("/api/portal/"+ws+"/reviews/"+r.id+"/items/"+i, {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({synced:true})}).catch(function(){}));
+  }); });
+  if (n) toast(tf("ptApplied", {n:n}));
+  return Promise.all(done);
+}
+function blobToData(b){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(fr.result); }; fr.readAsDataURL(b); }); }
+/** The product's slides as images: what Studio generated, or rendered now on the server. */
+function slideImages(p){
+  var outs = state.renders[p.id];
+  if (outs && outs.length) return Promise.all(outs.slice(0, 9).map(function(o){ return fetch(o.url).then(function(r){ return r.blob(); }).then(blobToData); }));
+  if (!(state.api && state.api.render)) return Promise.resolve([]);
+  return ensureDataImage(p).then(function(image){
+    return setOf(p).slice(0, 9).reduce(function(chain, sl){ return chain.then(function(acc){
+      var c = ctxFor(p, sl);
+      return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({template:sl.tpl, fields:sl.fields, image:image, language:c.language, numerals:c.numerals, kit:c.kit, brand:c.brand, logo:c.logo, fonts:c.fonts})})
+        .then(function(r){ return r.ok ? r.blob().then(blobToData).then(function(d){ acc.push(d); return acc; }) : acc; });
+    }); }, Promise.resolve([]));
+  });
+}
+function portalSend(){
+  var pend = wsQueue().filter(function(q){ return q.status === "pending"; });
+  var sent = {}; (state.portal[state.ws] ? state.portal[state.ws].reviews : []).forEach(function(r){ r.items.forEach(function(it){ if (it.status === "pending") sent[it.key.split("|")[0]] = true; }); });
+  pend = pend.filter(function(q){ return !sent[q.id]; });
+  if (!pend.length) return toast(t("ptNothing"));
+  state.ptBusy = true; render();
+  var items = [];
+  pend.reduce(function(chain, q){ return chain.then(function(){
+    var p = PM[q.pid];
+    return Promise.all([ensureDataImage(p).then(shrinkForAi).catch(function(){ return null; }), slideImages(p)]).then(function(x){
+      if (!x[1].length) return;
+      items.push({key: q.id+"|"+p.id, name: tr(p.name), before:{image: x[0], copy:{titleEn: p.name[0], titleAr: p.name[1]}}, after:{images: x[1], copy:{titleEn: p.newTitle || p.name[0], titleAr: p.name[1]}}});
+    });
+  }); }, Promise.resolve()).then(function(){
+    if (!items.length) throw new Error(t("ptNeedsRender"));
+    return post("/api/portal/"+state.ws+"/reviews", {title: new Date().toLocaleDateString(state.lang === "ar" ? "ar" : "en-GB"), items: items});
+  }).then(function(){ toast(tf("ptSent", {n: items.length})); return portalLoad(state.ws, true); })
+    .catch(function(e){ toast(e.message); })
+    .then(function(){ state.ptBusy = false; render(); });
+}
+function portalLink(){
+  post("/api/portal/"+state.ws+"/link", {}).then(function(j){ state.ptLink[state.ws] = j.url; render(); }).catch(function(e){ toast(e.message); });
+}
+function applyBrief(b){
+  var g = genome(), id = g.identity;
+  if (b.name) id.name = b.name; if (b.nameAr) id.nameAr = b.nameAr;
+  if (b.logo && b.logo !== true) id.logo = b.logo;
+  if (b.colours && b.colours.length) id.palette = b.colours.map(function(h, i){ return {hex:h, role: i === 0 ? "primary" : i === 1 ? "secondary" : "accent"}; });
+  var note = t("ptBrief");
+  (b.avoidWords || []).forEach(function(w){ declare(g, {type:"avoidWord", params:{word:w}}, "manual", null, note); });
+  (b.useWords || []).forEach(function(w){ declare(g, {type:"preferWord", params:{word:w}}, "manual", null, note); });
+  if (b.voice || b.dialect) declare(g, {type:"voice", params:{text:[b.voice, b.dialect && b.dialect + " Arabic"].filter(Boolean).join(", ")}}, "manual", null, note);
+  if (b.languages) declare(g, {type:"bilingual", params:{mode:b.languages}}, "manual", null, note);
+  if (b.numerals) declare(g, {type:"numerals", params:{style:b.numerals}}, "manual", null, note);
+  touch(g, "questionnaire"); commit(state.ws);
+  return apiJson("/api/portal/"+state.ws+"/brief/applied", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"}).then(function(){ toast(t("ptBriefDone")); return portalLoad(state.ws, true); });
+}
+
+function vPortalCard(){
+  var server = state.api && state.api.store, p = state.portal[state.ws], s = p && p.summary, link = state.ptLink[state.ws] || (p && p.url);
+  if (!server) return "";
+  if (!p) portalLoad(state.ws);
+  var brand = wsInfo().name || "";
+  var answers = p ? p.reviews.slice().reverse().map(function(r){ return r.items.map(function(it, i){
+    if (it.status === "pending" && !it.comments.length) return "";
+    var open = it.comments.filter(function(c){ return !c.resolved; });
+    var n = 0, pins = {};
+    it.comments.forEach(function(c){ c.pins.forEach(function(pn){ n++; (pins[pn.image] = pins[pn.image] || []).push({x:pn.x, y:pn.y, n:n, done:c.resolved}); }); });
+    return '<div class="pt-ans"><div class="pt-imgs">'+it.after.images.slice(0, 4).map(function(src, j){ return '<span class="pt-shot"><img src="'+esc(src)+'" alt="">'+(pins[j] || []).map(function(pn){ return '<i class="pt-pin'+(pn.done ? " done" : "")+'" style="left:'+(pn.x*100)+'%;top:'+(pn.y*100)+'%">'+pn.n+'</i>'; }).join("")+'</span>'; }).join("")+'</div>'+
+      '<div style="min-width:0;display:grid;gap:4px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(it.name)+'</b><span class="tag '+(it.status === "approved" ? "good" : it.status === "changes" ? "bad" : "warn")+'">'+(it.status === "pending" ? t("ptWaiting") : it.status === "approved" ? t("approvedReady") : t("changesReq"))+'</span></div>'+
+        it.comments.map(function(c){ return '<div class="note"'+(c.resolved ? ' style="text-decoration:line-through"' : "")+'>'+esc(c.by)+': '+esc(c.text)+c.pins.map(function(pn){ return ' · 📍 '+esc(pn.text); }).join("")+'</div>'; }).join("")+
+        (open.length ? '<div><button type="button" class="btn btn-ghost btn-sm" data-ptresolve="'+r.id+'|'+i+'">'+t("ptResolve")+'</button></div>' : "")+'</div></div>';
+  }).join(""); }).join("") : "";
+  var reqs = p ? p.requests.slice().reverse() : [];
+  var b = p && p.brief;
+  return '<div class="card"><div class="card-h"><h2>'+t("ptT")+'</h2>'+(s ? '<span class="note">'+s.waiting+' '+t("ptWaiting")+(s.openComments ? ' · '+s.openComments+' '+t("ptOpenC") : "")+'</span>' : "")+'</div>'+
+    '<p class="note" style="margin-bottom:12px">'+t("ptSub")+'</p>'+
+    '<div class="exp-row">'+(link ? '<input class="cr-q" readonly value="'+esc(link)+'" id="pt-url" dir="ltr"><button type="button" class="btn btn-ghost btn-sm" id="pt-copy">'+t("ptCopy")+'</button><a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(tf("ptWaText", {brand: brand})+" "+link)+'">'+t("ptWa")+'</a>' : "")+
+      '<button type="button" class="btn btn-ghost btn-sm" id="pt-link">'+t(link ? "ptNewLink" : "ptLink")+'</button>'+
+      '<button type="button" class="btn btn-primary btn-sm" id="pt-send"'+(state.ptBusy ? " disabled" : "")+'>'+t(state.ptBusy ? "ptSending" : "ptSend")+'</button></div>'+
+    (answers ? '<div style="margin-top:14px;display:grid;gap:10px"><span class="lbl">'+t("ptAnswers")+'</span>'+answers+'</div>' : "")+
+    '<div style="margin-top:14px"><span class="lbl">'+t("ptReq")+'</span>'+(reqs.length ? reqs.map(function(q){ return '<div class="pt-req"><div style="min-width:0"><b>'+t("rk_"+q.kind)+'</b> <span class="note">'+esc(q.by)+' · '+new Date(q.at).toLocaleDateString()+(q.due ? ' → '+esc(q.due) : "")+'</span>'+(q.text ? '<div>'+esc(q.text)+'</div>' : "")+(q.links.length ? '<div class="note" dir="ltr">'+q.links.map(esc).join("<br>")+'</div>' : "")+'</div>'+
+      '<div class="seg" role="group">'+["new","inProgress","done"].map(function(st){ return '<button type="button" data-ptreq="'+q.id+'|'+st+'" aria-pressed="'+(q.status === st)+'">'+t("rs_"+st)+'</button>'; }).join("")+'</div></div>'; }).join("") : '<p class="note">'+t("ptNoReq")+'</p>')+'</div>'+
+    '<div style="margin-top:14px"><span class="lbl">'+t("ptBrief")+'</span>'+(b ? '<div class="note" style="display:grid;gap:2px">'+[b.name && (b.name+(b.nameAr ? " · "+b.nameAr : "")), b.about, b.audience, [b.voice, b.dialect, b.languages, b.numerals].filter(Boolean).join(" · "), b.colours && b.colours.join(" "), b.useWords && b.useWords.length && "+ "+b.useWords.join(", "), b.avoidWords && b.avoidWords.length && "− "+b.avoidWords.join(", "), b.claims, b.examples].filter(Boolean).map(function(x){ return '<div>'+esc(x)+'</div>'; }).join("")+'</div>'+
+      '<div style="margin-top:8px">'+(b.appliedAt ? '<span class="tag good">'+t("ptBriefApplied")+'</span>' : '<button type="button" class="btn btn-primary btn-sm" id="pt-brief">'+t("ptBriefApply")+'</button>')+'</div>' : '<p class="note">'+t("ptBriefNone")+'</p>')+'</div>'+
+  '</div>';
+}
+
+document.addEventListener("click", function(e){
+  var el;
+  if (e.target.closest("#pt-link")){ portalLink(); return; }
+  if (e.target.closest("#pt-send")){ portalSend(); return; }
+  if (e.target.closest("#pt-copy")){ var u = document.getElementById("pt-url"); if (u){ (navigator.clipboard ? navigator.clipboard.writeText(u.value) : Promise.reject()).then(function(){ toast(t("ptCopied")); }).catch(function(){ u.select(); }); } return; }
+  if ((el = e.target.closest("[data-ptresolve]"))){ var a = el.dataset.ptresolve.split("|"); apiJson("/api/portal/"+state.ws+"/reviews/"+a[0]+"/items/"+a[1], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({resolve:"all"})}).then(function(){ return portalLoad(state.ws, true); }); return; }
+  if ((el = e.target.closest("[data-ptreq]"))){ var b = el.dataset.ptreq.split("|"); apiJson("/api/portal/"+state.ws+"/requests/"+b[0], {method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status:b[1]})}).then(function(){ return portalLoad(state.ws, true); }); return; }
+  if (e.target.closest("#pt-brief")){ var p = state.portal[state.ws]; if (p && p.brief) applyBrief(p.brief); return; }
 });
 
 /* ---------- router ---------- */
