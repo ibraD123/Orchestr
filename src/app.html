@@ -487,6 +487,29 @@ button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13p
 .member .exp-row{justify-content:flex-end}
 .invite-box{display:grid;gap:8px;margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-2)}
 .invite-box input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px;width:100%;min-width:0;font-family:var(--font-mono);font-size:12.5px}
+.cr-know{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.cr-know{grid-template-columns:1fr}}
+.cr-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cr-q{flex:1 1 220px;min-width:0;height:38px;border:1px solid var(--line);border-radius:10px;padding-inline:12px;background:var(--surface);color:var(--ink);font:inherit}
+.cr-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
+.cr-hit{display:grid;gap:4px;border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;font-size:12px;color:var(--ink-2);opacity:.55}
+.cr-hit.on{opacity:1;border-color:var(--ink-3)}
+.cr-hit img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}
+.cr-phone{max-width:380px;margin-inline:auto;border:1px solid var(--line);border-radius:22px;padding:12px;background:var(--surface-2)}
+.cr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cr-cell{background:var(--surface);border-radius:10px;padding:6px;display:grid;gap:4px;font-size:11.5px;color:var(--ink-2)}
+.cr-cell.you{outline:2px solid var(--good)}
+.cr-img{position:relative;aspect-ratio:1;background:#fff;border-radius:8px;overflow:hidden}
+.cr-img img{width:100%;height:100%;object-fit:contain}
+.cr-img .tag{position:absolute;inset-block-start:6px;inset-inline-start:6px}
+.cr-plan{display:grid;gap:10px;padding-inline-start:20px;margin:0}
+.cr-plan li{display:grid;gap:3px}
+.cr-why{display:flex;gap:6px;flex-wrap:wrap}
+.cr-cat{display:grid;gap:6px;margin-top:12px}
+.cr-catrow{display:grid;grid-template-columns:auto 40px 1fr;gap:10px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.cr-catrow small{display:block}
+.mini-thumb{width:40px;height:40px;border-radius:8px;overflow:hidden;display:grid;place-items:center;background:var(--surface-2)}
+.mini-thumb img,.mini-thumb svg{width:100%;height:100%;object-fit:cover}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -774,9 +797,9 @@ var ICONS = {
 };
 function navHTML(mobile){
   var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
-  var base = state.route === "listing" ? "catalog" : state.route;
-  return ["overview","brand","audit","catalog","batch","photos","reviews","templates","studio","approvals","results","settings"].map(function(k){
-    var href = k === "studio" ? (state.pid ? "studio-"+state.pid : "catalog") : k;
+  var base = state.route === "listing" ? "catalog" : ["studio","templates","photos"].indexOf(state.route) > -1 ? "creator" : state.route;
+  return ["overview","brand","audit","catalog","batch","creator","reviews","approvals","results","settings"].map(function(k){
+    var href = k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
     return '<a href="#'+href+'"'+cur+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg>'+t(k)+(k === "approvals" && pend ? '<span class="cnt">'+pend+'</span>' : "")+'</a>';
@@ -1060,7 +1083,7 @@ function vStudio(){
   return '<div><a class="crumb" href="#listing-'+p.id+'">'+backArrow()+esc(tr(p.name))+'</a><div class="head"><div><h1>'+t("studio")+'</h1><p>'+t("stSub")+'</p></div>'+
     '<select class="sel" id="pick" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div></div>'+
   '<div class="studio">'+
-    '<div class="slist">'+set.map(function(x, j){ var tj = templateById(x.tpl); return '<button type="button" class="sitem" data-slide="'+j+'" aria-pressed="'+(i === j)+'"><span class="mini">'+pv('data-pid="'+p.id+'" data-idx="'+j+'"')+'</span><span><b>'+tr(tj.name)+'</b><small>'+tr(tj.question)+'</small></span></button>'; }).join("")+
+    '<div class="slist">'+set.map(function(x, j){ var tj = templateById(x.tpl); return '<button type="button" class="sitem" data-slide="'+j+'" aria-pressed="'+(i === j)+'"><span class="mini">'+pv('data-pid="'+p.id+'" data-idx="'+j+'"')+'</span><span><b>'+tr(tj.name)+'</b><small>'+(x.why && x.why.length ? esc(crReason(x.why.filter(function(r){ return r.source !== "category"; })[0] || x.why[0])) : tr(tj.question))+'</small></span></button>'; }).join("")+
       '<a class="btn btn-ghost" href="#templates">+ '+t("addSlide")+'</a></div>'+
     '<div class="stage"><div class="stage-box" id="canvas-wrap">'+pv('data-pid="'+p.id+'" data-idx="'+i+'"', "big")+(g.phase === "run" ? '<div class="scan"></div>' : "")+'</div>'+
       '<div class="stage-meta">'+
@@ -1084,7 +1107,7 @@ function vStudio(){
       '</div>'+
     '</div>'+
   '</div>'+
-  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span>'+(o.mode ? '<span class="tag'+(o.mode === "generated" ? " good" : "")+'">'+t("mode_"+o.mode)+(o.reason && o.mode !== "generated" ? " · "+t("why_"+o.reason) : "")+(o.tries ? " · "+tf("attemptsN", {n:o.tries}) : "")+'</span>' : "")+'</a>'; }).join("")+'</div></div>' : "");
+  (outs ? '<div class="card"><div class="card-h"><h2>'+t("rendered")+'</h2><small>1600 × 2000 PNG</small></div><div class="renders">'+outs.map(function(o){ var tj = templateById(o.tpl); return '<a href="'+o.url+'" download="'+p.id+'-'+o.tpl+'.png"><img src="'+o.url+'" alt="'+esc(tr(tj.name))+'"><span>'+t("download")+' · '+tr(tj.name)+'</span>'+(o.mode ? '<span class="tag'+(o.mode === "generated" ? " good" : "")+'">'+t("mode_"+o.mode)+(o.reason && o.mode !== "generated" ? " · "+t("why_"+o.reason) : "")+(o.tries ? " · "+tf("attemptsN", {n:o.tries}) : "")+'</span>' : "")+(o.aiPeople ? '<span class="tag warn">'+t("crAiPeople")+'</span>' : "")+'</a>'; }).join("")+'</div></div>' : "");
 }
 
 function vTemplates(){
@@ -2115,9 +2138,10 @@ function omCard(){
       (ok ? "" : '<span class="note">'+t("omNeeds")+'</span>')+'</div>'+
     (om.error ? '<p class="err">'+esc(om.error)+'</p>' : "")+
     (om.results.length ? '<div class="omgrid" style="margin-top:14px">'+om.results.map(function(r, i){
-      var f = r.fid, inEx = p && (state.extra[p.id] || []).indexOf(r.url) > -1;
+      var f = r.fid, inEx = p && (state.extra[p.id] || []).some(function(x){ return (x && x.src || x) === r.url; });
       return '<figure><img src="'+r.url+'" alt="">'+(f ? '<span class="tag '+(f.ok ? "good" : "bad")+'">'+esc(tf(f.ok ? "colourOk" : "colourBad", {s:Math.round(f.score * 100)+"%"}))+'</span>' : '<span class="tag">'+t("checking")+'</span>')+
-        (f && f.ok && p ? '<button type="button" class="btn btn-ghost btn-sm" data-xomadd="'+i+'"'+(inEx ? " disabled" : "")+'>'+t(inEx ? "inExport" : "addToExport")+'</button>' : "")+'</figure>';
+        (f && f.ok && p ? '<button type="button" class="btn btn-ghost btn-sm" data-xomadd="'+i+'"'+(inEx ? " disabled" : "")+'>'+t(inEx ? "inExport" : "addToExport")+'</button>' : "")+
+        (f && f.ok ? '<button type="button" class="btn btn-ghost btn-sm" data-xommodel="'+i+'">'+t("crMakeModel")+'</button>' : "")+'</figure>';
     }).join("")+'</div>' : "")+
   '</div>';
 }
@@ -2140,7 +2164,7 @@ function runOnModel(){
   om.busy = true; om.error = null; render();
   var visual = activeTraits(genome(), bCtx(p)).filter(function(x){ return x.type === "visual"; }).map(function(x){ return x.params.text; }).join("; ");
   shrinkForAi(ref).then(function(img){
-    return post("/api/imagegen/onmodel", {image:img, product:tr(p.name), category:catOf(p), look:om.look, cover:om.cover, setting:om.setting, count:om.count, visual:visual});
+    return post("/api/imagegen/onmodel", {image:img, product:tr(p.name), category:catOf(p), look:om.look, cover:om.cover, setting:om.setting, count:om.count, visual:visual, modelRef: brandModel() || undefined});
   }).then(function(j){ addOmResults(j.images); refreshAccount(); }).catch(function(e){ om.error = e.message; })
     .then(function(){ om.busy = false; render(); });
 }
@@ -2178,7 +2202,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-xdelyes]"))){ deleteWs(el.dataset.xdelyes); return; }
   if ((el = e.target.closest("[data-xom]"))){ var xo = el.dataset.xom.split("|"); state.om[xo[0] === "omLook" ? "look" : xo[0] === "omCover" ? "cover" : "setting"] = xo[1]; render(); return; }
   if ((el = e.target.closest("#x-om-go"))){ runOnModel(); return; }
-  if ((el = e.target.closest("[data-xomadd]"))){ var po = PM[state.pid], ro = state.om.results[+el.dataset.xomadd]; if (po && ro){ (state.extra[po.id] = state.extra[po.id] || []).push(ro.url); toast(tf("addedToExport", {name:tr(po.name)})); render(); } return; }
+  if ((el = e.target.closest("[data-xomadd]"))){ var po = PM[state.pid], ro = state.om.results[+el.dataset.xomadd]; if (po && ro){ (state.extra[po.id] = state.extra[po.id] || []).push({src: ro.url, aiPeople: true}); toast(tf("addedToExport", {name:tr(po.name)})); render(); } return; }
 });
 document.addEventListener("change", function(e){
   var el = e.target;
@@ -2584,12 +2608,290 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-xbrandfix]"))){ prepareBatch([el.dataset.xbrandfix]); go("batch"); return; }
 });
 
+/* ---------- Creator: images planned from data, competitors, search preview, season packs, brand model ---------- */
+Object.assign(S, {
+  creator:["Creator","المصمم"], crSub:["Images planned from what buyers say, what the audit found and what competitors show. Every image is checked before anyone sees it.","صور مبنية على ما يقوله المشترون وما وجده الفحص وما يعرضه المنافسون. كل صورة تُفحص قبل أن يراها أحد."],
+  crTabCard:["Product set","مجموعة المنتج"], crTabCatalog:["Catalog and seasons","الكتالوج والمواسم"], crTabModel:["Brand model","عارضة العلامة"], crTabTemplates:["Templates","القوالب"], crTabPhotos:["Photos","الصور"],
+  crKnows:["What Basira knows","ما تعرفه بصيرة"], crReviews:["Reviews","التقييمات"], crAudit:["Audit","الفحص"], crSales:["Sales","المبيعات"],
+  crNoReviews:["No reviews analysed for this product yet.","لم تُحلَّل تقييمات هذا المنتج بعد."], crNoIssues:["No open issues.","لا مشكلات مفتوحة."], crNoSales:["No sales results yet. Upload reports in Results.","لا نتائج مبيعات بعد. ارفع التقارير في النتائج."],
+  crWorked:["raised conversion","رفع التحويل"], crHurt:["lowered conversion","خفّض التحويل"],
+  crComp:["Competitors","المنافسون"], crCompSub:["What a buyer sees next to this product. Search the marketplace or paste competitor links.","ما يراه المشتري بجانب هذا المنتج. ابحث في المنصة أو الصق روابط المنافسين."],
+  crNoonLinks:["Noon has no search API for sellers: open Noon, search as a buyer would, and paste the links of the products around yours.","لا توفر نون واجهة بحث للبائعين: افتح نون وابحث كما يبحث المشتري، والصق روابط المنتجات المحيطة بمنتجك."],
+  crAmazonNeeds:["Searching Amazon uses the connected seller account (SP-API). Without it, paste links.","البحث في أمازون يستخدم حساب البائع المربوط (SP-API). بدونه الصق الروابط."],
+  crQuery:["Search query","عبارة البحث"], crFind:["Find","ابحث"], crFinding:["Searching…","جارٍ البحث…"], crLinks:["Competitor links, one per line","روابط المنافسين، رابط في كل سطر"],
+  crRead:["Read their galleries","حلّل معارضهم"], crReading:["Reading galleries…","جارٍ تحليل المعارض…"], crNeedsAi:["Reading galleries needs the Claude key on the server.","تحليل المعارض يحتاج مفتاح Claude على الخادم."], crNeedsServer:["Search needs the Basira server.","البحث يحتاج خادم بصيرة."],
+  crCoverage:["What their galleries show","ما تعرضه معارضهم"], crOfN:["{n} of {of}","{n} من {of}"], crOurs:["we have it","لدينا"], crMust:["most have it, we don't","لدى معظمهم وليس لدينا"], crWhite:["almost nobody shows it","لا يعرضه أحد تقريباً"],
+  crArabicShare:["{p}% of competitors have Arabic on their images","{p}% من المنافسين لديهم نص عربي على الصور"], crBrokenComp:["{n} competitors have broken Arabic on their images","{n} منافسين لديهم نص عربي مكسور على الصور"],
+  crSearchView:["How it looks in search","كيف يبدو في نتائج البحث"], crSearchSub:["Your main image among the real results for this query, on a phone. The score says how much it stands out.","صورتك الرئيسية بين النتائج الحقيقية لهذا البحث على الهاتف. الدرجة تقول مدى تميّزها."],
+  crCompare:["Compare in search","قارن في نتائج البحث"], crComparing:["Measuring…","جارٍ القياس…"], crYou:["You","أنت"], crStandout:["Stands out","التميّز"],
+  so_sameColours:["Same colours as the products around it","نفس ألوان المنتجات المحيطة"], so_smallerThanOthers:["The product looks smaller than its neighbours","المنتج يبدو أصغر من جيرانه"], so_fillsFrame:["Fills the frame","يملأ الإطار"], so_distinctColour:["Its colours stand apart","ألوانه مميزة"], so_noData:["Couldn't measure the images","تعذر قياس الصور"],
+  crPlan:["Plan the set","خطّط المجموعة"], crPlanSub:["Which slides this product needs and why, from the data above.","الشرائح التي يحتاجها المنتج ولماذا، من البيانات أعلاه."], crMakePlan:["Build the plan","ابنِ الخطة"],
+  crApply:["Use this set in Studio","استخدم المجموعة في الاستوديو"], crApplyGen:["Use and generate","استخدم وأنشئ"],
+  why_main:["main image","الصورة الرئيسية"], why_category:["usual for the category","معتاد للفئة"], why_review:["{p}% of reviews: {k}","{p}% من التقييمات: {k}"], why_reviewPos:["buyers love: {k}","يحبه المشترون: {k}"], why_audit:["audit: {k}","الفحص: {k}"],
+  why_must:["{n} of {of} competitors show it","{n} من {of} منافسين يعرضونه"], why_white:["none of {of} competitors show it","لا يعرضه أي من {of} منافسين"], why_sales:["raised this brand's conversion","رفع تحويل هذه العلامة"], why_hurts:["lowered conversion before","خفّض التحويل سابقاً"],
+  crSeason:["Season pack","حزمة الموسم"], crSeasonSub:["Put a seasonal slide on many products at once, and roll back after the season.","ضع شريحة موسمية على منتجات كثيرة دفعة واحدة، وأرجعها بعد الموسم."],
+  crApplySeason:["Apply to selected","طبّق على المحدد"], crRollback:["Roll back selected","أرجع المحدد كما كان"], crInSeason:["in season: {s}","في الموسم: {s}"], crGenSel:["Generate selected","أنشئ المحدد"], crSendSel:["Send selected to approvals","أرسل المحدد للموافقات"],
+  crGenProgress:["Generating {i} of {n}…","جارٍ إنشاء {i} من {n}…"], crSelectSome:["Select products first","حدد منتجات أولاً"], crSeasoned:["Season pack applied to {n} products","طُبقت حزمة الموسم على {n} منتجات"], crRolled:["Rolled back {n} products","أُرجعت {n} منتجات"],
+  crModelT:["Brand model","عارضة العلامة"], crModelSub:["One person across the whole catalog. Every on-model photo and every slide with a person uses this face.","شخص واحد في كل الكتالوج. كل صورة على عارضة وكل شريحة فيها شخص تستخدم هذا الوجه."],
+  crModelUpload:["Upload a photo of the model","ارفع صورة العارضة"], crModelRemove:["Remove","إزالة"], crModelNone:["No brand model yet. Upload a photo, or pick one of the generated on-model photos.","لا عارضة بعد. ارفع صورة أو اختر إحدى الصور المُنشأة."], crModelSet:["Brand model saved","حُفظت عارضة العلامة"],
+  crMakeModel:["Make brand model","اجعلها عارضة العلامة"], crAiPeople:["AI people · labelled","أشخاص بالذكاء الاصطناعي · موسومة"]
+});
+ICONS.creator = '<path d="M12 3l1.8 3.9L18 8.5l-3.1 2.9.8 4.3L12 13.6l-3.7 2.1.8-4.3L6 8.5l4.2-1.6z"/><path d="M5 20h14"/>';
+Object.assign(state, {cr:{tab:"card", channel:"noon", region:"saudi-ar", query:{}, search:{}, searching:false, error:null, links:"", gallery:{}, galBusy:false, plan:{}, grid:{}, gridBusy:false, season:"ramadan", sel:{}, progress:null}});
+try { state.crBackups = JSON.parse(localStorage.getItem("basira-season-backups") || "{}") || {}; } catch(e){ state.crBackups = {}; }
+function saveBackups(){ try { localStorage.setItem("basira-season-backups", JSON.stringify(state.crBackups)); } catch(e){} }
+function brandModel(){ var id = genome().identity || {}; return id.model || null; }
+function issueName(k){ var x = ISSUES[k]; return x ? tr(x.t) : k; }
+function themeName(k){ var x = THEMES[k]; return x ? tr(x) : String(k).replace(/_/g, " "); }
+function crSetKinds(p){ return setOf(p).map(function(s){ return TEMPLATE_KIND[s.tpl]; }).filter(Boolean); }
+function crGaps(p){ var g = state.cr.gallery[p.id]; return g ? galleryGaps(g.competitors.filter(function(c){ return c.kinds && c.kinds.length; }), crSetKinds(p)) : null; }
+
+function crReason(r){
+  if (r.source === "main") return t("why_main");
+  if (r.source === "category") return t("why_category");
+  if (r.source === "review") return r.positive ? tf("why_reviewPos", {k: themeName(r.key)}) : tf("why_review", {p: Math.round(r.share * 100), k: themeName(r.key)});
+  if (r.source === "audit") return tf("why_audit", {k: issueName(r.key)});
+  if (r.source === "competitors") return r.whitespace ? tf("why_white", {of: r.of}) : tf("why_must", {n: Math.round(r.share * r.of), of: r.of});
+  if (r.source === "sales") return t(r.hurts ? "why_hurts" : "why_sales") + (r.pts ? " (" + (r.pts > 0 ? "+" : "") + r.pts + ")" : "");
+  return "";
+}
+function crTag(r){ return r.source === "review" ? (r.positive ? "good" : "bad") : r.source === "competitors" ? "warn" : r.source === "sales" ? (r.hurts ? "bad" : "good") : r.source === "audit" ? "bad" : ""; }
+
+function vCreator(){
+  var tab = state.cr.tab;
+  var tabs = [["card","crTabCard"],["catalog","crTabCatalog"],["model","crTabModel"],["templates","crTabTemplates"],["photos","crTabPhotos"]];
+  var head = '<div class="head"><div><h1>'+t("creator")+'</h1><p>'+t("crSub")+'</p></div></div>'+
+    '<div class="chips" role="tablist" style="margin-bottom:16px">'+tabs.map(function(x){ return '<button type="button" class="chip" role="tab" data-crtab="'+x[0]+'" aria-pressed="'+(tab === x[0])+'">'+t(x[1])+'</button>'; }).join("")+'</div>';
+  if (tab === "templates") return head + (state.pid ? vTemplates() : vNoProducts());
+  if (tab === "photos") return head + vPhotos();
+  if (tab === "model") return head + crModel();
+  if (tab === "catalog") return head + crCatalog();
+  var p = PM[state.pid];
+  if (!p) return head + vNoProducts();
+  return head + crCard(p);
+}
+
+function crCard(p){
+  var cr = state.cr, perf = performanceOf(genome()).templates.filter(function(x){ return x.verdict !== "mixed"; });
+  var neg = (p.themes || []).slice().sort(function(a, b){ return b[1] - a[1]; });
+  var knows = '<div class="card"><div class="card-h"><h2>'+t("crKnows")+'</h2>'+
+      '<select class="sel" id="cr-pick" aria-label="'+t("product")+'">'+WP().map(function(x){ return '<option value="'+x.id+'"'+(x.id === p.id ? " selected" : "")+'>'+esc(tr(x.name))+'</option>'; }).join("")+'</select></div>'+
+    '<div class="cr-know">'+
+      '<div><span class="lbl">'+t("crReviews")+'</span>'+(neg.length ? neg.map(function(th){ return '<div class="hbar"><span>'+esc(themeName(th[0]))+'</span><span class="tr"><i style="--w:'+th[1]+'%;--c:'+(th[2] ? "var(--good)" : "var(--bad)")+'"></i></span><span class="mono">'+th[1]+'%</span></div>'; }).join("") : '<p class="note">'+t("crNoReviews")+'</p>')+'</div>'+
+      '<div><span class="lbl">'+t("crAudit")+'</span>'+(openIssues(p).length ? '<div style="display:flex;gap:6px;flex-wrap:wrap">'+openIssues(p).map(function(k){ return '<span class="tag bad">'+esc(issueName(k))+'</span>'; }).join("")+'</div>' : '<p class="note">'+t("crNoIssues")+'</p>')+'</div>'+
+      '<div><span class="lbl">'+t("crSales")+'</span>'+(perf.length ? '<div style="display:flex;gap:6px;flex-wrap:wrap">'+perf.map(function(x){ var tp = templateById(x.id); return '<span class="tag '+(x.verdict === "works" ? "good" : "bad")+'">'+esc(tp ? tr(tp.name) : x.id)+' · '+t(x.verdict === "works" ? "crWorked" : "crHurt")+'</span>'; }).join("")+'</div>' : '<p class="note">'+t("crNoSales")+'</p>')+'</div>'+
+    '</div></div>';
+  return knows + crCompetitors(p) + crSearchView(p) + crPlanCard(p);
+}
+
+function crCompetitors(p){
+  var cr = state.cr, server = state.api && state.api.store, ai = state.api && state.api.ai, amz = state.api && state.api.amazonSearch, sr = cr.search[p.id], g = cr.gallery[p.id], gaps = crGaps(p);
+  var q = cr.query[p.id] != null ? cr.query[p.id] : (p.name[0] || "").split(/[·,]/)[0].trim();
+  var picked = sr ? sr.items.filter(function(x){ return x.on; }).length : 0;
+  var links = cr.links.split(/\s+/).filter(function(x){ return /^https?:\/\//.test(x); }).length;
+  return '<div class="card"><div class="card-h"><h2>'+t("crComp")+'</h2></div><p class="note" style="margin-bottom:12px">'+t("crCompSub")+'</p>'+
+    '<div class="cr-row">'+
+      '<div class="seg" role="group">'+[["noon","Noon"],["amazon","Amazon.sa"]].map(function(x){ return '<button type="button" data-crch="'+x[0]+'" aria-pressed="'+(cr.channel === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div>'+
+      (cr.channel === "amazon" ? '<input id="cr-q" class="cr-q" aria-label="'+t("crQuery")+'" placeholder="'+t("crQuery")+'" value="'+esc(q)+'">'+
+      '<button type="button" class="btn btn-ghost" id="cr-find"'+(server && amz && !cr.searching ? "" : " disabled")+'>'+t(cr.searching ? "crFinding" : "crFind")+'</button>' : "")+
+    '</div>'+
+    (cr.channel === "noon" || !amz ? '<p class="note" style="margin-top:8px">'+t(cr.channel === "noon" ? "crNoonLinks" : "crAmazonNeeds")+'</p>' : "")+
+    (server ? "" : '<p class="note">'+t("crNeedsServer")+'</p>')+
+    (sr ? '<div class="cr-res">'+sr.items.map(function(x, i){ return '<label class="cr-hit'+(x.on ? " on" : "")+'"><input type="checkbox" class="vh" data-crhit="'+i+'"'+(x.on ? " checked" : "")+'><img src="'+esc(x.image)+'" alt="" loading="lazy" referrerpolicy="no-referrer"><span>'+esc(x.title).slice(0, 70)+'</span></label>'; }).join("")+'</div>' : "")+
+    '<div class="field" style="margin-top:12px"><label for="cr-links">'+t("crLinks")+'</label><textarea id="cr-links" rows="3" dir="ltr">'+esc(cr.links)+'</textarea></div>'+
+    '<div class="exp-row"><button type="button" class="btn btn-primary" id="cr-read"'+(ai && !cr.galBusy && (picked || links) ? "" : " disabled")+'>'+t(cr.galBusy ? "crReading" : "crRead")+'</button>'+(ai ? "" : '<span class="note">'+t("crNeedsAi")+'</span>')+'</div>'+
+    (cr.error ? '<p class="err">'+esc(cr.error)+'</p>' : "")+
+    (gaps ? '<div style="margin-top:14px"><span class="lbl">'+t("crCoverage")+'</span>'+
+      gaps.kinds.filter(function(k){ return k.share > 0 || k.ours; }).sort(function(a, b){ return b.share - a.share; }).map(function(k){
+        var must = gaps.mustHave.some(function(m){ return m.kind === k.kind; }), white = gaps.whitespace.some(function(m){ return m.kind === k.kind; });
+        return '<div class="hbar"><span>'+esc(k.kind)+'</span><span class="tr"><i style="--w:'+Math.round(k.share * 100)+'%;--c:'+(must ? "var(--bad)" : "var(--accent, var(--good))")+'"></i></span><span class="mono">'+tf("crOfN", {n: Math.round(k.share * gaps.n), of: gaps.n})+'</span></div>'+
+          (k.ours || must || white ? '<div style="margin:-2px 0 6px;display:flex;gap:6px">'+(k.ours ? '<span class="tag good">'+t("crOurs")+'</span>' : "")+(must ? '<span class="tag bad">'+t("crMust")+'</span>' : "")+(white ? '<span class="tag warn">'+t("crWhite")+'</span>' : "")+'</div>' : "");
+      }).join("")+
+      '<p class="note" style="margin-top:8px">'+tf("crArabicShare", {p: Math.round(gaps.arabicShare * 100)})+
+        (g.competitors.filter(function(c){ return c.arabicBroken; }).length ? ' · '+tf("crBrokenComp", {n: g.competitors.filter(function(c){ return c.arabicBroken; }).length}) : "")+'</p>'+
+    '</div>' : "")+
+  '</div>';
+}
+
+function crSearchView(p){
+  var cr = state.cr, grid = cr.grid[p.id], near = crNeighbours(p);
+  if (!near.length) return "";
+  var rtl = cr.channel === "noon" ? /-ar$/.test(cr.region) : false;
+  var others = near.slice(0, 7), cells = others.slice(0, 2).concat([{you:true, image: imgFor(p), title: tr(p.name)}], others.slice(2, 7));
+  return '<div class="card"><div class="card-h"><h2>'+t("crSearchView")+'</h2>'+(grid ? '<span class="tag '+(grid.score >= 60 ? "good" : grid.score >= 40 ? "warn" : "bad")+'">'+t("crStandout")+' '+grid.score+'/100</span>' : "")+'</div>'+
+    '<p class="note" style="margin-bottom:12px">'+t("crSearchSub")+'</p>'+
+    '<div class="cr-phone" dir="'+(rtl ? "rtl" : "ltr")+'"><div class="cr-grid">'+cells.map(function(x){
+      return '<div class="cr-cell'+(x.you ? " you" : "")+'"><div class="cr-img"><img src="'+esc(x.image)+'" alt="" loading="lazy" referrerpolicy="no-referrer">'+(x.you ? '<span class="tag good">'+t("crYou")+'</span>' : "")+'</div><span>'+esc(x.title).slice(0, 48)+'</span></div>';
+    }).join("")+'</div></div>'+
+    '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost" id="cr-measure"'+(cr.gridBusy ? " disabled" : "")+'>'+t(cr.gridBusy ? "crComparing" : "crCompare")+'</button>'+
+      (grid ? grid.notes.map(function(n){ return '<span class="tag'+(n === "distinctColour" || n === "fillsFrame" ? " good" : n === "noData" ? "" : " warn")+'">'+t("so_"+n)+'</span>'; }).join("") : "")+'</div>'+
+  '</div>';
+}
+
+function crPlanCard(p){
+  var plan = state.cr.plan[p.id];
+  return '<div class="card"><div class="card-h"><h2>'+t("crPlan")+'</h2><button type="button" class="btn btn-ghost btn-sm" id="cr-plan">'+t("crMakePlan")+'</button></div><p class="note" style="margin-bottom:12px">'+t("crPlanSub")+'</p>'+
+    (plan ? '<ol class="cr-plan">'+plan.map(function(x){ var tp = templateById(x.tpl);
+      return '<li><b>'+esc(tr(tp.name))+'</b><span class="note">'+esc(tr(tp.question))+'</span><span class="cr-why">'+x.reasons.map(function(r){ return '<span class="tag '+crTag(r)+'">'+esc(crReason(r))+'</span>'; }).join("")+'</span></li>';
+    }).join("")+'</ol>'+
+    '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-ghost" id="cr-apply">'+t("crApply")+'</button><button type="button" class="btn btn-primary" id="cr-applygen">'+t("crApplyGen")+'</button></div>' : "")+
+  '</div>';
+}
+
+function crMakePlan(p){
+  return planSet({category: catOf(p), templates: TEMPLATES, themes: p.themes || [], issues: openIssues(p), gaps: crGaps(p), performance: performanceOf(genome()).templates});
+}
+function crApplyPlan(p){
+  var plan = state.cr.plan[p.id] || (state.cr.plan[p.id] = crMakePlan(p));
+  var old = setOf(p), base = defaultSet(p);
+  var fieldsFor = function(tpl){ var a = old.filter(function(s){ return s.tpl === tpl; })[0] || base.filter(function(s){ return s.tpl === tpl; })[0]; return a ? Object.assign({}, a.fields) : {}; };
+  state.sets[p.id] = plan.map(function(x){ return {tpl: x.tpl, fields: fieldsFor(x.tpl), why: x.reasons}; });
+  state.slide = Math.min(1, state.sets[p.id].length - 1);
+  persist();
+}
+
+function crSearch(p){
+  var cr = state.cr, el = document.getElementById("cr-q"), q = el ? el.value.trim() : "";
+  cr.query[p.id] = q; if (!q) return;
+  cr.searching = true; cr.error = null; render();
+  post("/api/creator/search", {channel: cr.channel, query: q, region: cr.region, host: "amazon.sa", limit: 12})
+    .then(function(r){ r.items.forEach(function(x, i){ x.on = i < 6; }); cr.search[p.id] = r; cr.grid[p.id] = null; })
+    .catch(function(e){ cr.error = e.message; })
+    .then(function(){ cr.searching = false; render(); });
+}
+function crRead(p){
+  var cr = state.cr, sr = cr.search[p.id];
+  var links = (sr ? sr.items.filter(function(x){ return x.on; }).map(function(x){ return x.url; }) : []).concat(cr.links.split(/\s+/).filter(function(x){ return /^https?:\/\//.test(x); }));
+  cr.galBusy = true; cr.error = null; render();
+  post("/api/creator/gallery", {links: links.slice(0, 8)})
+    .then(function(r){ cr.gallery[p.id] = r; cr.plan[p.id] = crMakePlan(p); refreshAccount(); })
+    .catch(function(e){ cr.error = e.message; })
+    .then(function(){ cr.galBusy = false; render(); });
+}
+function measureImage(url){
+  var load = /^data:/.test(url) ? Promise.resolve(url) : post("/api/fetch-image", {url: url}).then(function(j){ return j.dataUrl; });
+  return load.then(loadImg).then(function(im){
+    var c = canvasFor(im, 200), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    var m = measurePixels(d, c.width, c.height);
+    return {colours: dominantColours(d, c.width, c.height, {product: true, max: 3}).map(function(x){ return x.rgb || x; }), fill: m.fill, whiteShare: m.whiteShare};
+  });
+}
+function crNeighbours(p){
+  var cr = state.cr, sr = cr.search[p.id], g = cr.gallery[p.id];
+  if (sr && sr.items.length) return sr.items;
+  return g ? g.competitors.filter(function(c){ return c.image; }).map(function(c){ return {image: c.image, title: c.title || ""}; }) : [];
+}
+function crMeasure(p){
+  var cr = state.cr, near = crNeighbours(p); if (!near.length) return;
+  cr.gridBusy = true; render();
+  Promise.all([ensureDataImage(p).then(measureImage)].concat(near.slice(0, 7).map(function(x){ return measureImage(x.image).catch(function(){ return null; }); })))
+    .then(function(ms){ cr.grid[p.id] = standout(ms[0], ms.slice(1).filter(Boolean)); })
+    .catch(function(){ cr.grid[p.id] = {score: 0, notes: ["noData"]}; })
+    .then(function(){ cr.gridBusy = false; render(); });
+}
+
+function crCatalog(){
+  var cr = state.cr, list = WP();
+  var seasonName = function(s){ var tp = templateById(s); return tp ? tr(tp.name) : s; };
+  return '<div class="card"><div class="card-h"><h2>'+t("crSeason")+'</h2></div><p class="note" style="margin-bottom:12px">'+t("crSeasonSub")+'</p>'+
+    '<div class="cr-row"><div class="seg" role="group">'+SEASONS.map(function(s){ return '<button type="button" data-crseason="'+s+'" aria-pressed="'+(cr.season === s)+'">'+esc(seasonName(s))+'</button>'; }).join("")+'</div></div>'+
+    '<div class="cr-cat">'+list.map(function(p){
+      var cur = setOf(p).filter(function(s){ return SEASONS.indexOf(s.tpl) > -1; })[0], g = state.gen[p.id];
+      return '<label class="cr-catrow"><input type="checkbox" data-crsel="'+p.id+'"'+(cr.sel[p.id] ? " checked" : "")+'><span class="mini-thumb">'+thumb(p)+'</span><span><b>'+esc(tr(p.name))+'</b><small class="note">'+setOf(p).length+' '+t("slidesN")+(cur ? ' · '+tf("crInSeason", {s: seasonName(cur.tpl)}) : "")+(g && g.phase === "done" ? ' · ✓' : g && g.phase === "sent" ? ' · '+t("sent") : "")+'</small></span></label>';
+    }).join("")+'</div>'+
+    '<div class="exp-row" style="margin-top:12px">'+
+      '<button type="button" class="btn btn-ghost btn-sm" id="cr-selall">'+t("selectAll")+'</button>'+
+      '<button type="button" class="btn btn-primary" id="cr-season-go">'+t("crApplySeason")+'</button>'+
+      '<button type="button" class="btn btn-ghost" id="cr-rollback">'+t("crRollback")+'</button>'+
+      '<button type="button" class="btn btn-ghost" id="cr-gen-sel"'+(cr.progress ? " disabled" : "")+'>'+(cr.progress ? tf("crGenProgress", cr.progress) : t("crGenSel"))+'</button>'+
+      '<button type="button" class="btn btn-ghost" id="cr-send-sel">'+t("crSendSel")+'</button>'+
+    '</div>'+
+  '</div>';
+}
+function crSelected(){ return WP().filter(function(p){ return state.cr.sel[p.id]; }); }
+function crSeasonApply(){
+  var sel = crSelected(); if (!sel.length) return toast(t("crSelectSome"));
+  sel.forEach(function(p){
+    var r = seasonPack(setOf(p), state.cr.season);
+    if (!state.crBackups[p.id]) state.crBackups[p.id] = r.backup;
+    state.sets[p.id] = r.set; state.gen[p.id] = null;
+  });
+  saveBackups(); persist(); render(); toast(tf("crSeasoned", {n: sel.length}));
+}
+function crRollback(){
+  var sel = crSelected(); if (!sel.length) return toast(t("crSelectSome"));
+  sel.forEach(function(p){ state.sets[p.id] = state.crBackups[p.id] || withoutSeason(setOf(p)); delete state.crBackups[p.id]; state.gen[p.id] = null; });
+  saveBackups(); persist(); render(); toast(tf("crRolled", {n: sel.length}));
+}
+function crGenerateSelected(){
+  var sel = crSelected(); if (!sel.length) return toast(t("crSelectSome"));
+  var i = 0;
+  (function next(){
+    if (i >= sel.length){ state.cr.progress = null; render(); return; }
+    state.cr.progress = {i: i + 1, n: sel.length}; render();
+    Promise.resolve(runGen(sel[i].id)).catch(function(){}).then(function(){ return waitGen(sel[i].id); }).then(function(){ i++; next(); });
+  })();
+}
+function waitGen(pid){ return new Promise(function(res){ (function poll(){ var g = state.gen[pid]; if (!g || g.phase !== "run") return res(); setTimeout(poll, 300); })(); }); }
+function crSendSelected(){
+  var n = 0; crSelected().forEach(function(p){ var g = state.gen[p.id]; if (g && g.phase === "done"){ sendAppr(p.id); n++; } });
+  if (!n) toast(t("crSelectSome"));
+}
+
+function crModel(){
+  var m = brandModel();
+  return '<div class="card"><div class="card-h"><h2>'+t("crModelT")+'</h2></div><p class="note" style="margin-bottom:12px">'+t("crModelSub")+'</p>'+
+    (m ? '<div class="om-ref" style="max-width:220px"><img src="'+m+'" alt=""></div>' : '<p class="note">'+t("crModelNone")+'</p>')+
+    '<div class="exp-row" style="margin-top:12px"><label class="btn btn-primary" for="cr-model-file">'+t("crModelUpload")+'</label><input type="file" id="cr-model-file" class="vh" accept="image/png,image/jpeg,image/webp">'+
+      (m ? '<button type="button" class="btn btn-ghost" id="cr-model-rm">'+t("crModelRemove")+'</button>' : "")+'</div>'+
+  '</div>';
+}
+function setBrandModel(url){
+  return (url ? shrinkForAi(url) : Promise.resolve(null)).then(function(small){
+    var g = genome(); g.identity = g.identity || {};
+    if (small) g.identity.model = small; else delete g.identity.model;
+    commit(state.ws); render(); if (small) toast(t("crModelSet"));
+  });
+}
+
+document.addEventListener("click", function(e){
+  var el, p = PM[state.pid];
+  if ((el = e.target.closest("[data-crtab]"))){ state.cr.tab = el.dataset.crtab; render(); return; }
+  if ((el = e.target.closest("[data-crch]"))){ state.cr.channel = el.dataset.crch; state.cr.region = el.dataset.crch === "noon" ? "saudi-ar" : state.cr.region; render(); return; }
+  if ((el = e.target.closest("[data-crseason]"))){ state.cr.season = el.dataset.crseason; render(); return; }
+  if (e.target.closest("#cr-find") && p){ crSearch(p); return; }
+  if (e.target.closest("#cr-read") && p){ crRead(p); return; }
+  if (e.target.closest("#cr-measure") && p){ crMeasure(p); return; }
+  if (e.target.closest("#cr-plan") && p){ state.cr.plan[p.id] = crMakePlan(p); render(); return; }
+  if (e.target.closest("#cr-apply") && p){ crApplyPlan(p); go("studio-"+p.id); return; }
+  if (e.target.closest("#cr-applygen") && p){ crApplyPlan(p); go("studio-"+p.id); runGen(p.id); return; }
+  if (e.target.closest("#cr-selall")){ WP().forEach(function(x){ state.cr.sel[x.id] = true; }); render(); return; }
+  if (e.target.closest("#cr-season-go")){ crSeasonApply(); return; }
+  if (e.target.closest("#cr-rollback")){ crRollback(); return; }
+  if (e.target.closest("#cr-gen-sel")){ crGenerateSelected(); return; }
+  if (e.target.closest("#cr-send-sel")){ crSendSelected(); return; }
+  if (e.target.closest("#cr-model-rm")){ setBrandModel(null); return; }
+  if ((el = e.target.closest("[data-xommodel]"))){ var rm = state.om.results[+el.dataset.xommodel]; if (rm) setBrandModel(rm.url); return; }
+});
+document.addEventListener("change", function(e){
+  var el = e.target, p = PM[state.pid];
+  if (el.id === "cr-pick"){ state.pid = el.value; render(); return; }
+  if (el.dataset && el.dataset.crhit != null && p){ var sr = state.cr.search[p.id]; if (sr){ sr.items[+el.dataset.crhit].on = el.checked; render(); } return; }
+  if (el.dataset && el.dataset.crsel){ state.cr.sel[el.dataset.crsel] = el.checked; return; }
+  if (el.id === "cr-model-file" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ setBrandModel(fr.result); }; fr.readAsDataURL(el.files[0]); return; }
+});
+document.addEventListener("input", function(e){
+  if (e.target.id === "cr-links"){ state.cr.links = e.target.value; var b = document.getElementById("cr-read"); if (b) b.disabled = !(state.api && state.api.ai) || state.cr.galBusy || !(state.cr.links.split(/\s+/).some(function(x){ return /^https?:\/\//.test(x); }) || (state.cr.search[state.pid] && state.cr.search[state.pid].items.some(function(x){ return x.on; }))); }
+  if (e.target.id === "cr-q" && state.pid){ state.cr.query[state.pid] = e.target.value; }
+});
+
 /* ---------- router ---------- */
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
   else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (["overview","audit","catalog","reviews","approvals","templates","photos","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
+  else if (h === "templates" || h === "photos"){ state.cr.tab = h; state.route = "creator"; }
+  else if (["overview","audit","catalog","reviews","approvals","creator","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
@@ -2605,7 +2907,7 @@ function render(scroll){
   renderSide();
   var r = state.route;
   if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
-  view.innerHTML = r === "empty" ? vNoProducts() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
+  view.innerHTML = r === "empty" ? vNoProducts() : r === "creator" ? vCreator() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
   hydrate(view); paintReport();
   document.title = "Basira · " + t(r === "listing" || r === "empty" ? "catalog" : r);
   if (scroll){
@@ -2737,7 +3039,7 @@ function ensureDataImage(p){
 function runServerGen(pid){
   var p = PM[pid], set = setOf(p).slice(), g = state.gen[pid] = {phase:"run", step:0, server:true}; render();
   var tick = setInterval(function(){ if (g.step < 3){ g.step++; if (state.route === "studio" && state.pid === pid) render(); } }, 350);
-  ensureDataImage(p).then(function(image){
+  return ensureDataImage(p).then(function(image){
     return Promise.all(set.map(function(sl){
       var c = ctxFor(p, sl);
       return fetch("/api/render", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({template:sl.tpl, fields:sl.fields, image:image, language:c.language, numerals:c.numerals, kit:c.kit, brand:c.brand, logo:c.logo, fonts:c.fonts})})
@@ -2754,14 +3056,15 @@ function runAiGen(pid){
   var p = PM[pid], set = setOf(p).slice(), g = state.gen[pid] = {phase:"run", step:0, server:true}; render();
   var tick = setInterval(function(){ if (g.step < 3){ g.step++; if (state.route === "studio" && state.pid === pid) render(); } }, 900);
   var visual = activeTraits(genome(), {channel:p.ch[0], category:catOf(p)}).filter(function(x){ return x.type === "visual"; }).map(function(x){ return x.params.text; }).join("; ");
-  ensureDataImage(p).then(function(image){
+  var model = brandModel();
+  return ensureDataImage(p).then(function(image){
     var out = [];
     // One slide at a time: each can take several model calls.
     return set.reduce(function(chain, sl){
       return chain.then(function(){
         var c = ctxFor(p, sl);
-        return post("/api/slides/generate", {template:sl.tpl, fields:sl.fields, image:image, kit:c.kit, language:c.language, numerals:c.numerals, fonts:c.fonts, logo:c.logo, brand:c.brand, product:tr(p.name), category:catOf(p), visual:visual})
-          .then(function(r){ return fetch(r.image).then(function(x){ return x.blob(); }).then(function(b){ out.push({url:URL.createObjectURL(b), tpl:sl.tpl, mode:r.mode, reason:r.reason, tries:r.attempts.length}); }); });
+        return post("/api/slides/generate", {template:sl.tpl, fields:sl.fields, image:image, kit:c.kit, language:c.language, numerals:c.numerals, fonts:c.fonts, logo:c.logo, brand:c.brand, product:tr(p.name), category:catOf(p), visual:visual, modelRef:model || undefined})
+          .then(function(r){ return fetch(r.image).then(function(x){ return x.blob(); }).then(function(b){ out.push({url:URL.createObjectURL(b), tpl:sl.tpl, mode:r.mode, reason:r.reason, tries:r.attempts.length, aiPeople:Boolean(r.aiPeople), provider:r.provider || null}); }); });
       });
     }, Promise.resolve()).then(function(){ return out; });
   }).then(function(out){

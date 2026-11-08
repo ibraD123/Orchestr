@@ -124,7 +124,8 @@ function net(handler) {
 
 test("providers: OpenAI image edits (multipart) and Gemini generateContent, with the product photo attached", async () => {
   assert.equal(imageGenConfigured({}), false);
-  assert.equal(imageProvider({ IMAGE_PROVIDER: "gemini" }), "gemini");
+  assert.equal(imageProvider({ IMAGE_PROVIDER: "gemini" }), null, "a provider without a key isn't configured");
+  assert.equal(imageProvider({ IMAGE_PROVIDER: "gemini", IMAGE_API_KEY: "k" }), "gemini");
   assert.equal(imageGenConfigured({ IMAGE_PROVIDER: "openai", IMAGE_API_KEY: "k" }), true);
   net(async () => [200, { data: [{ b64_json: "AAA" }] }]);
   const o = await generateImages({ prompt: "slide", image: PX, count: 1 }, { IMAGE_PROVIDER: "openai", IMAGE_API_KEY: "sk-test" });

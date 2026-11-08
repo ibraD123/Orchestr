@@ -20,8 +20,11 @@ import { makeZip } from "./zip.mjs";
 import { reportHTML } from "./report.mjs";
 import { PLANS, newAccount, recordUsage, usageStatus, invoiceAmount, billingConfigured, applyPayment } from "./billing.mjs";
 import { createCheckout, verifyCheckout } from "./payments.mjs";
-import { generateOnModel, imageGenConfigured, imageProvider } from "./imagegen.mjs";
+import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } from "./imagegen.mjs";
 import { generateSlide, slideGenConfigured } from "./slidegen.mjs";
+import { labelPng } from "./ai-label.mjs";
+import { analyseCompetitors } from "./gallery.mjs";
+import { searchMarketplace } from "./connectors/search.mjs";
 import { templateById } from "./templates.mjs";
 import { amazonPublish, amazonConfig, amazonConfigured } from "./connectors/amazon.mjs";
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
@@ -174,21 +177,27 @@ async function buildExport(body, ctx) {
       zipFiles.push({ name: "images/" + rel, data: png });
       images.push(rel); rendered++;
     }
-    for (const src of (Array.isArray(it.extraImages) ? it.extraImages : []).slice(0, 9 - images.length)) {
+    const aiPeople = [];
+    for (const x of (Array.isArray(it.extraImages) ? it.extraImages : []).slice(0, 9 - images.length)) {
+      // An extra image is a data URL, or { src, aiPeople } for a generated image that shows people.
+      const src = x && typeof x === "object" ? x.src : x;
       const m = EXTRA_IMAGE.exec(String(src || ""));
       if (!m) continue;
-      const data = Buffer.from(m[2], "base64");
+      let data = Buffer.from(m[2], "base64");
+      if (x && x.aiPeople && m[1] === "png") data = labelPng(data);
       const rel = `${folder}/${String(images.length + 1).padStart(2, "0")}.${m[1] === "jpeg" ? "jpg" : m[1]}`;
       await store.saveAsset(ws, batch, "images/" + rel, data);
       zipFiles.push({ name: "images/" + rel, data });
       images.push(rel);
+      if (x && x.aiPeople) aiPeople.push(rel);
     }
     const copy = it.copy || {};
-    manifest.items.push({ sku: String(it.sku || folder), name: String(it.name || ""), asin: it.asin || null, handle: it.handle || null, copy: { titleEn: copy.titleEn || "", titleAr: copy.titleAr || "", bulletsEn: copy.bulletsEn || [], bulletsAr: copy.bulletsAr || [] }, images });
+    manifest.items.push({ sku: String(it.sku || folder), name: String(it.name || ""), asin: it.asin || null, handle: it.handle || null, copy: { titleEn: copy.titleEn || "", titleAr: copy.titleAr || "", bulletsEn: copy.bulletsEn || [], bulletsAr: copy.bulletsAr || [] }, images, aiPeople });
   }
   const files = exportFiles(channel, manifest.items, { imageBase: hosted ? base : "" });
   for (const f of files) zipFiles.push({ name: f.name, data: f.content });
-  zipFiles.push({ name: "README.txt", data: exportReadme(channel, manifest.items.length, { client: manifest.client, at: now, imageBase: hosted ? base : "" }) });
+  const labelled = manifest.items.flatMap((x) => (x.aiPeople || []).map((r) => "images/" + r));
+  zipFiles.push({ name: "README.txt", data: exportReadme(channel, manifest.items.length, { client: manifest.client, at: now, imageBase: hosted ? base : "", aiPeople: labelled }) });
   const zipName = `basira-${channel}-${safeName(manifest.client || ws)}-${now.toISOString().slice(0, 10)}.zip`;
   await store.saveAsset(ws, batch, zipName, Buffer.from(makeZip(zipFiles, now)));
   manifest.zip = zipName;
@@ -261,8 +270,8 @@ const routes = {
     const c = amazonConfig();
     return {
       ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: aiConfigured() ? MODEL : null,
-      imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, slideGen: slideGenConfigured(),
-      billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId),
+      imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, imageProviders: imageProviders().map((p) => p.name), slideGen: slideGenConfigured(),
+      billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), amazonSearch: amazonConfigured(c),
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
     };
   },
@@ -354,6 +363,15 @@ const routes = {
     const r = await generateSlide(body);
     await meter(store, "ai", r.attempts.length);
     await meter(store, "renders", 1);
+    return r;
+  },
+  // Creator: the listings a buyer sees for a query, and what competitors' galleries show.
+  "POST /api/creator/search": async (body) => searchMarketplace(body),
+  "POST /api/creator/gallery": async (body, { store }) => {
+    if (!aiConfigured()) fail("Reading competitor galleries needs ANTHROPIC_API_KEY on the server", 503);
+    await guardPlan(store);
+    const r = await analyseCompetitors(body);
+    await meter(store, "ai", r.competitors.filter((c) => c.kinds.length).length);
     return r;
   },
   "POST /api/imagegen/onmodel": async (body, { store }) => {

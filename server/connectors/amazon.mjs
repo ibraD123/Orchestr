@@ -100,6 +100,19 @@ export async function amazonStore(sellerId, marketplace, { limit = 60 } = {}, c 
   return items.slice(0, limit);
 }
 
+/** Catalog search by keywords: the listings a buyer sees for a query (Catalog Items API). */
+export async function amazonSearch(query, marketplace, { limit = 12 } = {}, c = amazonConfig()) {
+  if (!amazonConfigured(c)) throw new ConnectorError("Connect an Amazon seller account to search Amazon", 503);
+  const host = Object.keys(AMAZON_HOSTS).find((h) => AMAZON_HOSTS[h] === marketplace.id) || "amazon.sa";
+  const j = await spapi(c, "/catalog/2022-04-01/items", { keywords: query, marketplaceIds: marketplace.id, includedData: "summaries,images", pageSize: String(Math.min(20, limit)), locale: marketplace.locales[0] });
+  return (j.items || []).map((it) => {
+    const s = (it.summaries || [])[0] || {};
+    const imgs = bestImages(it.images, marketplace.id);
+    return { sku: it.asin, title: s.itemName || it.asin, image: imgs[0] ? imgs[0].src : null, price: null, url: `https://www.${host}/dp/${it.asin}` };
+  }).filter((x) => x.image).slice(0, limit);
+}
+const AMAZON_HOSTS = { "amazon.sa": "A17E79C6D8DWNP", "amazon.ae": "A2VIGQ35RCS4UG", "amazon.eg": "ARBP9OOSHTCHU" };
+
 /* ---------- publishing approved content (Listings Items API, PATCH) ---------- */
 
 /** JSON Patch for one listing: title and bullets in both languages, plus image links when hosted. */

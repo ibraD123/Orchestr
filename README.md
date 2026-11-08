@@ -17,7 +17,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/audit.mjs` | Listing audit engine (pure functions, shared by the server and the app) |
 | `server/templates.mjs` | 17 slide templates (shared by the server renderer and the app preview) |
 | `server/render.mjs` | Slide renderer: Arabic and English typeset by Chromium over the product image, exported as 1600 × 2000 PNG; also measures main images |
-| `server/connectors/` | Marketplace connectors: Amazon SP-API, product pages (Noon, Salla, Zid and stores on their own domain) and safe outbound HTTP |
+| `server/connectors/` | Marketplace connectors: Amazon SP-API, product pages (Noon, Salla, Zid and stores on their own domain) and safe outbound HTTP; Amazon catalog search for Creator (`search.mjs`) |
 | `server/importer.mjs` | Imports a catalog from a link or CSV, measures main images and audits every listing |
 | `server/catalog-csv.mjs` | Catalog export parser (Noon Seller Lab, Amazon, Salla, Zid), shared with the app |
 | `server/keywords.mjs` | Search-term coverage with Arabic spelling normalisation, shared with the app |
@@ -35,9 +35,12 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/report.mjs` | Before/after report for the client as an A4 HTML document under the agency's logo (PDF on the server, print in the browser), shared with the app |
 | `server/billing.mjs` | Plans, monthly usage metering (fixes, renders, AI calls), plan expiry, shared with the app |
 | `server/payments.mjs` | Moyasar Invoices API: hosted checkout in SAR (Mada, cards, Apple Pay) and invoice verification |
-| `server/imagegen.mjs` | Image model adapters (OpenAI image edits, Gemini image generation, a generic JSON contract) for generated slides and on-model photos |
+| `server/imagegen.mjs` | Image model adapters (OpenAI image edits, Gemini image generation, a generic JSON contract). Several can be configured at once: text on images goes to Gemini first, scenes and people to OpenAI. The brand model photo is sent as a second reference |
 | `server/textcheck.mjs` | Which slides an image model may draw whole, the prompt, and the letter-by-letter comparison of approved and read-back text, shared with the app |
-| `server/slidegen.mjs` | Generated slides with a guarantee: Claude reads the text back blind, digits and Arabic joining are checked, the product colour is compared; up to 3 tries, then the scene without text with the headline typeset over it |
+| `server/slidegen.mjs` | Generated slides with a guarantee: Claude reads the text back blind, digits and Arabic joining are checked, the product colour is compared; up to 3 tries, then the scene without text with the headline typeset over it. Claude also compares the product's shape and logo with the photo and notes AI-generated people; with two image models each round asks both and keeps the better image that passes |
+| `server/creator.mjs` | Creator's planning, shared with the app: the slide set a product needs from reviews, audit, competitor galleries and sales results; what competitors' galleries cover; how much a main image stands out in search; season packs with roll-back |
+| `server/gallery.mjs` | Reads competitor galleries image by image with Claude (main, lifestyle, size chart, comparison…, Arabic on the image, broken Arabic) |
+| `server/ai-label.mjs` | Writes the IPTC "trainedAlgorithmicMedia" label into PNGs that show AI-generated people (Amazon asks for such images to be labelled) |
 | `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |
@@ -105,8 +108,10 @@ Static hosting still works: `index.html` and `app.html` run without the server, 
 | `PATCH /api/workspaces/:ws` | `{ consentTraining }` | Records the client's consent to anonymised use |
 | `GET /api/workspaces/:ws/export` | | Everything stored for the client, as a JSON download (PDPL access request) |
 | `DELETE /api/workspaces/:ws` | | Deletes the client with its genome, events and exports (PDPL erasure) |
-| `POST /api/slides/generate` | `{ template, fields, image, kit, language, numerals, fonts, logo, brand, product, category, visual }` | `{ mode: generated \| scene \| typeset, reason, image: data URL, attempts[{ ok, reasons, readback, fidelity }] }`. Lists, tables and the main image are always typeset |
-| `POST /api/imagegen/onmodel` | `{ image: data URL, product, category, look, cover, setting, count, visual }` | `{ images[data URL], prompt }` |
+| `POST /api/slides/generate` | `{ template, fields, image, kit, language, numerals, fonts, logo, brand, product, category, visual, modelRef?, bestOf? }` | `{ mode: generated \| scene \| typeset, reason, image: data URL, attempts[{ ok, reasons, readback, fidelity }] }`. Lists, tables and the main image are always typeset |
+| `POST /api/imagegen/onmodel` | `{ image: data URL, product, category, look, cover, setting, count, visual, modelRef? }` | `{ images[data URL], prompt }`. `modelRef` is the brand model photo, so every product is worn by the same person |
+| `POST /api/creator/search` | `{ channel: amazon, query, host? }` | `{ items[{ sku, title, image, url }] }` from the SP-API catalog search. Noon has no search API: paste competitor links |
+| `POST /api/creator/gallery` | `{ links[] }` (up to 8 competitor product links) | `{ competitors[{ url, title, image, kinds[], arabic, arabicBroken, images[{ kind, text, arabicBroken, note }] }] }`. Needs `ANTHROPIC_API_KEY` |
 
 Usage metering: an `approve` event counts as one fix; `/api/render`, exports and generated photos count renders; Claude and image-model calls count AI. When the month's fixes are used, AI drafting and photo generation answer 402; approvals, exports and learning keep working.
 
@@ -156,7 +161,9 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `PUBLIC_URL` | | The server's public https address. Export image links use it, so marketplaces can fetch the images; without it the links in upload files stay empty |
 | `MOYASAR_SECRET_KEY` | | Moyasar secret key for online payments (Mada, cards, Apple Pay) |
 | `MOYASAR_API` | `https://api.moyasar.com/v1` | Moyasar API base |
-| `IMAGE_PROVIDER` | | `openai` (image edits, default model `gpt-image-1`), `gemini` (default model `gemini-3-pro-image-preview`) or `generic`. Generated slides also need `ANTHROPIC_API_KEY` for the text check |
+| `OPENAI_IMAGE_KEY` | | OpenAI key for images (scenes, people, on-model photos). `OPENAI_IMAGE_MODEL` overrides the model (default `gpt-image-1`; set the newest you have, such as GPT Image 2.5) |
+| `GEMINI_IMAGE_KEY` | | Gemini key for images (text on slides goes here first). `GEMINI_IMAGE_MODEL` overrides the model (default `gemini-3-pro-image-preview`) |
+| `IMAGE_PROVIDER` | | One provider the older way: `openai`, `gemini` or `generic`, with `IMAGE_API_KEY`. Used alongside the two keys above. Generated slides also need `ANTHROPIC_API_KEY` for the checks |
 | `IMAGE_API_KEY` | | Key for the image provider |
 | `IMAGE_MODEL` | | Override the provider's model name (check it when the key arrives: these adapters have not been called live) |
 | `IMAGE_API_URL` | | Endpoint for `generic` (`POST { prompt, negative_prompt, image, width, height, num_images }` → `{ images: [{ url } \| { b64_json }] }`); overrides the endpoint for the other two |
@@ -206,7 +213,7 @@ What is real:
 - **Reviews → Analyse your reviews** calls Claude through the server.
 
 - **Catalog → Import** pulls listings from a link (server) or a CSV (works in the browser too, try the sample Noon export).
-- **Templates** has 17 slide templates in four groups; add any of them to a product's slide set in **Studio**.
+- **Creator** plans each product's images from data and brings Studio, Templates, Photo check, on-model photos and the brand model together. **Product set**: what reviews, the audit and sales results say; competitors (Amazon search through the seller account, or pasted Noon and Amazon links) and what their galleries show; how the main image looks among them on a phone, with a stand-out score; the planned slide set with the reason for each slide, sent to Studio. **Catalog and seasons**: put a Ramadan, Eid, National Day or White Friday slide on many products at once, roll back after the season, generate and send them to approvals in one go. **Brand model**: one person for every on-model photo and every slide with a person. **Templates** has 17 slide templates in four groups.
 - **Search terms** in Audit and on each listing show which common Gulf searches the copy covers.
 - **Reviews → Draft reply** writes a reply in the buyer's own dialect with Claude, and flags reviews that need a person.
 - **Photo check** measures main-image candidates against Amazon and Noon rules, removes plain backgrounds, rebuilds a compliant 2000 × 2000 main image, and (with the server) asks Claude which photo is most likely to be clicked.
