@@ -30,8 +30,11 @@ import { amazonPublish, amazonConfig, amazonConfigured } from "./connectors/amaz
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-// Keys from a local .env file (not committed). Variables already set in the environment win.
-try { process.loadEnvFile(join(ROOT, ".env")); } catch { /* no .env: use the environment as it is */ }
+// Keys from a local .env file (not committed), only when this file is the program being run, so
+// tests that import the server never pick up real keys. Variables already set in the environment win.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try { process.loadEnvFile(join(ROOT, ".env")); } catch { /* no .env: use the environment as it is */ }
+}
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);
 const MAX_BODY = 30 * 1024 * 1024;

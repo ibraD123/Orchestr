@@ -58,9 +58,6 @@ ANTHROPIC_API_KEY=sk-ant-... npm start
 
 The server also reads keys from a `.env` file in the project folder (not committed), for example `FAL_KEY=…` and `ANTHROPIC_API_KEY=…`. Variables set in the environment win.
 
-```bash
-```
-
 Open http://localhost:8787 for the site and http://localhost:8787/app for the app. Without an API key everything works except review analysis.
 
 Slide rendering needs Chromium. The server looks for `CHROMIUM_PATH`, then the browser Playwright installs:
