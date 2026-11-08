@@ -9,6 +9,11 @@
 //            (multipart: model, prompt, image or image[], size, n) → { data: [ { b64_json } ] }
 //   GEMINI_IMAGE_KEY (+ GEMINI_IMAGE_MODEL)   POST …/v1beta/models/<model>:generateContent
 //            { contents: [{ parts: [text, inlineData…] }], generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio } } }
+//   FAL_KEY   one key for both through fal.ai (POST https://fal.run/<model>, Authorization: Key …,
+//            { prompt, image_urls: [data URIs], num_images, output_format, sync_mode } → { images: [ { url } ] }):
+//            text → FAL_TEXT_MODEL (default fal-ai/nano-banana-pro/edit, Gemini 3 Pro Image),
+//            scenes and people → FAL_SCENE_MODEL (default openai/gpt-image-2.6/flare/edit).
+//            A direct OPENAI_IMAGE_KEY or GEMINI_IMAGE_KEY takes that lane instead.
 //   IMAGE_PROVIDER + IMAGE_API_KEY (+ IMAGE_MODEL, IMAGE_API_URL): one provider, as before;
 //            "generic" posts { prompt, negative_prompt, image, reference_images, width, height, num_images }
 //            to IMAGE_API_URL and reads { images: [ { url } | { b64_json } ] }.
@@ -21,6 +26,7 @@ export const SETTINGS = ["studio", "home", "outdoor", "majlis"];
 export const PROVIDERS = ["openai", "gemini", "generic"];
 
 const DEFAULT_MODEL = { openai: "gpt-image-1", gemini: "gemini-3-pro-image-preview" };
+const FAL_MODEL = { gemini: "fal-ai/nano-banana-pro/edit", openai: "openai/gpt-image-2.6/flare/edit" };
 // Which provider to try first for each kind of image.
 const ROUTES = { text: ["gemini", "openai", "generic"], scene: ["openai", "gemini", "generic"], people: ["openai", "gemini", "generic"] };
 
@@ -31,6 +37,10 @@ export function imageProviders(env = process.env) {
   const legacyName = PROVIDERS.includes(legacy) ? legacy : env.IMAGE_API_URL ? "generic" : null;
   if (env.OPENAI_IMAGE_KEY) out.push({ name: "openai", key: env.OPENAI_IMAGE_KEY, model: env.OPENAI_IMAGE_MODEL || DEFAULT_MODEL.openai, url: null });
   if (env.GEMINI_IMAGE_KEY) out.push({ name: "gemini", key: env.GEMINI_IMAGE_KEY, model: env.GEMINI_IMAGE_MODEL || DEFAULT_MODEL.gemini, url: null });
+  if (env.FAL_KEY) {
+    if (!out.some((p) => p.name === "gemini")) out.push({ name: "gemini", via: "fal", key: env.FAL_KEY, model: env.FAL_TEXT_MODEL || FAL_MODEL.gemini, url: null });
+    if (!out.some((p) => p.name === "openai")) out.push({ name: "openai", via: "fal", key: env.FAL_KEY, model: env.FAL_SCENE_MODEL || FAL_MODEL.openai, url: null });
+  }
   if (legacyName && env.IMAGE_API_KEY && !out.some((p) => p.name === legacyName) && (legacyName !== "generic" || env.IMAGE_API_URL)) {
     out.push({ name: legacyName, key: env.IMAGE_API_KEY, model: env.IMAGE_MODEL || DEFAULT_MODEL[legacyName], url: env.IMAGE_API_URL || null });
   }
@@ -52,7 +62,7 @@ const DATA_URL = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/;
  * @returns {Promise<string[]>} data URLs
  */
 export async function generateImages(req, env = process.env) {
-  if (!imageGenConfigured(env)) throw new ConnectorError("Image generation needs an image model on the server: set OPENAI_IMAGE_KEY or GEMINI_IMAGE_KEY (or IMAGE_PROVIDER and IMAGE_API_KEY)", 503);
+  if (!imageGenConfigured(env)) throw new ConnectorError("Image generation needs an image model on the server: set FAL_KEY, OPENAI_IMAGE_KEY or GEMINI_IMAGE_KEY", 503);
   const routed = routeProviders(req.task || "scene", env);
   const p = (req.provider && imageProviders(env).find((x) => x.name === req.provider)) || routed[0];
   const provider = p.name, key = p.key, model = p.model;
@@ -63,6 +73,28 @@ export async function generateImages(req, env = process.env) {
   const count = Math.min(4, Math.max(1, req.count || 1));
   const opts = { method: "POST", timeoutMs: 180_000, maxBytes: 60_000_000, allowStatus: [400, 401, 402, 403, 404, 422, 429] };
   const failed = (status, j) => new ConnectorError("Image model: " + ((j && (j.error && (j.error.message || j.error))) || j.message || status), status === 429 ? 429 : 502);
+
+  if (p.via === "fal") {
+    // Data URIs go straight in; sync_mode asks for the result inline instead of a hosted link.
+    const input = {
+      prompt: req.negative ? `${req.prompt}\nAvoid: ${req.negative}` : req.prompt,
+      image_urls: [req.image].concat(refs.map((x) => x[0])),
+      num_images: count, output_format: "png", sync_mode: true
+    };
+    if (/nano-banana/.test(model)) Object.assign(input, { aspect_ratio: req.aspect || "4:5", resolution: "2K" });
+    const r = await safeFetch(p.url || `https://fal.run/${model}`, { ...opts, body: JSON.stringify(input), headers: { Authorization: "Key " + key, "Content-Type": "application/json", Accept: "application/json" } });
+    const j = JSON.parse(r.body.toString("utf8") || "{}");
+    if (r.status >= 400) throw failed(r.status, { message: typeof j.detail === "string" ? j.detail : Array.isArray(j.detail) ? j.detail.map((d) => d.msg || d).join("; ") : j.error || j.message });
+    const out = [];
+    for (const im of (j.images || []).slice(0, 4)) {
+      if (/^data:image\//.test(im.url || "")) out.push(im.url);
+      else if (im.url) {
+        const f = await safeFetch(im.url, { maxBytes: 20_000_000, timeoutMs: 60_000 });
+        out.push(`data:${(f.headers.get("content-type") || im.content_type || "image/png").split(";")[0]};base64,${f.body.toString("base64")}`);
+      }
+    }
+    return out;
+  }
 
   if (provider === "openai") {
     const form = new FormData();
@@ -142,7 +174,7 @@ export function onModelPrompt({ product, category, look, cover, setting, visual,
 }
 
 export async function generateOnModel(input, env = process.env) {
-  if (!imageGenConfigured(env)) throw new ConnectorError("On-model photos need an image model on the server: set OPENAI_IMAGE_KEY or GEMINI_IMAGE_KEY (or IMAGE_PROVIDER and IMAGE_API_KEY)", 503);
+  if (!imageGenConfigured(env)) throw new ConnectorError("On-model photos need an image model on the server: set FAL_KEY, OPENAI_IMAGE_KEY or GEMINI_IMAGE_KEY", 503);
   if (typeof input.image !== "string" || !DATA_URL.test(input.image)) throw new ConnectorError("Send the product photo as a PNG, JPEG or WebP", 400);
   const modelRef = typeof input.modelRef === "string" && DATA_URL.test(input.modelRef) ? input.modelRef : null;
   const { prompt, negative } = onModelPrompt({ ...input, sameModel: Boolean(modelRef) });

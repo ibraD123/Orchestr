@@ -56,6 +56,11 @@ npm install
 ANTHROPIC_API_KEY=sk-ant-... npm start
 ```
 
+The server also reads keys from a `.env` file in the project folder (not committed), for example `FAL_KEY=…` and `ANTHROPIC_API_KEY=…`. Variables set in the environment win.
+
+```bash
+```
+
 Open http://localhost:8787 for the site and http://localhost:8787/app for the app. Without an API key everything works except review analysis.
 
 Slide rendering needs Chromium. The server looks for `CHROMIUM_PATH`, then the browser Playwright installs:
@@ -161,6 +166,7 @@ On Render, create a Blueprint from this repository: `render.yaml` sets up the se
 | `PUBLIC_URL` | | The server's public https address. Export image links use it, so marketplaces can fetch the images; without it the links in upload files stay empty |
 | `MOYASAR_SECRET_KEY` | | Moyasar secret key for online payments (Mada, cards, Apple Pay) |
 | `MOYASAR_API` | `https://api.moyasar.com/v1` | Moyasar API base |
+| `FAL_KEY` | | One fal.ai key for both image lanes: text on slides → `FAL_TEXT_MODEL` (default `fal-ai/nano-banana-pro/edit`), scenes, people and on-model photos → `FAL_SCENE_MODEL` (default `openai/gpt-image-2.6/flare/edit`). A direct OpenAI or Gemini key below takes its lane instead |
 | `OPENAI_IMAGE_KEY` | | OpenAI key for images (scenes, people, on-model photos). `OPENAI_IMAGE_MODEL` overrides the model (default `gpt-image-1`; set the newest you have, such as GPT Image 2.5) |
 | `GEMINI_IMAGE_KEY` | | Gemini key for images (text on slides goes here first). `GEMINI_IMAGE_MODEL` overrides the model (default `gemini-3-pro-image-preview`) |
 | `IMAGE_PROVIDER` | | One provider the older way: `openai`, `gemini` or `generic`, with `IMAGE_API_KEY`. Used alongside the two keys above. Generated slides also need `ANTHROPIC_API_KEY` for the checks |

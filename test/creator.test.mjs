@@ -189,3 +189,30 @@ test("best of two: each round asks both models and keeps the better image that p
   const v = judgeImage({ expected: [{ text: "ثبات", lang: "ar" }], readback: { overlayTexts: ["ثبات"], arabicRendering: "correct" }, fidelity: { ok: true, score: 0.9 }, product: { sameProduct: false, shape: "changed", logo: "missing" } });
   assert.deepEqual(v.reasons, ["not the same product", "product shape changed", "logo missing"]);
 });
+
+test("fal.ai: one key runs both lanes, with the product and brand model as data URIs", async () => {
+  const env = { FAL_KEY: "id:secret" };
+  assert.deepEqual(routeProviders("text", env).map((p) => p.model), ["fal-ai/nano-banana-pro/edit", "openai/gpt-image-2.6/flare/edit"]);
+  assert.deepEqual(routeProviders("text", { ...env, GEMINI_IMAGE_KEY: "g" }).map((p) => p.via || "direct"), ["direct", "fal"], "a direct key takes its lane");
+  const calls = [];
+  setNetwork({
+    lookup: async () => [{ address: "93.184.216.34" }],
+    fetch: async (url, init) => {
+      calls.push({ url, init });
+      if (url.includes("v3.fal.media")) return new Response(Buffer.from("PNGDATA"), { status: 200, headers: { "content-type": "image/png" } });
+      const body = url.includes("nano") ? { images: [{ url: "data:image/png;base64,NANO" }], description: "" } : { images: [{ url: "https://v3.fal.media/files/x.png", content_type: "image/png" }] };
+      return new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+    }
+  });
+  assert.deepEqual(await generateImages({ prompt: "p", image: PX, refs: [PX], task: "text", aspect: "4:5" }, env), ["data:image/png;base64,NANO"]);
+  assert.equal(calls[0].url, "https://fal.run/fal-ai/nano-banana-pro/edit");
+  assert.equal(calls[0].init.headers.Authorization, "Key id:secret");
+  const b = JSON.parse(calls[0].init.body);
+  assert.deepEqual([b.image_urls.length, b.aspect_ratio, b.sync_mode, b.output_format], [2, "4:5", true, "png"]);
+  const people = await generateImages({ prompt: "p", image: PX, task: "people" }, env);
+  assert.equal(calls[1].url, "https://fal.run/openai/gpt-image-2.6/flare/edit");
+  assert.equal(JSON.parse(calls[1].init.body).aspect_ratio, undefined, "GPT Image sizes itself from the input");
+  assert.deepEqual(people, ["data:image/png;base64," + Buffer.from("PNGDATA").toString("base64")], "a hosted result is downloaded");
+  setNetwork({ lookup: async () => [{ address: "93.184.216.34" }], fetch: async () => new Response(JSON.stringify({ detail: [{ msg: "image_urls: invalid" }] }), { status: 422, headers: { "content-type": "application/json" } }) });
+  await assert.rejects(generateImages({ prompt: "p", image: PX }, env), /image_urls: invalid/);
+});
