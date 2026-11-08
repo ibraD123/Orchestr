@@ -157,6 +157,36 @@ export async function renderSlide(input, { format = "png" } = {}) {
   }
 }
 
+/** Frames from an MP4, at the start, middle and end, as JPEG data URLs (Chrome decodes H.264). */
+export async function videoFrames(mp4, { count = 3, maxSide = 1024 } = {}) {
+  const page = await newPage();
+  try {
+    const src = "https://basira.local/video.mp4";
+    await page.route("**/*", (route) => {
+      const u = route.request().url();
+      if (u === src) return route.fulfill({ status: 200, contentType: "video/mp4", body: Buffer.from(mp4) });
+      if (u === "https://basira.local/") return route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>frames</title>" });
+      return u.startsWith("data:") || u === "about:blank" ? route.continue() : route.abort();
+    });
+    await page.goto("https://basira.local/");
+    return await page.evaluate(async ({ src, count, maxSide }) => {
+      const v = document.createElement("video");
+      v.muted = true; v.preload = "auto"; v.src = src;
+      await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(new Error("This video can't be decoded")); });
+      const d = v.duration || 0, out = [];
+      const times = Array.from({ length: count }, (_, i) => Math.min(Math.max(0.05, (d * (i + 0.5)) / count), Math.max(0.05, d - 0.05)));
+      const scale = Math.min(1, maxSide / Math.max(v.videoWidth, v.videoHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(v.videoWidth * scale); c.height = Math.round(v.videoHeight * scale);
+      for (const t of times) {
+        await new Promise((res) => { v.onseeked = res; v.currentTime = t; });
+        c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+        out.push(c.toDataURL("image/jpeg", 0.85));
+      }
+      return out;
+    }, { src, count, maxSide });
+  } finally { await page.close(); }
+}
+
 /** Any PNG or WebP data URL → JPEG bytes at the same size, transparency on white (Noon accepts JPEG only). */
 export async function toJpeg(dataUrl, quality = 0.92) {
   const page = await newPage();

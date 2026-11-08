@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { auditListing } from "./audit.mjs";
 import { auditBrand } from "./brand-dna.mjs";
-import { renderSlide, renderPdf, rendererAvailable, normaliseSpec, toJpeg } from "./render.mjs";
+import { renderSlide, renderPdf, rendererAvailable, normaliseSpec, toJpeg, videoFrames } from "./render.mjs";
 import { analyseReviews, draftReply, aiConfigured } from "./reviews.mjs";
 import { llmModelName, llmProvider } from "./llm.mjs";
 import { keywordCoverage } from "./keywords.mjs";
@@ -22,7 +22,8 @@ import { reportHTML } from "./report.mjs";
 import { PLANS, newAccount, recordUsage, usageStatus, invoiceAmount, billingConfigured, applyPayment } from "./billing.mjs";
 import { createCheckout, verifyCheckout } from "./payments.mjs";
 import { generateOnModel, imageGenConfigured, imageProvider, imageProviders } from "./imagegen.mjs";
-import { generateSlide, slideGenConfigured } from "./slidegen.mjs";
+import { generateSlide, slideGenConfigured, readBackText, checkProduct } from "./slidegen.mjs";
+import { generateVideo, falVideo, videoInput, videoGenConfigured, VIDEO_MODEL } from "./videogen.mjs";
 import { labelImage } from "./ai-label.mjs";
 import { analyseCompetitors } from "./gallery.mjs";
 import { searchMarketplace } from "./connectors/search.mjs";
@@ -40,7 +41,7 @@ const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);
 const MAX_BODY = 30 * 1024 * 1024;
 const STATIC = { "/": "index.html", "/index.html": "index.html", "/app": "app.html", "/app.html": "app.html" };
-const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".zip": "application/zip" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".zip": "application/zip" };
 
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
 
@@ -203,13 +204,21 @@ async function buildExport(body, ctx) {
       images.push(rel);
       if (x && x.aiPeople) aiPeople.push(rel);
     }
+    // A checked gallery video made in Creator, stored under this account and client.
+    let video = null;
+    const vm = /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/video\.mp4$/.exec(String(it.video || ""));
+    if (vm && vm[1] === key && vm[2] === ws) {
+      const data = await store.readAsset(ws, vm[3], "video.mp4");
+      video = `videos/${folder}.mp4`;
+      zipFiles.push({ name: video, data });
+    }
     const copy = it.copy || {};
-    manifest.items.push({ sku: String(it.sku || folder), name: String(it.name || ""), asin: it.asin || null, handle: it.handle || null, copy: { titleEn: copy.titleEn || "", titleAr: copy.titleAr || "", bulletsEn: copy.bulletsEn || [], bulletsAr: copy.bulletsAr || [] }, images, aiPeople });
+    manifest.items.push({ sku: String(it.sku || folder), name: String(it.name || ""), asin: it.asin || null, handle: it.handle || null, copy: { titleEn: copy.titleEn || "", titleAr: copy.titleAr || "", bulletsEn: copy.bulletsEn || [], bulletsAr: copy.bulletsAr || [] }, images, aiPeople, video });
   }
   const files = exportFiles(channel, manifest.items, { imageBase: hosted ? base : "" });
   for (const f of files) zipFiles.push({ name: f.name, data: f.content });
   const labelled = manifest.items.flatMap((x) => (x.aiPeople || []).map((r) => "images/" + r));
-  zipFiles.push({ name: "README.txt", data: exportReadme(channel, manifest.items.length, { client: manifest.client, at: now, imageBase: hosted ? base : "", aiPeople: labelled }) });
+  zipFiles.push({ name: "README.txt", data: exportReadme(channel, manifest.items.length, { client: manifest.client, at: now, imageBase: hosted ? base : "", aiPeople: labelled, videos: manifest.items.filter((x) => x.video).map((x) => x.video) }) });
   const zipName = `basira-${channel}-${safeName(manifest.client || ws)}-${now.toISOString().slice(0, 10)}.zip`;
   await store.saveAsset(ws, batch, zipName, Buffer.from(makeZip(zipFiles, now)));
   manifest.zip = zipName;
@@ -262,7 +271,7 @@ const paramRoutes = [
   ["GET", /^\/api\/workspaces\/([a-z0-9-]+)\/export$/, async (m, body, { store }) => file(JSON.stringify(await store.exportWorkspace(m[1]), null, 2), "application/json", `basira-${m[1]}-data.json`)],
   ["DELETE", /^\/api\/team\/([a-z0-9]+)$/, (m, body, ctx) => { if (!AUTH) fail("Teams need accounts on this server", 404); return auth.removeMember(ctx.account.id, ctx.user, m[1]); }],
   // Hosted export files: images marketplaces fetch by link, and the ZIP. Public on purpose: account and batch ids are long and random.
-  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|zip))$/, async (m) => {
+  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|zip))$/, async (m) => {
     const known = AUTH ? await auth.accountExists(m[1]) : m[1] === "local";
     if (!known) fail("Not found", 404);
     const ext = extname(m[4]);
@@ -283,7 +292,7 @@ const routes = {
     return {
       ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: llmModelName(), llm: llmProvider(),
       imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, imageProviders: imageProviders().map((p) => p.name), slideGen: slideGenConfigured(),
-      billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), amazonSearch: amazonConfigured(c),
+      videoGen: videoGenConfigured(), billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), amazonSearch: amazonConfigured(c),
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
     };
   },
@@ -385,6 +394,27 @@ const routes = {
     const r = await analyseCompetitors(body);
     await meter(store, "ai", r.competitors.filter((c) => c.kinds.length).length);
     return r;
+  },
+  // A short gallery video animated from one approved image, checked frame by frame (server/videogen.mjs).
+  "POST /api/video/generate": async (body, { store, key }) => {
+    if (!videoGenConfigured()) fail("Videos need FAL_KEY on the server", 503);
+    if (!aiConfigured()) fail("Checking videos needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
+    if (!(await rendererAvailable())) fail("Checking videos needs Chromium on the server", 503);
+    const ws = String(body.ws || "");
+    await store.getGenome(ws);
+    await guardPlan(store);
+    const r = await generateVideo({ image: body.image, product: body.product, category: body.category, visual: body.visual, seconds: Number(body.seconds) || undefined, scene: Boolean(body.scene), texts: Array.isArray(body.texts) ? body.texts.slice(0, 6).map(String) : [] }, {
+      generate: ({ image, prompt, seconds }) => falVideo(videoInput(VIDEO_MODEL(), { image, prompt, seconds })),
+      frames: (v) => videoFrames(v),
+      readBack: (f) => readBackText(f),
+      checkProduct: (a, b) => checkProduct(a, b)
+    });
+    await meter(store, "ai", r.attempts.length * 3);
+    await meter(store, "renders", r.attempts.length);
+    if (!r.ok) return { ok: false, attempts: r.attempts, model: r.model };
+    const batch = new Date().toISOString().slice(0, 10) + "-video-" + randomBytes(6).toString("hex");
+    await store.saveAsset(ws, batch, "video.mp4", r.video);
+    return { ok: true, url: `/assets/${key}/${ws}/${batch}/video.mp4`, attempts: r.attempts, model: r.model, aiPeople: Boolean(r.aiPeople), bytes: r.video.length };
   },
   "POST /api/imagegen/onmodel": async (body, { store }) => {
     await guardPlan(store);

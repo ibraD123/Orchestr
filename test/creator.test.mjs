@@ -286,3 +286,50 @@ test("Noon: JPEG exports, a search card on white, its rules as a risk, and the A
   assert.ok(hasAiLabel(labelImage(Buffer.from(PX.split(",")[1], "base64"))), "PNG goes the PNG way");
   assert.match(exportReadme("noon", 1, {}), /JPEG/);
 });
+
+test("gallery video: Kling or Veo input, the fal queue, and frames checked for added text and a changed product", async () => {
+  const { videoPrompt, videoInput, falVideo, generateVideo, VIDEO_MODEL } = await import("../server/videogen.mjs");
+  assert.match(videoPrompt({ product: "Oud 100ml" }), /Do not add any text[\s\S]*No cuts/);
+  assert.match(videoPrompt({ scene: true }), /Animate this scene/);
+  assert.deepEqual(videoInput("fal-ai/kling-video/o3/standard/image-to-video", { image: PX, prompt: "p", seconds: 6 }), { image_url: PX, prompt: "p", duration: "6", generate_audio: false });
+  const veo = videoInput("fal-ai/veo3.1/image-to-video", { image: PX, prompt: "p", seconds: 5 });
+  assert.deepEqual([veo.duration, veo.aspect_ratio, veo.generate_audio, veo.resolution], ["6s", "9:16", false, "1080p"]);
+  assert.equal(VIDEO_MODEL(), "fal-ai/kling-video/o3/standard/image-to-video");
+
+  const saved = process.env.FAL_KEY; process.env.FAL_KEY = "id:s";
+  try {
+    const calls = []; let polls = 0;
+    const net = async (url, opts = {}) => {
+      calls.push({ url, method: opts.method || "GET" });
+      const res = (o) => ({ status: 200, body: Buffer.from(JSON.stringify(o)) });
+      if (url === "https://queue.fal.run/fal-ai/kling-video/o3/standard/image-to-video") return res({ request_id: "r1", status_url: "https://queue.fal.run/fal-ai/kling-video/requests/r1/status", response_url: "https://queue.fal.run/fal-ai/kling-video/requests/r1" });
+      if (url.endsWith("/status")) return res({ status: ++polls < 2 ? "IN_PROGRESS" : "COMPLETED" });
+      if (url.endsWith("/requests/r1")) return res({ video: { url: "https://v3.fal.media/files/v.mp4" } });
+      return { status: 200, body: Buffer.from("MP4DATA") };
+    };
+    const r = await falVideo({ image_url: PX, prompt: "p" }, { net, wait: async () => {} });
+    assert.equal(r.video.toString(), "MP4DATA");
+    assert.deepEqual(calls.map((c) => c.method + " " + c.url.replace(/^https:\/\/[^/]+\//, "")), ["POST fal-ai/kling-video/o3/standard/image-to-video", "GET fal-ai/kling-video/requests/r1/status", "GET fal-ai/kling-video/requests/r1/status", "GET fal-ai/kling-video/requests/r1", "GET files/v.mp4"]);
+  } finally { if (saved === undefined) delete process.env.FAL_KEY; else process.env.FAL_KEY = saved; }
+
+  // Checks: text added on a frame fails the first try; the second passes.
+  let n = 0;
+  const deps = {
+    generate: async () => ({ video: Buffer.from("V" + (++n)), model: "kling" }),
+    frames: async (v) => [v.toString() + "a", v.toString() + "b", v.toString() + "c"],
+    readBack: async (f) => ({ overlayTexts: f.startsWith("V1") && f.endsWith("b") ? ["SALE 50%"] : [], productTexts: ["LAYALI"], arabicRendering: "none", photorealPeople: false }),
+    checkProduct: async () => ({ sameProduct: true, shape: "same", logo: "intact", problems: [] })
+  };
+  const ok = await generateVideo({ image: PX, product: "Oud" }, deps);
+  assert.equal(ok.ok, true);
+  assert.equal(ok.video.toString(), "V2");
+  assert.match(ok.attempts[0].reasons.join(), /frame 2: text added \(SALE 50%\)/);
+  // Text that was already on the slide may stay; a changed product never passes.
+  const kept = await generateVideo({ image: PX, texts: ["ثبات حتى ١٢ ساعة"] }, { ...deps, readBack: async () => ({ overlayTexts: ["ثبات حتى ١٢ ساعة"], arabicRendering: "correct" }) });
+  assert.equal(kept.ok, true);
+  const bad = await generateVideo({ image: PX }, { ...deps, checkProduct: async () => ({ sameProduct: true, shape: "changed", logo: "intact", problems: ["cap is different"] }) });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.video, null);
+  assert.match(bad.attempts[1].reasons.join(), /product changed \(cap is different\)/);
+  await assert.rejects(generateVideo({ image: "data:video/mp4;base64,AA" }, deps), /PNG, JPEG or WebP/);
+});
