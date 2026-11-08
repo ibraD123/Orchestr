@@ -294,7 +294,9 @@ test("gallery video: Kling or Veo input, the fal queue, and frames checked for a
   assert.deepEqual(videoInput("fal-ai/kling-video/o3/standard/image-to-video", { image: PX, prompt: "p", seconds: 6 }), { image_url: PX, prompt: "p", duration: "6", generate_audio: false });
   const veo = videoInput("fal-ai/veo3.1/image-to-video", { image: PX, prompt: "p", seconds: 5 });
   assert.deepEqual([veo.duration, veo.aspect_ratio, veo.generate_audio, veo.resolution], ["6s", "9:16", false, "1080p"]);
-  assert.equal(VIDEO_MODEL(), "fal-ai/kling-video/o3/standard/image-to-video");
+  assert.equal(VIDEO_MODEL(), "fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video", "the cheapest model is the default");
+  assert.deepEqual(videoInput("fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video", { image: PX, prompt: "p", seconds: 8 }), { image_url: PX, prompt: "p", duration: "10", prompt_optimizer: false });
+  assert.equal(videoInput("fal-ai/minimax/hailuo-02/pro/image-to-video", { image: PX, prompt: "p", seconds: 6 }).duration, "6");
 
   const saved = process.env.FAL_KEY; process.env.FAL_KEY = "id:s";
   try {
@@ -307,7 +309,7 @@ test("gallery video: Kling or Veo input, the fal queue, and frames checked for a
       if (url.endsWith("/requests/r1")) return res({ video: { url: "https://v3.fal.media/files/v.mp4" } });
       return { status: 200, body: Buffer.from("MP4DATA") };
     };
-    const r = await falVideo({ image_url: PX, prompt: "p" }, { net, wait: async () => {} });
+    const r = await falVideo({ image_url: PX, prompt: "p" }, { net, wait: async () => {}, model: "fal-ai/kling-video/o3/standard/image-to-video" });
     assert.equal(r.video.toString(), "MP4DATA");
     assert.deepEqual(calls.map((c) => c.method + " " + c.url.replace(/^https:\/\/[^/]+\//, "")), ["POST fal-ai/kling-video/o3/standard/image-to-video", "GET fal-ai/kling-video/requests/r1/status", "GET fal-ai/kling-video/requests/r1/status", "GET fal-ai/kling-video/requests/r1", "GET files/v.mp4"]);
   } finally { if (saved === undefined) delete process.env.FAL_KEY; else process.env.FAL_KEY = saved; }

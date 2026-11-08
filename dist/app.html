@@ -5116,7 +5116,7 @@ function crVideoCard(p){
   var slides = state.renders[p.id] || [], src = v.src || "photo";
   return '<div class="card"><div class="card-h"><h2>'+t("crVideo")+'</h2>'+(v.url ? '<span class="tag good">'+t("crVideoOk")+'</span>' : "")+'</div><p class="note" style="margin-bottom:12px">'+t("crVideoSub")+'</p>'+
     '<div class="cr-row"><span class="lbl">'+t("crVideoSrc")+'</span><div class="seg" role="group"><button type="button" data-crvsrc="photo" aria-pressed="'+(src === "photo")+'">'+t("crVideoPhoto")+'</button><button type="button" data-crvsrc="slide" aria-pressed="'+(src === "slide")+'"'+(slides.length ? "" : " disabled")+'>'+t("crVideoSlide")+'</button></div>'+
-      '<label class="tpl-for">'+t("crVideoSecs")+' <select class="sel" id="cr-vsecs">'+[4,6,8,10].map(function(n){ return '<option value="'+n+'"'+((v.secs || 6) === n ? " selected" : "")+'>'+n+' s</option>'; }).join("")+'</select></label></div>'+
+      '<label class="tpl-for">'+t("crVideoSecs")+' <select class="sel" id="cr-vsecs">'+[6,10].map(function(n){ return '<option value="'+n+'"'+((v.secs || 6) === n ? " selected" : "")+'>'+n+' s</option>'; }).join("")+'</select></label></div>'+
     '<div class="exp-row" style="margin-top:12px"><button type="button" class="btn btn-primary" id="cr-vgo"'+(ok && !v.busy ? "" : " disabled")+'>'+t(v.busy ? "crVideoBusy" : "crVideoGo")+'</button>'+(ok ? "" : '<span class="note">'+t("crVideoNeeds")+'</span>')+'</div>'+
     (v.error ? '<p class="err">'+esc(v.error)+'</p>' : "")+
     (v.failed ? '<p class="err">'+t("crVideoFailed")+' '+esc(v.failed.join("; "))+'</p>' : "")+

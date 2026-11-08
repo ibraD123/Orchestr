@@ -7,13 +7,16 @@
 // and compares the product with the photo. A failed video is generated once more.
 //
 // Model: fal.ai queue (POST https://queue.fal.run/<model> → status_url / response_url).
-//   FAL_VIDEO_MODEL, default fal-ai/kling-video/o3/standard/image-to-video ($0.084 a second without
-//   audio): { image_url, prompt, duration: "3".."15", generate_audio } → { video: { url } }.
+//   FAL_VIDEO_MODEL, default fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video (MiniMax
+//   Hailuo 2.3 Fast, 768p, $0.19 for 6 s, $0.32 for 10 s): { image_url, prompt, duration: "6"|"10",
+//   prompt_optimizer } → { video: { url } }. Other MiniMax models take the same input, e.g.
+//   fal-ai/minimax/hailuo-02/pro/image-to-video for 1080p ($0.08 a second).
+//   Kling (fal-ai/kling-video/o3/standard/image-to-video, $0.084 a second): duration "3".."15".
 //   Veo 3.1 (fal-ai/veo3.1/image-to-video) also works: { image_url, prompt, duration: "4s"|"6s"|"8s",
 //   resolution, aspect_ratio: "9:16"|"16:9", generate_audio, negative_prompt }.
 import { safeFetch, ConnectorError } from "./connectors/net.mjs";
 
-export const VIDEO_MODEL = () => process.env.FAL_VIDEO_MODEL || "fal-ai/kling-video/o3/standard/image-to-video";
+export const VIDEO_MODEL = () => process.env.FAL_VIDEO_MODEL || "fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video";
 export const VIDEO_SECONDS = 6;
 export const MAX_VIDEO_ATTEMPTS = 2;
 export function videoGenConfigured(env = process.env) { return Boolean(env.FAL_KEY); }
@@ -30,8 +33,10 @@ export function videoPrompt({ product, category, visual, scene }) {
   ].filter(Boolean).join(" ");
 }
 
-/** The model's input for one request, shaped for Kling or Veo. */
+/** The model's input for one request, shaped for MiniMax, Kling or Veo. */
 export function videoInput(model, { image, prompt, seconds = VIDEO_SECONDS, vertical = true }) {
+  // MiniMax: 6 or 10 seconds; its prompt optimizer is off so our "add no text" rules reach the model as written.
+  if (/minimax/.test(model)) return { image_url: image, prompt, duration: seconds > 6 ? "10" : "6", prompt_optimizer: false };
   if (/veo/.test(model)) {
     const d = seconds <= 4 ? "4s" : seconds <= 6 ? "6s" : "8s";
     return { image_url: image, prompt, duration: d, resolution: "1080p", aspect_ratio: vertical ? "9:16" : "16:9", generate_audio: false, negative_prompt: "text, letters, captions, watermark, logo change, distorted product, people" };
