@@ -138,7 +138,7 @@ test("publishes approved copy and hosted images with the listing's product type"
 });
 
 test("explains what to do when Amazon isn't connected", async () => {
-  await assert.rejects(amazonProduct("B0ABCDE123", { id: "x", country: "SA", locales: [] }, {}), (e) => e.status === 503 && /SPAPI_CLIENT_ID/.test(e.message));
+  await assert.rejects(amazonProduct("B0ABCDE123", { id: "x", country: "SA", locales: [] }, {}), (e) => e.status === 503 && /seller account/.test(e.message));
 });
 
 test("parses catalog exports with quoted cells and Arabic columns", () => {

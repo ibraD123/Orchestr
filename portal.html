@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Approvals</title>
+<style>
+:root{--bg:#F6F5F1;--surface:#FFFFFF;--line:#E4E1D8;--ink:#17201D;--ink-2:#4A5450;--ink-3:#7D8682;--accent:#1F5C4F;--accent-ink:#fff;--good:#1E7A4F;--good-soft:#E3F2EA;--bad:#B4442E;--bad-soft:#F8E6E1;--warn:#9A6A12;--warn-soft:#F7EED9}
+@media (prefers-color-scheme:dark){:root{--bg:#121614;--surface:#1B201E;--line:#2C3330;--ink:#ECEFED;--ink-2:#B7BFBB;--ink-3:#8A938F;--accent:#5FC3AA;--accent-ink:#07130F;--good:#5CC28C;--good-soft:#16302A;--bad:#E5806A;--bad-soft:#3A201A;--warn:#E2B35C;--warn-soft:#352A14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Readex Pro",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;gap:12px;min-height:64px}
+.top img{height:32px;max-width:120px;object-fit:contain}
+.top h1{font-size:17px;margin:0;font-weight:600}
+.top small{color:var(--ink-3);display:block;font-weight:400;font-size:12.5px}
+.lang{margin-inline-start:auto;display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{border:0;background:none;color:var(--ink-2);padding:6px 12px;cursor:pointer;font:inherit;font-size:13px}
+.lang button[aria-pressed=true]{background:var(--ink);color:var(--surface)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{border:0;background:none;color:var(--ink-2);padding:10px 12px;border-bottom:2px solid transparent;cursor:pointer;font:inherit;white-space:nowrap}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:12px;margin-inline-start:6px;padding:0 6px}
+main{padding:20px 0 60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:16px;margin:0 0 4px}
+.note{color:var(--ink-3);font-size:13px;margin:0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--line);color:var(--ink-2)}
+.tag.good{background:var(--good-soft);color:var(--good)}.tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ba{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,3fr);gap:12px;margin-top:12px}
+@media (max-width:640px){.ba{grid-template-columns:1fr}}
+.lbl{font-size:12px;color:var(--ink-3);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.shot{position:relative;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--line);cursor:crosshair}
+.shot img,.shot video{display:block;width:100%;height:auto}
+.shot.video{cursor:default}
+.before .shot{cursor:default;opacity:.85}
+.pin{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--bad);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.pin.draft{background:var(--accent);color:var(--accent-ink)}
+.pin.done{background:var(--ink-3)}
+.copy{font-size:13.5px;color:var(--ink-2);margin-top:10px;display:grid;gap:4px}
+.copy b{color:var(--ink)}
+textarea,input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:76px;resize:vertical}
+label.f{display:grid;gap:6px;font-size:13.5px;color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 14px;font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.comments{display:grid;gap:8px;margin-top:12px}
+.cm{border-inline-start:3px solid var(--line);padding:4px 10px;font-size:13.5px}
+.cm.open{border-color:var(--bad)}
+.cm small{color:var(--ink-3)}
+.drafts{display:grid;gap:6px;margin-top:8px}
+.draft{display:flex;gap:8px;align-items:center}
+.draft span{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:12px;font-weight:700}
+.empty{text-align:center;color:var(--ink-3);padding:40px 16px}
+.err{color:var(--bad);font-size:13.5px}
+.ok{color:var(--good);font-size:13.5px}
+[hidden]{display:none!important}
+.room-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.room-counts{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-bottom:12px}.room-progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden;margin-bottom:22px}.room-progress i{display:block;height:100%;background:var(--accent)}.room-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:20px}.room-products{display:grid;gap:9px;margin-bottom:12px}.room-product{padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}.room-product .btn{width:100%;text-align:start;border:0;padding:4px}.room-product small{display:block;color:var(--ink-2);margin-top:5px}.room-product .btn[aria-pressed=true]{color:var(--accent)}.room-check{display:flex;align-items:flex-start;gap:6px;margin-top:8px;font-size:12px}.room-check input{width:auto;flex-shrink:0}.room-layout section{min-width:0}.room-layout .ba{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}@media(max-width:760px){.room-layout{grid-template-columns:1fr}.room-products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.room-products,.room-layout .ba{grid-template-columns:1fr}}
+.room-film{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.room-film [aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}.room-layout .ba:not(:has(.before .shot)):not(:has(.before .copy)){grid-template-columns:1fr}.room-layout .ba:not(:has(.before .shot)):not(:has(.before .copy)) .before{display:none}.room-layout .imgs:has(>:only-child){grid-template-columns:minmax(0,1fr)}.room-layout .shot img{max-height:540px;object-fit:contain}.room-product{overflow-wrap:anywhere}
+/* Studio visual language shared with the agency workspace. */
+:root{--bg:#f5f5f0;--surface:#fff;--line:#e3e6de;--ink:#202820;--ink-2:#5d675e;--ink-3:#71806e;--accent:#224d39;--accent-ink:#fff;--good-soft:#e3f2d9}
+@media(prefers-color-scheme:dark){:root{--bg:#141a16;--surface:#1d2620;--line:#354137;--ink:#edf3e7;--ink-2:#becab8;--ink-3:#94a58f;--accent:#caeca8;--accent-ink:#1b2e1d;--good-soft:#30452c}}
+header{border:0}.wrap{max-width:1200px;padding-inline:28px}.top{min-height:78px}.top h1{font-size:22px;letter-spacing:-.04em}.tabs{padding-bottom:12px}nav.tabs button{border:0;border-radius:8px;font-size:12px;padding:9px 14px}nav.tabs button[aria-selected=true]{background:var(--ink);color:var(--surface)}main{padding-top:26px}.card{border-radius:18px;padding:22px}.card h2{font-size:17px;letter-spacing:-.025em}.btn{font-size:12px;border-radius:10px}.tag{font-size:11px}.room-products{gap:10px}.room-product{border-radius:13px;padding:13px}.room-product .btn{font-size:12px}.room-product .btn[aria-pressed=true]{font-weight:600}.room-product:has([aria-pressed=true]){border-color:var(--accent);background:var(--good-soft)}.room-head{margin-bottom:20px}.room-counts{font-size:12px;gap:22px}.room-progress{height:4px;margin-bottom:26px}.room-layout{gap:24px;grid-template-columns:235px minmax(0,1fr)}.room-layout .lbl{font-size:10px}.room-film{gap:8px}.room-film .btn{font-size:11px}.room-layout .card{box-shadow:0 5px 20px -17px #1e331e30}.note{font-size:12px}.room-check{font-size:11px}.room-layout aside>.btn{margin-top:8px;width:100%}.room-head select{background:var(--surface)}@media(max-width:760px){.wrap{padding-inline:16px}.room-layout{grid-template-columns:1fr}.room-counts{gap:12px}.room-products{grid-template-columns:1fr 1fr}.room-layout aside>.btn{width:auto}.card{padding:17px}}@media(max-width:430px){.room-products{grid-template-columns:1fr}.top h1{font-size:19px}}
+.op-workspace{margin-bottom:24px}.op-samples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.op-samples img{width:100%;height:220px;object-fit:contain;background:#f3f5ed;border-radius:12px}.op-samples small{display:block;font-size:11px;line-height:1.6;margin-top:7px;color:var(--muted)}.op-lines{display:grid;gap:8px;margin:18px 0}.op-lines>label{display:flex;align-items:start;gap:10px;border:1px solid var(--line);border-radius:10px;padding:13px;min-width:0}.op-lines span{flex:1;min-width:0}.op-lines b{font-size:13px}.op-lines small{display:block;color:var(--muted);font-size:12px;line-height:1.6;margin-top:5px}.op-lines strong{font-size:12px;white-space:nowrap}.op-confirm{display:flex;align-items:start;gap:9px;font-size:12px;line-height:1.8;margin:17px 0}.op-total{padding:15px;background:#edf3e6;border-radius:9px;font-size:14px}.op-field{padding:13px;background:#f0f4e7;border-radius:9px;line-height:1.8;font-size:12px}.op-field small{color:var(--muted)}.op-workspace .f{margin-top:14px}.op-workspace input:not([type=checkbox]){width:100%;box-sizing:border-box;padding:11px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card)}
+@media(max-width:600px){.op-samples{grid-template-columns:repeat(2,minmax(0,1fr))}.op-samples img{height:150px}.op-lines>label{flex-wrap:wrap}.op-lines strong{margin-inline-start:auto}.op-workspace h2{font-size:21px}.op-confirm input{margin-top:5px}}
+
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><img id="logo" alt="" hidden><div><h1 id="brand">…</h1><small id="agency"></small></div>
+    <div class="lang" role="group"><button type="button" data-lang="en">EN</button><button type="button" data-lang="ar">ع</button></div></div>
+  <nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="reviews"></button><button type="button" role="tab" data-tab="requests"></button><button type="button" role="tab" data-tab="report"></button><button type="button" role="tab" data-tab="library"></button><button type="button" role="tab" data-tab="brief"></button></nav>
+</div></header>
+<main class="wrap" id="main"><p class="empty">…</p></main>
+<script>
+(function(){
+"use strict";
+var T = {
+  reviews:["For approval","للموافقة"], requests:["Requests","الطلبات"], brief:["Brand questionnaire","استبيان العلامة"],
+  by:["Prepared by","من إعداد"], before:["Before","قبل"], after:["After","بعد"], approve:["Approve","موافقة"], changes:["Ask for changes","اطلب تعديلات"],
+  comment:["Comment","تعليق"], commentPh:["What should change? You can also tap a spot on an image to pin a comment there.","ما الذي يجب تعديله؟ يمكنك أيضاً النقر على موضع في الصورة لتثبيت تعليق عليه."],
+  pinPh:["Comment for this spot","تعليق على هذا الموضع"], removePin:["Remove","إزالة"], send:["Send","إرسال"],
+  st_pending:["Waiting for you","بانتظارك"], st_approved:["Approved","تمت الموافقة"], st_changes:["Changes requested","طُلبت تعديلات"],
+  resolved:["fixed","تم التعديل"], nothing:["Nothing waits for your approval right now.","لا يوجد ما ينتظر موافقتك الآن."],
+  title:["Title","العنوان"], bullets:["Points","النقاط"], sent:["Sent","أُرسل"], thanks:["Thank you, the agency has your answer.","شكراً، وصل ردك إلى الوكالة."],
+  reqNew:["New request","طلب جديد"], kind:["What do you need?","ماذا تحتاج؟"], k_season:["Season pack (Ramadan, Eid, National Day, White Friday)","حزمة موسمية (رمضان، العيد، اليوم الوطني، الجمعة البيضاء)"], k_newProducts:["New products to list","منتجات جديدة للإدراج"], k_fix:["Fix existing listings","تعديل منتجات قائمة"], k_other:["Something else","شيء آخر"],
+  details:["Details","التفاصيل"], links:["Product links, one per line","روابط المنتجات، رابط في كل سطر"], due:["Needed by","مطلوب بحلول"], yourName:["Your name","اسمك"],
+  rs_new:["New","جديد"], rs_inProgress:["In progress","قيد التنفيذ"], rs_done:["Done","تم"], noReq:["No requests yet.","لا طلبات بعد."],
+  bIntro:["Tell us about your brand once. Your agency turns this into the rules every image and text follows.","أخبرنا عن علامتك مرة واحدة. تحول الوكالة ذلك إلى قواعد تلتزم بها كل صورة ونص."],
+  bName:["Brand name (English)","اسم العلامة (إنجليزي)"], bNameAr:["Brand name (Arabic)","اسم العلامة (عربي)"], bAbout:["What you sell and what makes it different","ماذا تبيع وما الذي يميزه"], bAudience:["Who buys it","من يشتريه"],
+  bVoice:["Tone","النبرة"], v_formal:["Formal","رسمية"], v_friendly:["Friendly","ودية"], v_playful:["Playful","مرحة"], v_luxury:["Luxury","فاخرة"],
+  bDialect:["Arabic style","أسلوب العربية"], d_gulf:["Gulf","خليجي"], d_msa:["Modern standard","فصحى"], d_egyptian:["Egyptian","مصري"], d_levantine:["Levantine","شامي"],
+  bLangs:["Languages on images","اللغات على الصور"], l_both:["Arabic and English","العربية والإنجليزية"], l_ar:["Arabic only","العربية فقط"], l_en:["English only","الإنجليزية فقط"],
+  bNums:["Digits in Arabic text","الأرقام في النص العربي"], n_arabic:["Arabic (١٢)","عربية (١٢)"], n_western:["Western (12)","غربية (12)"],
+  bColours:["Brand colours (hex, e.g. #2A1A0E)","ألوان العلامة (مثل ‎#2A1A0E)"], bUse:["Words you like to use","كلمات تحب استخدامها"], bAvoid:["Words never to use","كلمات لا تُستخدم أبداً"],
+  bClaims:["Claims that need care (health, certificates)","ادعاءات تحتاج حذراً (صحية، شهادات)"], bExamples:["Brands or listings you like, and ones you don't","علامات أو صفحات تعجبك وأخرى لا تعجبك"], bLogo:["Logo (PNG, JPEG, WebP or SVG, up to 1 MB)","الشعار (PNG أو JPEG أو WebP أو SVG حتى 1 ميغابايت)"],
+  bSave:["Send to the agency","أرسل إلى الوكالة"], bSaved:["Received. Your agency will apply it to your brand rules.","تم الاستلام. ستطبقه الوكالة على قواعد علامتك."], bApplied:["Applied by the agency","طبقته الوكالة"], choose:["Choose…","اختر…"],
+  report:["Report","التقرير"], library:["Library","المكتبة"], who:["Who is answering?","من يجيب؟"], waitLegal:["Waiting for legal approval","بانتظار موافقة الشؤون القانونية"], needsLegal:["Has claims: legal approves too","يتضمن ادعاءات: توافق الشؤون القانونية أيضاً"],
+  ro_marketing:["Marketing","التسويق"], ro_legal:["Legal","الشؤون القانونية"], ro_owner:["Owner","المالك"],
+  rpMonth:["This month","هذا الشهر"], rpSent:["Sent for approval","أُرسل للموافقة"], rpApproved:["Approved","تمت الموافقة"], rpWaiting:["Waiting for you","بانتظارك"], rpChanges:["Changes requested","طُلبت تعديلات"],
+  rpReqOpen:["Requests in work","طلبات قيد العمل"], rpReqDone:["Requests done","طلبات منجزة"], rpPackage:["Monthly package","الباقة الشهرية"], rpUsed:["{used} of {limit} fixes used","استُخدم {used} من {limit} تعديلاً"], rpOver:["{n} over the package","{n} فوق الباقة"], rpRecent:["Recently approved","تمت الموافقة مؤخراً"],
+  libEmpty:["Approved images appear here.","تظهر هنا الصور المعتمدة."], download:["Download","تنزيل"],
+  files:["Files","الملفات"], addFile:["Add a file (PNG, JPEG, WebP or PDF, up to 10 MB)","أضف ملفاً (PNG أو JPEG أو WebP أو PDF حتى 10 ميغابايت)"], uploading:["Uploading…","جارٍ الرفع…"], approvedImgs:["Approved images and videos","الصور ومقاطع الفيديو المعتمدة"],
+  rpMinor:["Small fixes made without approval","تعديلات صغيرة دون موافقة"], minorTag:["Small fix, approved by the agency","تعديل صغير وافقت عليه الوكالة"],
+  rsT:["Sales results","نتائج المبيعات"], rsChanged:["Improved products","المنتجات المحسّنة"], rsControl:["Unchanged products","المنتجات دون تغيير"], rsUplift:["Conversion uplift","زيادة التحويل"], rsConv:["conversion","التحويل"], rsUnits:["units","الوحدات"], rsSales:["sales","المبيعات"], rsPts:["pts","نقطة"],
+  err:["Something went wrong:","حدث خطأ:"], gone:["This link isn't valid any more. Ask your agency for a new one.","هذا الرابط لم يعد صالحاً. اطلب رابطاً جديداً من الوكالة."]
+};
+var token = location.pathname.split("/").pop(), data = null, tab = "reviews", drafts = {}, lang = "en";
+try { lang = localStorage.getItem("basira-portal-lang") || ((navigator.language || "").slice(0, 2) === "ar" ? "ar" : "en"); } catch (e) {}
+function t(k){ var v = T[k]; return v ? v[lang === "ar" ? 1 : 0] : k; }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function isVideo(src){ return /\.mp4(?:$|[?#])/i.test(String(src)); }
+function mediaHTML(src){ return isVideo(src) ? '<video controls playsinline preload="metadata" src="' + esc(src) + '"></video>' : '<img src="' + esc(src) + '" alt="">'; }
+function api(path, opts){ return fetch("/api/c/" + token + path, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); }); }
+function send(path, method, body){ return api(path, {method: method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)}); }
+function name(){ try { return localStorage.getItem("basira-portal-name") || ""; } catch (e) { return ""; } }
+function approver(){ try { return localStorage.getItem("basira-portal-approver") || ""; } catch (e) { return ""; } }
+function setLang(l){ lang = l; document.documentElement.lang = l; document.documentElement.dir = l === "ar" ? "rtl" : "ltr"; try { localStorage.setItem("basira-portal-lang", l); } catch (e) {} render(); }
+function load(){ return api("").then(function(j){ data = j; render(); }).catch(function(e){ document.getElementById("main").innerHTML = '<p class="empty">' + (e.status === 404 ? t("gone") : esc(t("err") + " " + e.message)) + "</p>"; }); }
+
+function render(){
+  document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === lang)); });
+  if (!data) return;
+  var brand = lang === "ar" && data.brand.nameAr ? data.brand.nameAr : data.brand.name;
+  document.getElementById("brand").textContent = brand; document.title = brand + " · " + t("reviews");
+  document.getElementById("agency").textContent = data.agency.name ? t("by") + " " + data.agency.name : "";
+  var logo = document.getElementById("logo"); if (data.agency.logo){ logo.src = data.agency.logo; logo.hidden = false; }
+  if (data.agency.colour && /^#[0-9a-f]{6}$/i.test(data.agency.colour)) document.documentElement.style.setProperty("--accent", data.agency.colour);
+  var waiting = data.reviews.reduce(function(n, r){ return n + r.items.filter(function(i){ return i.status === "pending"; }).length; }, 0);
+  document.querySelectorAll("[data-tab]").forEach(function(b){ b.setAttribute("aria-selected", String(b.dataset.tab === tab)); b.innerHTML = esc(t(b.dataset.tab)) + (b.dataset.tab === "reviews" && waiting ? '<span class="badge">' + waiting + "</span>" : ""); });
+  var m = document.getElementById("main");
+  m.innerHTML = tab === "requests" ? vRequests() : tab === "brief" ? vBrief() : tab === "report" ? vReport() : tab === "library" ? vLibrary() : vReviews();
+}
+
+function copyHTML(c){
+  if (!c) return "";
+  var title = lang === "ar" ? (c.titleAr || c.titleEn) : (c.titleEn || c.titleAr), b = lang === "ar" && c.bulletsAr.length ? c.bulletsAr : c.bulletsEn;
+  return '<div class="copy">' + (title ? "<div><b>" + t("title") + ":</b> " + esc(title) + "</div>" : "") + (b && b.length ? "<div><b>" + t("bullets") + ":</b> " + b.map(esc).join(" · ") + "</div>" : "") + "</div>";
+}
+function vReviews(){
+  var items = [];
+  data.reviews.forEach(function(r){ r.items.forEach(function(it, i){ if(!it.superseded)items.push({r: r, it: it, i: it._roomIndex == null ? i : it._roomIndex}); }); });
+  if (!items.length) return '<p class="empty">' + t("nothing") + "</p>";
+  var whoSel = data.approvers && data.approvers.length ? '<div class="card"><label class="f">' + t("who") + '<select id="who"><option value="">' + t("choose") + "</option>" + data.approvers.map(function(a){ return '<option value="' + esc(a.id) + '"' + (approver() === a.id ? " selected" : "") + ">" + esc(a.name) + " · " + t("ro_" + a.role) + "</option>"; }).join("") + "</select></label></div>" : "";
+  items.sort(function(a, b){ return (a.it.status === "pending" ? 0 : 1) - (b.it.status === "pending" ? 0 : 1); });
+  return whoSel + items.map(function(x){
+    var it = x.it, k = x.r.id + ":" + x.i, d = drafts[k] || (drafts[k] = {pins: [], text: ""});
+    var n = 0, pinsByImg = {};
+    it.comments.forEach(function(c){ c.pins.forEach(function(p){ n++; (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: n, done: c.resolved}); }); });
+    d.pins.forEach(function(p, j){ (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: "+" + (j + 1), draft: true}); });
+    var st = it.status === "pending" ? "warn" : it.status === "approved" ? "good" : "bad";
+    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + (it.creator?' · v'+(it.creator.version||'?'):'') + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + (it.minor ? '<span class="tag">' + t("minorTag") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
+      '<div class="ba"><div class="before"><span class="lbl">' + t("before") + "</span>" + (it.before.image ? '<div class="shot"><img src="' + esc(it.before.image) + '" alt=""></div>' : "") + copyHTML(it.before.copy) + "</div>" +
+      '<div><span class="lbl">' + t("after") + '</span><div class="imgs">' + it.after.images.map(function(src, j){
+        if (isVideo(src)) return '<div class="shot video">' + mediaHTML(src) + '</div>';
+        return '<div class="shot" data-img="' + j + '"><img src="' + esc(src) + '" alt="">' + (pinsByImg[j] || []).map(function(p){ return '<span class="pin' + (p.draft ? " draft" : p.done ? " done" : "") + '" style="left:' + (p.x * 100) + "%;top:" + (p.y * 100) + '%">' + p.n + "</span>"; }).join("") + "</div>";
+      }).join("") + "</div>" + copyHTML(it.after.copy) + "</div></div>" +
+      (it.creator?.assetType === "video" ? '<label class="f" style="margin-top:10px">'+(lang==="ar"?"موضع التعليق بالثواني":"Comment time (seconds)")+'<input type="number" min="0" max="300" step="0.1" data-video-time="'+k+'" value="'+esc(d.time==null?"":d.time)+'"></label>' : "")+
+      (it.comments.length ? '<div class="comments">' + it.comments.map(function(c){ return '<div class="cm' + (c.resolved ? "" : " open") + '"><small>' + esc(c.by) + " · " + new Date(c.at).toLocaleString(lang === "ar" ? "ar" : "en-GB") + (c.resolved ? " · " + t("resolved") : "") + "</small><div>" + (c.time!==undefined?esc(c.time)+" s · ":"")+esc(c.text) + "</div>" + c.pins.map(function(p){ return "<div>📍 " + esc(p.text) + "</div>"; }).join("") + "</div>"; }).join("") + "</div>" : "") +
+      (d.pins.length ? '<div class="drafts">' + d.pins.map(function(p, j){ return '<div class="draft"><span>+' + (j + 1) + '</span><input data-pintext="' + k + "|" + j + '" placeholder="' + esc(t("pinPh")) + '" value="' + esc(p.text) + '"><button type="button" class="btn" data-pindel="' + k + "|" + j + '">' + t("removePin") + "</button></div>"; }).join("") + "</div>" : "") +
+      '<div style="margin-top:12px"><textarea data-text="' + k + '" placeholder="' + esc(t("commentPh")) + '">' + esc(d.text) + "</textarea></div>" +
+      '<div class="row" style="margin-top:10px">' + (it.status === "pending" ? '<button type="button" class="btn primary" data-act="approve|' + k + '">' + t("approve") + '</button><button type="button" class="btn" data-act="changes|' + k + '">' + t("changes") + "</button>" : '<button type="button" class="btn" data-act="comment|' + k + '">' + t("comment") + "</button>") +
+        (d.err ? '<span class="err">' + esc(d.err) + "</span>" : d.ok ? '<span class="ok">' + t("thanks") + "</span>" : "") + "</div></section>";
+  }).join("");
+}
+
+function opt(key, list, cur){ return '<select data-b="' + key + '"><option value="">' + t("choose") + "</option>" + list.map(function(v){ return '<option value="' + v + '"' + (cur === v ? " selected" : "") + ">" + t(v.length > 2 && T[key[0] + "_" + v] ? key[0] + "_" + v : v) + "</option>"; }).join("") + "</select>"; }
+function vReport(){
+  var r = data.report, stat = function(k, v){ return '<div class="card" style="margin:0"><div class="note">' + t(k) + '</div><div style="font-size:28px;font-weight:700">' + v + "</div></div>"; };
+  return '<section class="card"><h2>' + t("rpMonth") + ' <span class="note">' + esc(r.month) + "</span></h2>" +
+    '<div class="imgs" style="margin-top:12px">' + stat("rpSent", r.sent) + stat("rpApproved", r.approved) + stat("rpWaiting", r.waiting) + stat("rpChanges", r.changes) + stat("rpReqOpen", r.requestsOpen) + stat("rpReqDone", r.requestsDone) + "</div>" +
+    (r.minor ? '<p class="note" style="margin-top:10px">' + t("rpMinor") + ": " + r.minor + "</p>" : "") +
+    (r.package ? '<div style="margin-top:14px"><span class="lbl">' + t("rpPackage") + '</span><div style="height:10px;border-radius:6px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, Math.round(r.package.used / r.package.limit * 100)) + '%;background:var(--accent)"></i></div><p class="note" style="margin-top:6px">' + t("rpUsed").replace("{used}", r.package.used).replace("{limit}", r.package.limit) + (r.package.over ? " · " + t("rpOver").replace("{n}", r.package.over) : "") + "</p></div>" : "") + "</section>" +
+    resultsHTML() + (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? mediaHTML(x.image) : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
+}
+function resultsHTML(){
+  var x = data.results; if (!x) return "";
+  var sign = function(v, unit){ return v == null ? "—" : (v > 0 ? "+" : "") + v + unit; };
+  var row = function(k, g){ return g ? "<tr><td>" + t(k) + " (" + g.count + ")</td><td>" + sign(g.convPts, " " + t("rsPts")) + "</td><td>" + sign(g.unitsPct, "%") + "</td><td>" + sign(g.salesPct, "%") + "</td></tr>" : ""; };
+  return '<section class="card"><h2>' + t("rsT") + (x.period ? ' <span class="note">' + esc(x.period) + "</span>" : "") + "</h2>" +
+    (x.upliftPts != null ? '<p style="font-size:24px;font-weight:700;margin:8px 0">' + sign(x.upliftPts, " " + t("rsPts")) + ' <span class="note" style="font-size:13px;font-weight:400">' + t("rsUplift") + "</span></p>" : "") +
+    '<table style="width:100%;border-collapse:collapse;font-size:13.5px"><thead><tr><th></th><th>' + t("rsConv") + "</th><th>" + t("rsUnits") + "</th><th>" + t("rsSales") + "</th></tr></thead><tbody>" + row("rsChanged", x.changed) + row("rsControl", x.control) + "</tbody></table>" +
+    (x.products.length ? '<div style="margin-top:10px;display:grid;gap:4px">' + x.products.map(function(p){ return '<div class="note">' + esc(p.name) + " · " + sign(p.convPts, " " + t("rsPts")) + " · " + sign(p.salesPct, "% " + t("rsSales")) + "</div>"; }).join("") + "</div>" : "") + "</section>";
+}
+var upMsg = null;
+function vLibrary(){
+  var files = '<section class="card"><h2>' + t("files") + '</h2><div class="imgs" style="margin-top:10px">' + data.files.map(function(f){ return '<div><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><div class="shot" style="cursor:pointer;display:grid;place-items:center;min-height:90px">' + (f.ext === "pdf" ? "<b>PDF</b>" : '<img src="' + esc(f.url) + '" alt="">') + '</div></a><div class="note" style="margin-top:4px">' + esc(f.name) + " · " + esc(f.by) + "</div></div>"; }).join("") + "</div>" +
+    '<label class="f" style="margin-top:12px">' + t("addFile") + '<input type="file" id="lib-file" accept="image/png,image/jpeg,image/webp,application/pdf"></label>' + (upMsg ? '<p class="' + (upMsg.ok ? "ok" : "err") + '">' + esc(upMsg.text) + "</p>" : "") + "</section>";
+  if (!data.library.length) return files + '<p class="empty">' + t("libEmpty") + "</p>";
+  return files + '<h2 style="font-size:16px;margin:18px 0 10px">' + t("approvedImgs") + "</h2>" + data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default">' + mediaHTML(src) + '</div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
+}
+var req = {kind: "season", text: "", links: "", due: "", msg: null};
+function vRequests(){
+  return '<section class="card"><h2>' + t("reqNew") + '</h2><div style="display:grid;gap:12px;margin-top:10px">' +
+    '<label class="f">' + t("kind") + '<select id="rq-kind">' + ["season","newProducts","fix","other"].map(function(k){ return '<option value="' + k + '"' + (req.kind === k ? " selected" : "") + ">" + t("k_" + k) + "</option>"; }).join("") + "</select></label>" +
+    '<label class="f">' + t("details") + '<textarea id="rq-text">' + esc(req.text) + "</textarea></label>" +
+    '<div class="grid2"><label class="f">' + t("links") + '<textarea id="rq-links" dir="ltr">' + esc(req.links) + '</textarea></label><div style="display:grid;gap:12px;align-content:start"><label class="f">' + t("due") + '<input id="rq-due" type="date" value="' + esc(req.due) + '"></label><label class="f">' + t("yourName") + '<input id="rq-name" value="' + esc(name()) + '"></label></div></div>' +
+    '<div class="row"><button type="button" class="btn primary" id="rq-send">' + t("send") + "</button>" + (req.msg ? '<span class="' + (req.msg.ok ? "ok" : "err") + '">' + esc(req.msg.text) + "</span>" : "") + "</div></div></section>" +
+    (data.requests.length ? data.requests.map(function(q){ return '<section class="card"><div class="row"><b>' + t("k_" + q.kind) + '</b><span class="tag ' + (q.status === "done" ? "good" : q.status === "inProgress" ? "warn" : "") + '">' + t("rs_" + q.status) + '</span><span class="note" style="margin-inline-start:auto">' + new Date(q.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + (q.due ? " → " + esc(q.due) : "") + "</span></div>" + (q.text ? '<p style="margin:8px 0 0">' + esc(q.text) + "</p>" : "") + (q.links.length ? '<p class="note" dir="ltr" style="margin-top:6px">' + q.links.map(esc).join("<br>") + "</p>" : "") + "</section>"; }).join("") : '<p class="empty">' + t("noReq") + "</p>");
+}
+var brief = null, briefMsg = null;
+function vBrief(){
+  var b = brief || (brief = Object.assign({name: data.brand.name, nameAr: data.brand.nameAr}, data.brief || {}));
+  var sel = function(key, list){ return '<label class="f">' + t(key) + '<select data-b="' + ({bVoice:"voice", bDialect:"dialect", bLangs:"languages", bNums:"numerals"})[key] + '"><option value="">' + t("choose") + "</option>" + list.map(function(x){ return '<option value="' + x[0] + '"' + (b[({bVoice:"voice", bDialect:"dialect", bLangs:"languages", bNums:"numerals"})[key]] === x[0] ? " selected" : "") + ">" + t(x[1]) + "</option>"; }).join("") + "</select></label>"; };
+  var txt = function(key, field, area, ltr){ var v = b[field]; if (Array.isArray(v)) v = v.join(", "); return '<label class="f">' + t(key) + (area ? '<textarea data-b="' + field + '"' + (ltr ? ' dir="ltr"' : "") + ">" + esc(v || "") + "</textarea>" : '<input data-b="' + field + '"' + (ltr ? ' dir="ltr"' : "") + ' value="' + esc(v || "") + '">') + "</label>"; };
+  return '<section class="card"><h2>' + t("brief") + '</h2><p class="note">' + t("bIntro") + "</p>" + (data.brief && data.brief.appliedAt ? '<p><span class="tag good">' + t("bApplied") + "</span></p>" : "") +
+    '<div style="display:grid;gap:12px;margin-top:12px"><div class="grid2">' + txt("bName", "name") + txt("bNameAr", "nameAr") + "</div>" + txt("bAbout", "about", true) + txt("bAudience", "audience", true) +
+    '<div class="grid2">' + sel("bVoice", [["formal","v_formal"],["friendly","v_friendly"],["playful","v_playful"],["luxury","v_luxury"]]) + sel("bDialect", [["gulf","d_gulf"],["msa","d_msa"],["egyptian","d_egyptian"],["levantine","d_levantine"]]) + sel("bLangs", [["both","l_both"],["ar","l_ar"],["en","l_en"]]) + sel("bNums", [["arabic","n_arabic"],["western","n_western"]]) + "</div>" +
+    txt("bColours", "colours", false, true) + '<div class="grid2">' + txt("bUse", "useWords", true) + txt("bAvoid", "avoidWords", true) + "</div>" + txt("bClaims", "claims", true) + txt("bExamples", "examples", true) +
+    '<label class="f">' + t("bLogo") + '<input type="file" id="bf-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>' +
+    '<div class="row"><button type="button" class="btn primary" id="bf-save">' + t("bSave") + "</button>" + (briefMsg ? '<span class="' + (briefMsg.ok ? "ok" : "err") + '">' + esc(briefMsg.text) + "</span>" : "") + "</div></div></section>";
+}
+
+document.addEventListener("click", function(e){
+  var el;
+  if ((el = e.target.closest("[data-lang]"))) return setLang(el.dataset.lang);
+  if ((el = e.target.closest("[data-tab]"))){ tab = el.dataset.tab; return render(); }
+  if ((el = e.target.closest(".shot[data-img]"))){
+    var card = el.closest("[data-k]"), k = card.dataset.k, r = el.getBoundingClientRect();
+    var d = drafts[k] || (drafts[k] = {pins: [], text: ""});
+    d.pins.push({image: +el.dataset.img, x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, text: ""});
+    render(); var inp = document.querySelector('[data-pintext="' + k + "|" + (d.pins.length - 1) + '"]'); if (inp) inp.focus(); return;
+  }
+  if ((el = e.target.closest("[data-pindel]"))){ var pd = el.dataset.pindel.split("|"); drafts[pd[0]].pins.splice(+pd[1], 1); return render(); }
+  if ((el = e.target.closest("[data-act]"))){
+    var a = el.dataset.act.split("|"), key = a[1], parts = key.split(":"), dd = drafts[key] || {pins: [], text: ""};
+    dd.err = null; dd.ok = false;
+    send("/reviews/" + parts[0] + "/items/" + parts[1], "POST", {decision: a[0], comment: dd.text, pins: dd.pins, time: dd.time, name: name(), approver: approver()})
+      .then(function(){ drafts[key] = {pins: [], text: "", ok: true}; return load(); })
+      .catch(function(err){ dd.err = err.message; render(); });
+    return;
+  }
+  if (e.target.closest("#rq-send")){
+    var nm = document.getElementById("rq-name").value.trim(); try { localStorage.setItem("basira-portal-name", nm); } catch (x) {}
+    send("/requests", "POST", {kind: req.kind, text: req.text, links: req.links, due: req.due, name: nm})
+      .then(function(){ req = {kind: "season", text: "", links: "", due: "", msg: {ok: true, text: t("sent")}}; return load(); })
+      .catch(function(err){ req.msg = {ok: false, text: err.message}; render(); });
+    return;
+  }
+  if (e.target.closest("#bf-save")){
+    send("/brief", "PUT", brief).then(function(){ briefMsg = {ok: true, text: t("bSaved")}; return load(); }).catch(function(err){ briefMsg = {ok: false, text: err.message}; render(); });
+  }
+});
+document.addEventListener("input", function(e){
+  var el = e.target;
+  if(el.dataset.videoTime){var d=drafts[el.dataset.videoTime]||(drafts[el.dataset.videoTime]={pins:[],text:""});d.time=el.value===""?undefined:Number(el.value);}
+  if (el.dataset.text) (drafts[el.dataset.text] = drafts[el.dataset.text] || {pins: [], text: ""}).text = el.value;
+  if (el.dataset.pintext){ var p = el.dataset.pintext.split("|"); drafts[p[0]].pins[+p[1]].text = el.value; }
+  if (el.id === "rq-text") req.text = el.value; if (el.id === "rq-links") req.links = el.value; if (el.id === "rq-due") req.due = el.value;
+  if (el.dataset.b && brief) brief[el.dataset.b] = el.value;
+});
+document.addEventListener("change", function(e){
+  var el = e.target;
+  if (el.id === "rq-kind") req.kind = el.value;
+  if (el.id === "who"){ try { localStorage.setItem("basira-portal-approver", el.value); } catch (x) {} }
+  if (el.dataset.b && brief) brief[el.dataset.b] = el.value;
+  if (el.id === "lib-file" && el.files && el.files[0]){
+    var f = el.files[0], fr2 = new FileReader(); upMsg = {ok: true, text: t("uploading")}; render();
+    fr2.onload = function(){ send("/files", "POST", {name: f.name, data: fr2.result, by: name()}).then(function(){ upMsg = null; return load(); }).catch(function(err){ upMsg = {ok: false, text: err.message}; render(); }); };
+    fr2.readAsDataURL(f); return;
+  }
+  if (el.id === "bf-logo" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ brief.logo = fr.result; }; fr.readAsDataURL(el.files[0]); }
+});
+// Client room: only current, submitted versions are actionable.
+Object.assign(T,{batches:['Batches','الدفعات'],room_review:['Needs your decision','بانتظار قرارك'],room_approved:['Approved','معتمد'],room_changes:['Agency is making changes','الوكالة تجري تعديلات'],room_needs_data:['Information needed','معلومات مطلوبة'],room_in_progress:['Agency is preparing','الوكالة تجهز المحتوى'],room_unavailable:['Unavailable','غير متاح'],room_ready:['Ready to deliver','جاهز للتسليم'],room_select:['Select this product and these versions','تحديد هذا المنتج وهذه النسخ'],room_bulk:['Approve selected versions','اعتماد النسخ المحددة'],room_answer:['Send information','إرسال المعلومات'],room_compare:['Previous version','النسخة السابقة'],room_task:['Your request','طلبك'],room_reply:['Agency reply','رد الوكالة'],room_refresh:['Refresh','تحديث']});
+var roomBatch=null,roomProduct=null,roomFrame=null,roomSelections={},roomError='',roomBusy=false;
+var flatReviews=vReviews;
+function roomStatus(item){return t('room_'+item.status);}
+function roomMedia(frame){return frame.asset?mediaHTML(frame.asset.url):'';}
+vReviews=function(){
+  var batches=data.room&&data.room.batches||[];
+  if(!batches.length)return flatReviews();
+  var batch=batches.find(function(b){return b.id===roomBatch;})||batches[0];roomBatch=batch.id;
+  var product=batch.items.find(function(p){return p.projectId===roomProduct;})||batch.items.find(function(p){return p.status==='review'||p.status==='needs_data';})||batch.items[0];roomProduct=product&&product.projectId;
+  var head='<div class="room-head"><div><span class="lbl">'+t('batches')+'</span><select id="room-batch" aria-label="'+t('batches')+'">'+batches.map(function(b){return '<option value="'+b.id+'"'+(b.id===batch.id?' selected':'')+'>'+esc(b.name)+'</option>';}).join('')+'</select></div><button class="btn" id="room-refresh">'+t('room_refresh')+'</button></div>'+
+    '<div class="room-counts">'+['approved','review','changes','needs_data','in_progress'].map(function(k){return '<span>'+t('room_'+k)+': <b>'+batch.counts[k]+'</b></span>';}).join('')+'</div><div class="room-progress" role="progressbar" aria-valuenow="'+batch.counts.approved+'" aria-valuemin="0" aria-valuemax="'+batch.counts.total+'" aria-label="'+t('room_approved')+'"><i style="width:'+(batch.counts.total?100*batch.counts.approved/batch.counts.total:0)+'%"></i></div>'+
+    (roomError?'<p class="err" role="alert">'+esc(roomError)+'</p>':'')+'<div class="room-layout"><aside><div class="room-products">'+batch.items.map(function(p){var eligible=p.status==='review'&&p.frames.every(function(f){return ['pending','approved'].includes(f.status);});return '<div class="room-product"><button type="button" class="btn" data-room-product="'+p.projectId+'" aria-pressed="'+(p.projectId===roomProduct)+'"><b>'+esc(p.name)+'</b><small>'+esc(p.sku)+' · '+roomStatus(p)+'</small></button>'+(eligible?'<label class="room-check"><input type="checkbox" data-room-select="'+p.projectId+'"'+(roomSelections[p.projectId]?' checked':'')+'>'+t('room_select')+'</label>':'')+'</div>';}).join('')+'</div><button class="btn primary" id="room-approve"'+(roomBusy||!Object.keys(roomSelections).length?' disabled':'')+'>'+t('room_bulk')+' ('+Object.keys(roomSelections).length+')</button><button class="btn" id="room-download"'+(!batch.counts.approved||roomBusy?' disabled':'')+'>'+ (lang==='ar'?'تنزيل الجاهز':'Download ready')+' ('+batch.counts.approved+')</button></aside><section>';
+  if(!product)return head+'</section></div>';
+  var details='<div class="row" style="margin-bottom:12px"><h2>'+esc(product.name)+'</h2><span class="tag">'+roomStatus(product)+'</span><span class="note">'+product.frames.filter(function(f){return f.status==='approved';}).length+'/'+product.frames.length+' '+t('room_approved')+'</span></div>';
+  (product.tasks||[]).forEach(function(task){
+    if(task.kind==='data'){details+='<div class="card"><h2>'+t('room_needs_data')+'</h2><p dir="auto">'+esc(task.question)+'</p>'+(task.answer?'<p dir="auto">'+esc(task.answer)+'</p>':'<textarea data-room-answer="'+task.id+'" aria-label="'+t('room_needs_data')+'"></textarea><button class="btn primary" data-room-send-answer="'+task.id+'"'+(roomBusy?' disabled':'')+'>'+t('room_answer')+'</button>')+'</div>';}
+    else details+='<div class="card"><span class="lbl">'+t('room_task')+' · '+esc(task.language.toUpperCase())+'</span><p dir="auto">'+esc([task.original.text].concat((task.original.pins||[]).map(function(p){return p.text;})).filter(Boolean).join(' · '))+'</p><span class="tag">'+esc(task.status==='resolved'?t('room_approved'):task.status==='submitted'?t('room_review'):t('room_changes'))+'</span>'+(task.reply?'<p dir="auto"><b>'+t('room_reply')+':</b> '+esc(task.reply)+'</p>':'')+'</div>';
+  });
+  var frame=product.frames.find(function(f){return (f.revisionId||f.slotId+':'+f.language)===roomFrame;})||product.frames.find(function(f){return f.status==='pending';})||product.frames[0];roomFrame=frame&&(frame.revisionId||frame.slotId+':'+frame.language);
+  details+='<div class="room-film">'+product.frames.map(function(f){return '<button type="button" class="btn" data-room-frame="'+(f.revisionId||f.slotId+':'+f.language)+'" aria-pressed="'+(frame===f)+'">'+esc(f.name)+' · '+esc(f.language==='none'?(lang==='ar'?'مشترك':'Shared'):f.language.toUpperCase())+' · '+(f.status==='approved'?'✓':f.status==='pending'?t('room_review'):t('room_in_progress'))+'</button>';}).join('')+'</div>';
+  var saved=data.reviews;
+  data.reviews=saved.map(function(r){return Object.assign({},r,{items:r.items.filter(function(it){return frame&&frame.reviewId===r.id&&frame.revisionId===it.creator?.revisionId;})});}).filter(function(r){return r.items.length;});
+  // Keep original indices: old event handlers address review item positions.
+  data.reviews.forEach(function(r){r.items=r.items.map(function(it){return Object.assign({},it,{_roomIndex:saved.find(function(old){return old.id===r.id;}).items.findIndex(function(old){return old.key===it.key;})});});});
+  var originalFlat=flatReviews();
+  data.reviews=saved;
+  details+=originalFlat;
+  product.frames.filter(function(f){return f===frame&&!f.reviewId;}).forEach(function(f){details+='<div class="card"><b>'+esc(f.name)+' · '+esc(f.language.toUpperCase())+'</b><p class="note">'+t('room_in_progress')+'</p></div>';});
+  return head+details+'</section></div>';
+};
+document.addEventListener('change',function(e){var el=e.target;if(el.id==='room-batch'){roomBatch=el.value;roomProduct=null;roomFrame=null;roomSelections={};roomError='';render();}if(el.dataset.roomSelect){var batch=(data.room.batches||[]).find(function(b){return b.id===roomBatch;}),p=batch.items.find(function(p){return p.projectId===el.dataset.roomSelect;});if(el.checked)roomSelections[p.projectId]={projectId:p.projectId,revisionIds:p.frames.map(function(f){return f.revisionId;})};else delete roomSelections[p.projectId];render();}});
+document.addEventListener('click',function(e){var el=e.target.closest('[data-room-product]');if(el){roomProduct=el.dataset.roomProduct;roomFrame=null;return render();}var frame=e.target.closest('[data-room-frame]');if(frame){roomFrame=frame.dataset.roomFrame;return render();}if(e.target.closest('#room-refresh')){roomError='';return load();}
+  var answer=e.target.closest('[data-room-send-answer]');if(!answer&&!e.target.closest('#room-approve'))return;if(roomBusy)return;var body=answer?{action:'answer',batchId:roomBatch,taskId:answer.dataset.roomSendAnswer,answer:document.querySelector('[data-room-answer="'+answer.dataset.roomSendAnswer+'"]').value}:{action:'approve',batchId:roomBatch,selections:Object.values(roomSelections),approver:approver(),name:name()};
+  roomBusy=true;roomError='';render();send('/batches','POST',body).then(function(){roomSelections={};return load();}).catch(function(err){roomError=err.message;}).then(function(){roomBusy=false;render();});
+});
+
+document.addEventListener('click',function(e){if(!e.target.closest('#room-download')||roomBusy)return;var b=data.room.batches.find(function(b){return b.id===roomBatch;});roomBusy=true;roomError='';render();fetch('/api/c/'+token+'/batches',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'export',batchId:b.id,projectIds:b.items.filter(function(p){return p.ready;}).map(function(p){return p.projectId;})})}).then(function(r){if(!r.ok)return r.json().then(function(j){throw new Error(j.error);});return r.blob();}).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='approved-content.zip';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);}).catch(function(e){roomError=e.message;}).then(function(){roomBusy=false;render();});});
+
+function opText(en,ar){return lang==='ar'?ar:en;}
+var opChoices={},opNames={},opNotes={},opError='',opBusy=false;
+function opStatus(s){var labels={sent:['Awaiting your choice','بانتظار اختيارك'],accepted:['Scope approved','النطاق معتمد'],pending:['Awaiting your approval','بانتظار اعتمادك'],approved:['Direction approved','الاتجاه معتمد'],changes:['Changes requested','طُلب تعديل'],needs_refresh:['Agency is updating the sample','الوكالة تحدث النموذج']};return labels[s]?opText(labels[s][0],labels[s][1]):s;}
+function opMoney(v,c){return (v/100).toLocaleString(lang==='ar'?'ar-AE':'en-AE',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+c;}
+function opOperations(){var ops=data.operations||{},offers=ops.offers||[],directions=ops.directions||[];if(!offers.length&&!directions.length)return '';return '<div class="op-workspace">'+(opError?'<p class="err" role="alert">'+esc(opError)+'</p>':'')+directions.map(function(d){return '<section class="card op-direction"><span class="lbl">'+opText('Creative direction · before production','الاتجاه الإبداعي · قبل الإنتاج')+'</span><div class="row"><h2>'+esc(d.batchName)+'</h2><span class="tag">'+esc(opStatus(d.status))+'</span></div><p dir="auto">'+esc(d.note)+'</p><div class="op-samples">'+d.items.map(function(i){return '<div>'+mediaHTML(i.asset.url)+'<small>'+esc(i.name)+' · '+esc(i.language==='bilingual'?'EN + AR':i.language==='none'?opText('Shared','مشترك'):i.language.toUpperCase())+'</small></div>';}).join('')+'</div>'+(d.status==='pending'?'<label class="f">'+opText('Your name','اسمك')+'<input data-op-name="'+d.id+'" value="'+esc(opNames[d.id]||name())+'"></label><label class="f">'+opText('Feedback · required for changes','ملاحظات · مطلوبة للتعديل')+'<textarea data-op-note="'+d.id+'">'+esc(opNotes[d.id]||'')+'</textarea></label><div class="row"><button class="btn primary" data-op-direction="'+d.id+'" data-batch="'+d.batchId+'" data-decision="approve"'+(opBusy?' disabled':'')+'>'+opText('Approve this direction','اعتماد هذا الاتجاه')+'</button><button class="btn" data-op-direction="'+d.id+'" data-batch="'+d.batchId+'" data-decision="changes"'+(opBusy?' disabled':'')+'>'+opText('Request changes','طلب تعديلات')+'</button></div>':'<p class="note">'+opText(d.status==='needs_refresh'?'The source facts or sample changed. The agency must submit a current direction.':'This direction decision is saved for the batch.',d.status==='needs_refresh'?'تغيرت الحقائق أو النموذج. يجب أن ترسل الوكالة اتجاهاً محدثاً.':'حُفظ قرار الاتجاه لهذه الدفعة.')+'</p>')+'</section>';}).join('')+offers.map(function(o){var key=o.id+':'+o.version;if(!opChoices[key])opChoices[key]=Object.fromEntries(o.lines.map(function(l){return [l.id,true];}));var choices=opChoices[key],total=o.lines.filter(function(l){return choices[l.id];}).reduce(function(n,l){return n+l.price;},0);return '<section class="card op-offer"><span class="lbl">'+opText('Agency service proposal','عرض خدمات الوكالة')+'</span><div class="row"><h2>'+esc(o.title)+'</h2><span class="tag">'+esc(opStatus(o.status))+'</span></div><p class="note">'+opText('Choose the work you want the agency to prepare. Prices are agency service fees. Payment is handled separately.','اختر العمل المطلوب من الوكالة. الأسعار رسوم خدمات الوكالة، والدفع يتم بشكل منفصل.')+'</p><div class="op-lines">'+o.lines.map(function(l){return '<label><input type="checkbox" data-op-line="'+l.id+'" data-offer-key="'+key+'"'+((o.status==='accepted'?o.acceptance.lineIds.includes(l.id):choices[l.id])?' checked':'')+(o.status==='accepted'?' disabled':'')+'><span><b>'+esc(l.productName)+'</b><small>'+esc(lang==='ar'?l.titleAr:l.title)+'</small></span><strong>'+opMoney(l.price,o.currency)+'</strong></label>';}).join('')+'</div><p dir="auto">'+esc(o.notes||'')+'</p><p class="op-total">'+opText('Selected scope','النطاق المحدد')+': <b>'+opMoney(o.acceptance?.total??total,o.currency)+'</b></p>'+(o.status==='sent'?'<label class="f">'+opText('Your name','اسمك')+'<input data-op-name="'+o.id+'" value="'+esc(opNames[o.id]||name())+'"></label><label class="op-confirm"><input type="checkbox" data-op-confirm="'+o.id+'">'+opText('I reviewed the selected services, prices and proposal notes.','راجعت الخدمات المحددة والأسعار وملاحظات العرض.')+'</label><button class="btn primary" data-op-accept="'+o.id+'" data-version="'+o.version+'" disabled>'+opText('Approve selected scope','اعتماد النطاق المحدد')+'</button>':'<p class="note">✓ '+opText('Approved scope is saved. Your agency will prepare the work in a delivery batch.','حُفظ النطاق المعتمد. ستجهز الوكالة العمل في دفعة تسليم.')+'</p>')+'</section>';}).join('')+'</div>';}
+var opReviewsBase=vReviews;
+vReviews=function(){return opOperations()+opReviewsBase();};
+var opFlatBase=flatReviews;
+flatReviews=function(){var html=opFlatBase(),stale=new Set(data.operations?.staleRevisionIds||[]);if(!stale.size)return html;var t=document.createElement('template');t.innerHTML=html;t.content.querySelectorAll('[data-k]').forEach(function(section){var key=section.dataset.k.split(':'),review=data.reviews.find(function(r){return r.id===key[0];}),item=review?.items.find(function(it,i){return (it._roomIndex??i)===Number(key[1]);});if(item?.creator&&stale.has(item.creator.revisionId)){section.insertAdjacentHTML('afterbegin','<p class="err">'+opText('Product facts changed. This file is retained in history; wait for an updated version.','تغيرت حقائق المنتج. يبقى الملف في السجل؛ انتظر النسخة المحدثة.')+'</p>');section.querySelectorAll('[data-act]').forEach(function(b){b.disabled=true;});}});return t.innerHTML;};
+document.addEventListener('input',function(e){var el=e.target;if(el.dataset.opName)opNames[el.dataset.opName]=el.value;if(el.dataset.opNote)opNotes[el.dataset.opNote]=el.value;});
+document.addEventListener('change',function(e){var el=e.target;if(el.dataset.opLine){opChoices[el.dataset.offerKey][el.dataset.opLine]=el.checked;render();}if(el.dataset.opConfirm){var b=document.querySelector('[data-op-accept="'+el.dataset.opConfirm+'"]');if(b)b.disabled=!el.checked||opBusy;}});
+document.addEventListener('click',function(e){var el=e.target.closest('[data-op-accept],[data-op-direction]');if(!el||opBusy)return;var body;if(el.dataset.opAccept){var o=data.operations.offers.find(function(o){return o.id===el.dataset.opAccept;}),key=o.id+':'+o.version;body={action:'offer_accept',offerId:o.id,version:o.version,lineIds:o.lines.filter(function(l){return opChoices[key][l.id];}).map(function(l){return l.id;}),name:opNames[o.id]||name(),confirm:true};}else body={action:'direction_decide',batchId:el.dataset.batch,directionId:el.dataset.opDirection,decision:el.dataset.decision,name:opNames[el.dataset.opDirection]||name(),comment:opNotes[el.dataset.opDirection]||''};opBusy=true;opError='';render();send('/agency','POST',body).then(load).catch(function(e){opError=e.message;}).finally(function(){opBusy=false;render();});});
+// Make a bound field explicit in the existing question card.
+var opRoomReviews=vReviews;
+vReviews=function(){var t=document.createElement('template');t.innerHTML=opRoomReviews();(data.room?.batches||[]).forEach(function(b){b.items.forEach(function(p){if(p.projectId===roomProduct&&p.frames.some(function(f){return f.factStale;}))t.content.querySelector('.room-layout>section')?.insertAdjacentHTML('afterbegin','<p class="op-field">'+opText('The agency is updating versions affected by changed product data. Previous approvals remain in history.','تحدث الوكالة النسخ المتأثرة بتغيير بيانات المنتج. تبقى الاعتمادات السابقة في السجل.')+'</p>');p.tasks.filter(function(t){return t.kind==='data'&&t.field;}).forEach(function(task){var input=t.content.querySelector('[data-room-answer="'+task.id+'"]');if(input){input.insertAdjacentHTML('beforebegin','<p class="op-field"><b>'+esc(task.field.label)+'</b> · '+esc(task.field.unit||'')+'<br><small>'+opText(task.field.type==='json'?'Supply complete JSON rows using your actual product data. Ask your agency if you need help.':task.field.type==='lines'?'Enter one confirmed item or step per line. The agency reviews your answer.':'Enter the actual value in this unit. The agency checks it before updating product data.',task.field.type==='json'?'أدخل صفوف JSON كاملة ببيانات منتجك الفعلية. اطلب مساعدة الوكالة عند الحاجة.':task.field.type==='lines'?'أدخل عنصراً أو خطوة مؤكدة في كل سطر. تراجع الوكالة إجابتك.':'أدخل القيمة الفعلية بهذه الوحدة. تراجعها الوكالة قبل تحديث بيانات المنتج.')+'</small></p>');if(task.field.type==='number')input.setAttribute('inputmode','decimal');}});});});return t.innerHTML;};
+
+var opLibraryBase=vLibrary;
+vLibrary=function(){var html=opLibraryBase(),old=data.operations?.archivedLibrary||[];if(!old.length)return html;return html+'<details class="card"><summary>'+opText('Historical files · outdated product facts','ملفات سابقة · حقائق منتج قديمة')+' ('+old.length+')</summary><p class="note">'+opText('Kept for history. These files are excluded from current approved delivery.','محفوظة للسجل، ومستبعدة من التسليم المعتمد الحالي.')+'</p>'+old.map(function(x){return '<p><b>'+esc(x.name)+'</b></p>';}).join('')+'</details>';};
+
+setLang(lang); load();
+})();
+</script>
+</body>
+</html>

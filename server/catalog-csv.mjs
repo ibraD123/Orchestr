@@ -31,6 +31,8 @@ const norm = (h) => String(h || "").toLowerCase().replace(/[()[\]]/g, " ").repla
 
 // Column names seen in marketplace exports, normalised.
 const COLUMNS = {
+  channel: ["channel", "marketplace"],
+  attributes: ["attributes_json"],
   sku: ["sku", "partner_sku", "seller_sku", "psku", "item_sku", "asin", "product_id", "id", "رمز_المنتج"],
   titleEn: ["title_en", "name_en", "product_title_en", "product_name_en", "title_english", "item_name", "product_name", "title", "name", "product_title"],
   titleAr: ["title_ar", "name_ar", "product_title_ar", "product_name_ar", "title_arabic", "item_name_ar", "اسم_المنتج", "العنوان", "الاسم"],
@@ -82,7 +84,7 @@ export function listingsFromCSV(text, { channel = "noon", category, limit = 500 
     const sku = cell(r, m.sku) || `row-${n + 2}`;
     return {
       ref: sku, sku, name: titleEn || titleAr, image: images[0] ? images[0].src : null,
-      listing: { channel, category: cat, titleEn, titleAr, bulletsEn, bulletsAr, images, attributes: null, sizeChart: cell(r, m.sizeChart) ? true : undefined }
+      listing: { channel: ["noon", "amazon", "salla", "zid"].includes(cell(r,m.channel)) ? cell(r,m.channel) : channel, category: cat, titleEn, titleAr, bulletsEn, bulletsAr, images, attributes: (() => { try { const a=JSON.parse(cell(r,m.attributes)||"{}"); return a && typeof a === "object" && !Array.isArray(a) ? a : {}; } catch { return {}; } })(), sizeChart: cell(r, m.sizeChart) ? true : undefined }
     };
   }).filter((it) => it.listing.titleEn || it.listing.titleAr);
   return { items, columns: m, error: null, truncated: rows.length - 1 > limit };

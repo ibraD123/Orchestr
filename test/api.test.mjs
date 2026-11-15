@@ -102,7 +102,7 @@ test("export renders slides, hosts them and packs upload files into a ZIP", { ti
   assert.equal((await api("GET", "/assets/layali/../../account.json")).status, 404);
   const pub = await api("POST", "/api/publish/amazon", { ws: "layali", batch: r.body.batch, marketplace: "amazon.sa" });
   assert.equal(pub.status, 503);
-  assert.match(pub.body.error, /SPAPI_SELLER_ID/);
+  assert.match(pub.body.error, /Connect this client's Amazon seller account/);
   const a = await api("GET", "/api/account");
   assert.ok(a.body.renders >= 1);
 });
@@ -149,4 +149,21 @@ test("AI drafting stops at the plan limit; approvals keep working", async () => 
   assert.equal(c.status, 402);
   const g = await api("POST", "/api/imagegen/onmodel", { image: PX });
   assert.equal(g.status, 402);
+});
+test("Creator reserves generation credits, refunds unavailable output, and refuses duplicate operation IDs",async()=>{
+ const project=await api('POST','/api/creator/project',{ws:'layali',action:'create',image:`data:image/png;base64,${PX.split(',')[1]}`,input:{name:'Budget fixture',slots:[{kind:'main',languages:['none']}]}});
+ assert.equal(project.status,200);
+ const body={ws:'layali',projectId:project.body.id,slotId:project.body.slots[0].id,language:'none',prompt:'Product on white',operationId:'budget-integration-request'};
+ const before=(await api('GET','/api/account')).body.credits;
+ const generated=await api('POST','/api/creator/edit',body);assert.equal(generated.status,503);
+ const after=(await api('GET','/api/account')).body.credits;assert.equal(after.left,before.left);assert.equal(after.held,0);assert.equal(after.attempted,before.attempted+4);
+ assert.equal((await api('POST','/api/creator/edit',body)).status,409);
+});
+
+
+test("owned JPEG reference files are served with their real extension and content type",async()=>{
+ const {createStore}=await import('../server/store.mjs'),store=createStore(dir),bytes=Buffer.from([255,216,255,224,0,2,255,217]);
+ await store.saveAsset('layali','jpeg-test01','reference.jpeg',bytes);
+ const r=await api('GET','/assets/local/layali/jpeg-test01/reference.jpeg');assert.equal(r.status,200);assert.equal(r.type,'image/jpeg');assert.deepEqual(r.body,bytes);
+ assert.equal((await api('GET','/assets/otheraccount/layali/jpeg-test01/reference.jpeg')).status,404);
 });

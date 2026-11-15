@@ -38,7 +38,7 @@ function finish(source, items, warnings = []) {
   return { source, count: items.length, averageScore: avg, items, warnings };
 }
 
-export async function importLink(raw, { limit = 60, measure = true } = {}) {
+export async function importLink(raw, { limit = 60, measure = true, amazon } = {}) {
   const link = parseLink(raw);
   if (!link) throw new ConnectorError("That doesn't look like a link");
   const warnings = [];
@@ -46,8 +46,8 @@ export async function importLink(raw, { limit = 60, measure = true } = {}) {
   const source = { platform: link.platform, kind: link.kind, url: link.url.href };
 
   if (link.platform === "amazon") {
-    if (link.kind === "product") items = [await amazonProduct(link.asin, link.marketplace)];
-    else if (link.kind === "store") items = await amazonStore(link.sellerId, link.marketplace, { limit });
+    if (link.kind === "product") items = [await amazonProduct(link.asin, link.marketplace, amazon)];
+    else if (link.kind === "store") items = await amazonStore(link.sellerId, link.marketplace, { limit }, amazon);
     else throw new ConnectorError("Paste an Amazon product link (with /dp/) or your storefront link (with ?me=).");
     source.marketplace = link.marketplace.country;
   } else if (link.platform === "noon") {
@@ -77,9 +77,9 @@ export async function importCsv(text, { channel = "noon", category, measure = fa
   return finish({ platform: channel, kind: "file" }, r.items, warnings);
 }
 
-export function connectorStatus() {
+export function connectorStatus(amazon) {
   return {
-    amazon: { connected: amazonConfigured(), products: true, store: Boolean(process.env.SPAPI_SELLER_ID) },
+    amazon: { connected: amazonConfigured(amazon), products: true, store: Boolean(amazon && amazon.sellerId) },
     noon: { connected: true, products: true, store: false, note: "Store catalogs come from a Seller Lab export" },
     salla: { connected: true, products: true, store: false },
     zid: { connected: true, products: true, store: false },

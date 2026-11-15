@@ -4,6 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Readex+Pro:wght@300..700&family=Reem+Kufi:wght@500..700&family=Amiri:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+/*@CREATOR_STYLES@*/
 /* Layout: app shell with a quiet sidebar and one working canvas; same oasis palette as the site,
    state carried by chips and score bars so problems read at a glance. */
 :root{
@@ -529,6 +530,7 @@ button.avatar{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:13p
 .cr-catrow small{display:block}
 .mini-thumb{width:40px;height:40px;border-radius:8px;overflow:hidden;display:grid;place-items:center;background:var(--surface-2)}
 .mini-thumb img,.mini-thumb svg{width:100%;height:100%;object-fit:cover}
+/*@WORKSPACE_DESIGN@*/
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -817,7 +819,7 @@ var ICONS = {
 function navHTML(mobile){
   var pend = wsQueue().filter(function(q){ return q.status === "pending"; }).length;
   var base = state.route === "listing" ? "catalog" : ["studio","templates","photos","reviews"].indexOf(state.route) > -1 || (state.route === "creator") ? "creator" : state.route;
-  return ["overview","brand","audit","catalog","batch","creator","approvals","results","settings"].map(function(k){
+  return ["overview","brand","audit","catalog","batch","creator","approvals","settings"].map(function(k){
     var href = k;
     var cur = base === k ? ' aria-current="page"' : "";
     if (mobile) return '<a href="#'+href+'"'+cur+'>'+t(k)+(k === "approvals" && pend ? " · "+pend : "")+'</a>';
@@ -913,7 +915,7 @@ function vListing(){
     '<div style="display:grid;gap:18px">'+
       '<div class="card"><div class="card-h"><h2>'+t("gallery")+'</h2><small>'+(p.fixed ? 4 : p.imgs)+' / 7</small></div><div class="gallery">'+slots.join("")+'</div></div>'+
       '<div class="card"><div class="card-h"><h2>'+t("issuesT")+'</h2><small>'+(is.length + bra.issues.length)+'</small></div>'+
-        (is.length || bra.issues.length ? is.map(function(k, n){ var x = ISSUES[k] || {sev:"med", slide:1, t:[k,k], d:["",""]}; var dt = details && details[n] && details[n].key === k ? details[n] : null; return '<div class="issue" style="--c:'+sevC(dt ? dt.sev : x.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b>'+provenTag(k, p)+'<p>'+esc(dt ? issueDetail(dt) : tr(x.d))+'</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(x.sev)+'<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'" data-slide="'+x.slide+'">'+t("fixInStudio")+'</a></div></div>'; }).join("")+brandIssueRows(bra, p.id) : '<p class="empty">'+t("noIssues")+'</p>')+
+        (is.length || bra.issues.length ? is.map(function(k, n){ var x = ISSUES[k] || {sev:"med", slide:1, t:[k,k], d:["",""]}; var dt = details && details[n] && details[n].key === k ? details[n] : null; return '<div class="issue" style="--c:'+sevC(dt ? dt.sev : x.sev)+'"><span class="sev"></span><div><b>'+tr(x.t)+'</b>'+provenTag(k, p)+'<p>'+esc(dt ? issueDetail(dt) : tr(x.d))+'</p></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+sevTag(x.sev)+'<a class="btn btn-ghost btn-sm" href="#studio-'+p.id+'" data-slide="'+x.slide+'" data-issue="'+esc(k)+'">'+t("fixInStudio")+'</a></div></div>'; }).join("")+brandIssueRows(bra, p.id) : '<p class="empty">'+t("noIssues")+'</p>')+
       '</div>'+
     '</div>'+
     '<div style="display:grid;gap:18px">'+
@@ -1007,7 +1009,11 @@ function vAudit(){
 }
 function analyseCard(){
   var r = state.rev, ok = state.api && state.api.ai, res = r.result;
+  var syncKey=state.ws+"|"+state.pid;
+  state.sallaReviewSeen=state.sallaReviewSeen || {};
+  if (state.api && state.pid && state.sallaConnection && state.sallaConnection.connected && !state.sallaReviewSeen[syncKey]){ state.sallaReviewSeen[syncKey]=true; Promise.resolve().then(function(){ fetchSallaReviewData(true); }); }
   return '<div class="card" style="display:grid;gap:12px"><div class="card-h" style="margin:0"><h2>'+t("analyse")+'</h2>'+(state.api && state.api.model ? '<small class="mono">'+esc(state.api.model)+'</small>' : "")+'</div><p class="note">'+t("analyseSub")+'</p>'+
+    '<div class="exp-row"><input id="salla-product" inputmode="numeric" placeholder="Salla product ID" aria-label="Salla product ID"><button type="button" class="btn btn-ghost" id="salla-reviews">'+(state.lang === "ar" ? 'جلب تقييمات سلة' : 'Fetch Salla reviews')+'</button></div>'+
     '<div class="field"><textarea id="rev-in" rows="6" dir="auto" aria-label="'+t("analyse")+'">'+esc(r.text)+'</textarea></div>'+
     '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-primary" id="rev-go"'+(ok && !r.busy ? "" : " disabled")+'>'+(r.busy ? t("analysing") : t("analyseBtn"))+'</button>'+(ok ? "" : '<span class="note">'+t("needsServer")+'</span>')+'</div>'+
     (r.error ? '<p class="err">'+esc(r.error)+'</p>' : "")+
@@ -1035,12 +1041,35 @@ function runReply(key){
     .then(function(){ if (state.route === "reviews") render(); });
 }
 function runAnalyse(){
-  var r = state.rev, reviews = r.text.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+  var r = state.rev, ws=state.ws, pid=state.pid, reviews = r.text.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
   r.busy = true; r.error = null; render();
   fetch("/api/reviews/analyze", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({product: PM[state.pid] ? tr(PM[state.pid].name) : "", reviews: reviews})})
     .then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
-    .then(function(j){ r.result = j; }).catch(function(e){ r.error = e.message; })
-    .then(function(){ r.busy = false; if (state.route === "reviews") render(); });
+    .then(function(j){
+      if (state.ws!==ws || state.pid!==pid) return;
+      r.result = j;
+      var p=PM[pid], map={size_fit:"size",fabric_material:"fabric",colour_accuracy:"colour",longevity:"longevity",scent_strength:"scent",taste:"taste",freshness:"freshness",packaging:"packaging",delivery:"delivery"};
+      if (p){
+        p.rev=j.total;
+        p.themes=j.themes.filter(function(x){return map[x.aspect] && (x.negative || x.mixed || x.positive);}).map(function(x){var neg=x.negative || x.mixed; return [map[x.aspect], Math.round(100*(neg ? x.negativeShare : x.positive/j.total)), !neg];});
+        var dialects={gulf:"gulf",egyptian:"egy",levantine:"lev",msa:"msa",english:"eng"};
+        p.quotes=(j.reviews || []).map(function(x){var a=(x.aspects || []).find(function(z){return map[z.aspect];}); return a && dialects[x.dialect] && reviews[x.index] ? [reviews[x.index],dialects[x.dialect],map[a.aspect]] : null;}).filter(Boolean).slice(0,20);
+      }
+    }).catch(function(e){ if (state.ws===ws && state.pid===pid) r.error = e.message; })
+    .then(function(){ r.busy = false; if (state.route === "reviews" || state.route === "creator") render(); });
+}
+function fetchSallaReviewData(automatic){
+  var field=document.getElementById("salla-product"), productId=field ? field.value.trim() : "", ws=state.ws, pid=state.pid;
+  if (automatic) productId="";
+  state.rev.busy=true; state.rev.error=null;
+  post("/api/reviews/salla", {ws:ws,productKey:pid,productId:productId}).then(function(j){
+    if (state.ws !== ws || state.pid !== pid) return;
+    if (j.unmapped){ state.rev.busy=false; if (!automatic) state.rev.error="Enter the Salla product ID"; render(); return; }
+    state.rev.text=j.reviews.map(function(r){ return r.text.replace(/[\r\n]+/g," "); }).join("\n");
+    state.rev.result=null; state.rev.busy=false;
+    if (j.reviews.length && !automatic && state.api && state.api.ai) runAnalyse();
+    else { if (!j.reviews.length) state.rev.error="No product reviews found"; render(); }
+  }).catch(function(err){ if (state.ws===ws && state.pid===pid){ state.rev.busy=false; state.rev.error=err.message; render(); } });
 }
 
 /* studio: slide sets built from templates */
@@ -1286,10 +1315,11 @@ function runImport(){
   var url = (state.imp.url || "").trim();
   if (!url || !state.api) return;
   state.imp = {busy:true, url:url}; render();
-  fetch("/api/import", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({url:url})})
+  var importWs=state.ws;
+  fetch("/api/import", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({url:url, ws:importWs})})
     .then(function(res){ return res.json().then(function(j){ if (!res.ok) throw new Error(j.error || res.status); return j; }); })
-    .then(function(j){ importDone(j, (j.source && j.source.platform) || ""); })
-    .catch(function(e){ state.imp = {busy:false, error:e.message, url:url}; render(); });
+    .then(function(j){ importDone(j, (j.source && j.source.platform) || "", importWs); })
+    .catch(function(e){ if(state.ws===importWs){state.imp = {busy:false, error:e.message, url:url}; render();} });
 }
 function importCard(){
   var im = state.imp, server = !!state.api, c = state.connectors;
@@ -1360,7 +1390,7 @@ function loadFromServer(){
       BD.workspaces = list; BD.genomes = gs; BD.events = evs; BD.serverVer = ver;
       if (!list.some(function(w){ return w.id === state.ws; })) state.ws = list[0].id;
       if (!PM[state.pid] || PM[state.pid].ws !== state.ws) state.pid = (WP()[0] || {}).id || null;
-      persist(); render();
+      return loadSavedCatalogs(list).then(function(){persist();route();refreshConnections();});
     });
   }).catch(function(){}).then(function(){ shell.classList.remove("booting"); });
 }
@@ -1423,6 +1453,8 @@ function wsSelect(){ if (isBrand() && BD.workspaces.length < 2) return ""; retur
 function switchWs(id){
   if (!BD.genomes[id] && !wsInfo(id)) return;
   state.ws = id; state.wsMenu = false; state.src = "all"; state.slide = 1;
+  state.rev.text = ""; state.rev.result = null; state.rev.error = null;
+  state.amzConnection = null; state.sallaConnection = null; if (state.api){ state.api.amazonPublish = false; state.api.amazonSearch = false; refreshConnections(); }
   state.pid = (WP()[0] || {}).id || null;
   persist();
   if (state.route === "listing" || state.route === "studio") go("overview"); else render();
@@ -1723,7 +1755,7 @@ Object.assign(S, {
   approveOnly:["Approve","وافق"], approvedReady:["Approved · ready to export","تمت الموافقة · جاهز للتصدير"], toExport:["Export","صدّر"], approvedToast:["Approved. Export it from Bulk fixes.","تمت الموافقة. صدّره من التعديلات بالجملة."],
   selectAll:["Select all shown","حدد الكل"], clearSel:["Clear","إلغاء"], nSelected:["{n} selected","{n} محدد"], prepare:["Prepare fixes","جهّز التعديلات"], selectRow:["Select","تحديد"],
   batchSub:["Brand rules are applied to every selected product. Review, approve, then export the upload files.","تُطبَّق قواعد العلامة على كل منتج محدد. راجع ووافق ثم صدّر ملفات الرفع."],
-  batchEmpty:["Select products in the Catalog, then choose Prepare fixes.","حدد منتجات في الكتالوج ثم اختر «جهّز التعديلات»."], toCatalog:["Go to Catalog","اذهب إلى الكتالوج"],
+  batchEmpty:["Select products in Catalog to review or create content.","حدد منتجات في الكتالوج لفحصها أو إنشاء المحتوى."], toCatalog:["Go to Catalog","اذهب إلى الكتالوج"],
   allCatalog:["Prepare all {n} products","جهّز كل المنتجات ({n})"],
   byRules:["Brand rules","قواعد العلامة"], byAi:["AI draft + rules","مسودة ذكاء + قواعد"],
   aiAll:["Draft copy with AI for all","اكتب النصوص بالذكاء للكل"], aiAllBusy:["Drafting {d} of {n}…","جارٍ الكتابة {d} من {n}…"], aiNeedsKey:["AI drafts need FAL_KEY (or ANTHROPIC_API_KEY) on the server. Brand rules work without it.","مسودات الذكاء تحتاج مفتاح FAL_KEY (أو ANTHROPIC_API_KEY) على الخادم. قواعد العلامة تعمل بدونه."],
@@ -1738,7 +1770,7 @@ Object.assign(S, {
   notHosted:["Image links in the file are empty: marketplaces fetch images by link, so set PUBLIC_URL to the server's https address, or upload the images from images/.","روابط الصور فارغة: المتاجر تجلب الصور برابط، فاضبط PUBLIC_URL على عنوان https للخادم أو ارفع الصور من مجلد images."],
   hostedOk:["Images are hosted and their links are in the upload file.","الصور مستضافة وروابطها في ملف الرفع."],
   approveFirst:["Approve products to export them.","وافق على المنتجات لتصديرها."],
-  publishAmazon:["Publish to Amazon","انشر على أمازون"], publishing2:["Publishing…","جارٍ النشر…"], amazonNeeds:["Direct publishing needs a connected Amazon seller account (SP-API keys and SPAPI_SELLER_ID).","النشر المباشر يحتاج ربط حساب بائع أمازون (مفاتيح SP-API و SPAPI_SELLER_ID)."],
+  publishAmazon:["Publish to Amazon","انشر على أمازون"], publishing2:["Publishing…","جارٍ النشر…"], amazonNeeds:["Connect this client’s Amazon seller account in Settings.","اربط حساب بائع أمازون الخاص بهذا العميل في الإعدادات."],
   exportFirst:["Export first: Amazon gets the same approved copy and hosted images.","صدّر أولاً: تصل أمازون النصوص المعتمدة نفسها والصور المستضافة."],
   pub_ACCEPTED:["Accepted by Amazon","قبلته أمازون"], pub_INVALID:["Rejected","مرفوض"], pub_NOT_FOUND:["SKU not found","SKU غير موجود"], pub_ERROR:["Error","خطأ"], pub_SKIPPED:["Nothing to change","لا تغيير"],
   pubNote:["Amazon processes accepted changes within about 15 minutes. Check the listing afterwards.","تعالج أمازون التغييرات المقبولة خلال ١٥ دقيقة تقريباً. راجع المنتج بعدها."],
@@ -1823,8 +1855,8 @@ function approvedThisMonth(){
 /* ---------- catalog selection → bulk fixes ---------- */
 function selIds(){ return Object.keys(state.sel).filter(function(id){ return state.sel[id] && PM[id] && PM[id].ws === state.ws; }); }
 function selBar(){
-  var n = selIds().length;
-  return '<div class="selbar">'+(n ? '<b>'+tf("nSelected", {n:n})+'</b><button type="button" class="btn btn-ghost btn-sm" id="x-sel-clear">'+t("clearSel")+'</button><button type="button" class="btn btn-primary btn-sm" id="x-sel-go">'+t("prepare")+' '+arrow()+'</button>' : '<button type="button" class="btn btn-ghost btn-sm" id="x-sel-shown">'+t("selectAll")+'</button>')+'</div>';
+ var ids=selIds(),real=ids.filter(function(id){return PM[id]?.imported;}),n=ids.length;
+ return '<div class="selbar catalog-selection">'+(n?'<b>'+tf("nSelected",{n:n})+'</b><button type="button" class="btn btn-ghost btn-sm" id="x-sel-clear">'+t("clearSel")+'</button><div class="catalog-primary-actions"><button type="button" class="btn btn-ghost btn-sm" data-catalog-review'+(!real.length?' disabled':'')+'>'+cwt('Review selected products','فحص المنتجات المحددة')+'</button><button type="button" class="btn btn-primary btn-sm" data-catalog-create'+(!real.length?' disabled':'')+'>'+cwt('Create content for selected','إنشاء محتوى للمحدد')+' '+arrow()+'</button></div>': '<button type="button" class="btn btn-ghost btn-sm" id="x-sel-shown">'+t("selectAll")+'</button>')+'</div>';
 }
 function bCtx(p){ return {channel:p.ch[0], category:catOf(p), lang:"ar"}; }
 function bItem(pid){ return state.batch.items.filter(function(x){ return x.pid === pid; })[0]; }
@@ -2110,6 +2142,11 @@ function vSettings(){
     '</div>';
   }).join("");
   return '<div class="head"><div><h1>'+t("settings")+'</h1><p>'+tm("setSub")+'</p></div></div>'+
+    '<div class="card"><div class="card-h"><h2>Amazon · '+esc(tr([wsInfo().name,wsInfo().nameAr || wsInfo().name]))+'</h2></div>'+
+      '<p class="note">'+(state.lang === "ar" ? 'اربط حساب البائع الخاص بهذا العميل.' : 'Connect this client’s own seller account.')+'</p>'+
+      (state.amzConnection && state.amzConnection.connected ? '<p>'+esc(state.amzConnection.sellerId)+' · '+esc(state.amzConnection.marketplace)+'</p><button class="btn btn-ghost" id="amazon-disconnect">'+(state.lang === "ar" ? 'فصل الحساب' : 'Disconnect')+'</button>' :
+      '<div class="exp-row"><select class="sel" id="amazon-market"><option value="amazon.ae">Amazon.ae</option><option value="amazon.sa">Amazon.sa</option><option value="amazon.eg">Amazon.eg</option></select><button class="btn btn-primary" id="amazon-connect">'+(state.lang === "ar" ? 'ربط أمازون' : 'Connect Amazon')+'</button></div>')+'</div>'+
+    '<div class="card"><div class="card-h"><h2>Salla reviews</h2></div><p class="note">'+(state.lang === "ar" ? 'أدخل رمز وصول حساب سلة بصلاحية قراءة التقييمات لهذا العميل.' : 'Enter this client’s Salla access token with reviews.read permission. Reconnect when it expires.')+'</p><div class="exp-row"><input id="salla-token" type="password" autocomplete="off" placeholder="Salla access token"><button class="btn btn-primary" id="salla-connect">'+(state.lang === "ar" ? 'ربط سلة' : 'Connect Salla')+'</button><button class="btn btn-ghost" id="salla-disconnect">'+(state.lang === "ar" ? 'فصل الحساب' : 'Disconnect')+'</button></div></div>'+
     '<div class="card"><div class="card-h"><h2>'+t("planT")+'</h2><small>'+(a.local ? t("usageLocal") : "")+'</small></div>'+
       '<p>'+t("currentPlan")+': <b>'+esc(tr(a.planName))+'</b>'+(a.paidUntil ? ' · <span class="note">'+tf("paidUntil", {d:shortDate(a.paidUntil)})+'</span>' : "")+'</p>'+
       (a.expired ? '<p class="err">'+t("expiredNote")+'</p>' : "")+
@@ -2228,7 +2265,7 @@ document.addEventListener("click", function(e){
   var el;
   if ((el = e.target.closest("#x-sel-clear"))){ state.sel = {}; render(); return; }
   if ((el = e.target.closest("#x-sel-shown"))){ state.shown.forEach(function(id){ state.sel[id] = true; }); render(); return; }
-  if ((el = e.target.closest("#x-sel-go"))){ prepareBatch(selIds()); state.sel = {}; go("batch"); return; }
+
   if ((el = e.target.closest("#x-b-all"))){ prepareBatch(WP().map(function(p){ return p.id; })); render(); return; }
   if ((el = e.target.closest("#x-b-ai"))){ runAiAll(); return; }
   if ((el = e.target.closest("#x-b-approve"))){ bItems().filter(function(x){ return x.status === "draft" && !x.busy; }).forEach(approveItem); render(); toast(t("approvedToast")); return; }
@@ -2426,6 +2463,7 @@ function useAccount(me){
   if (!c || c.acct !== me.account.id){
     try { localStorage.removeItem(STORE_KEY); localStorage.removeItem("basira-agency"); } catch(e){}
     state.agency = null; state.sets = {};
+    P.filter(function(p){return p.imported;}).forEach(function(p){delete PM[p.id];}); P=P.filter(function(p){return !p.imported;});
   }
 }
 function signedIn(me){
@@ -2435,7 +2473,16 @@ function signedIn(me){
 }
 function startServer(){
   render(); loadFromServer(); refreshAccount(); billingReturn();
-  fetch("/api/connectors").then(function(r){ return r.ok ? r.json() : null; }).then(function(c){ if (c){ state.connectors = c; if (state.route === "catalog") render(); } }).catch(function(){});
+  refreshConnections();
+}
+function refreshConnections(){
+  var ws = state.ws; if (!ws) return;
+  Promise.all([apiJson("/api/connectors?ws="+encodeURIComponent(ws)), apiJson("/api/amazon/connection?ws="+encodeURIComponent(ws)), apiJson("/api/salla/connection?ws="+encodeURIComponent(ws))]).then(function(values){
+    if (state.ws !== ws) return;
+    state.connectors=values[0]; state.amzConnection=values[1]; state.sallaConnection=values[2];
+    if (state.api){ state.api.amazonPublish=values[1].connected; state.api.amazonSearch=values[1].connected; }
+    render();
+  }).catch(function(){});
 }
 function signOut(){
   state.meMenu = false;
@@ -2644,7 +2691,7 @@ function teachFromResults(){
 /* Brand DNA screen: what moved conversion */
 function perfCard(g){
   var pf = performanceOf(g), head = '<div class="card"><div class="card-h"><h2>'+t("perfT")+'</h2></div>';
-  if (!pf.templates.length && !pf.fixes.length) return head+'<p class="note">'+t("perfEmpty")+' <a href="#results">'+t("results")+'</a></p></div>';
+  if (!pf.templates.length && !pf.fixes.length) return head+'<p class="note">'+t("perfEmpty")+'</p></div>';
   var row = function(name, x){ return '<div class="perf-r"><span>'+esc(name)+'</span><span class="tag '+(x.verdict === "works" ? "good" : x.verdict === "hurts" ? "bad" : "")+'">'+t("pv_"+x.verdict)+'</span><span class="mono">'+fmtPts(x.avgPts)+'</span><span class="note">'+tf("perfN", {w:x.wins, n:x.n})+'</span></div>'; };
   return head+
     (pf.templates.length ? '<div class="dimh">'+t("perfTpl")+'</div>'+pf.templates.slice(0, 8).map(function(x){ var tp = templateById(x.id); return row(tp ? tr(tp.name) : x.id, x); }).join("") : "")+
@@ -2689,7 +2736,7 @@ Object.assign(S, {
   crModelT:["Brand model","عارضة العلامة"], crModelSub:["One person across the whole catalog. Every on-model photo and every slide with a person uses this face.","شخص واحد في كل الكتالوج. كل صورة على عارضة وكل شريحة فيها شخص تستخدم هذا الوجه."],
   crModelUpload:["Upload a photo of the model","ارفع صورة العارضة"], crModelRemove:["Remove","إزالة"], crModelNone:["No brand model yet. Upload a photo, or pick one of the generated on-model photos.","لا عارضة بعد. ارفع صورة أو اختر إحدى الصور المُنشأة."], crModelSet:["Brand model saved","حُفظت عارضة العلامة"],
   crMakeModel:["Make brand model","اجعلها عارضة العلامة"],
-  crVideo:["Gallery video","فيديو المعرض"], crVideoSub:["A short video animated from one approved image: no text added, no audio, so it meets Noon's video rules. Frames from the start, middle and end are checked like slides before you see it.","فيديو قصير متحرك من صورة معتمدة واحدة: بلا نص مضاف وبلا صوت، فيوافق قواعد فيديو نون. تُفحص لقطات من البداية والوسط والنهاية مثل الشرائح قبل أن تراه."],
+  crVideo:["Gallery video","فيديو المعرض"], crVideoSub:["A short video animated from one approved image, with no added text or audio. Check the target placement rules before uploading. Frames from the start, middle and end are checked like slides before you see it.","فيديو قصير متحرك من صورة معتمدة واحدة، بلا نص مضاف أو صوت. راجع قواعد موضع النشر قبل الرفع. تُفحص لقطات من البداية والوسط والنهاية مثل الشرائح قبل أن تراه."],
   crVideoSrc:["Animate","حرّك"], crVideoPhoto:["Product photo","صورة المنتج"], crVideoSlide:["First generated slide","أول شريحة منشأة"], crVideoSecs:["Length","المدة"],
   crVideoGo:["Make the video","أنشئ الفيديو"], crVideoBusy:["Making the video… about 1–3 minutes","جارٍ إنشاء الفيديو… نحو 1–3 دقائق"], crVideoNeeds:["Videos need FAL_KEY and the renderer on the server.","الفيديو يحتاج FAL_KEY ومحرك العرض على الخادم."],
   crVideoOk:["Checked: no added text, product unchanged","تم الفحص: بلا نص مضاف والمنتج لم يتغير"], crVideoFailed:["Both tries failed the check, so the video isn't shown:","فشلت المحاولتان في الفحص، لذلك لم يُعرض الفيديو:"],
@@ -2699,7 +2746,7 @@ Object.assign(S, {
   why_risk:["may be rejected as Noon's main image","قد تُرفض كصورة رئيسية على نون"], crShowing:["Showing: {v}","المعروض: {v}"], crCardNeeds:["The search card preview needs the server's renderer.","معاينة بطاقة البحث تحتاج محرك العرض على الخادم."], crAiPeople:["AI people · labelled","أشخاص بالذكاء الاصطناعي · موسومة"]
 });
 ICONS.creator = '<path d="M12 3l1.8 3.9L18 8.5l-3.1 2.9.8 4.3L12 13.6l-3.7 2.1.8-4.3L6 8.5l4.2-1.6z"/><path d="M5 20h14"/>';
-Object.assign(state, {cr:{tab:"card", channel:"noon", region:"saudi-ar", query:{}, search:{}, searching:false, error:null, links:"", gallery:{}, galBusy:false, plan:{}, grid:{}, gridBusy:false, season:"ramadan", sel:{}, progress:null}});
+Object.assign(state, {cr:{tab:"card", channel:"noon", region:"uae-ar", query:{}, search:{}, searching:false, error:null, links:"", gallery:{}, galBusy:false, plan:{}, grid:{}, gridBusy:false, season:"ramadan", sel:{}, progress:null}});
 try { state.crBackups = JSON.parse(localStorage.getItem("basira-season-backups") || "{}") || {}; } catch(e){ state.crBackups = {}; }
 function saveBackups(){ try { localStorage.setItem("basira-season-backups", JSON.stringify(state.crBackups)); } catch(e){} }
 function brandModel(){ var id = genome().identity || {}; return id.model || null; }
@@ -2755,7 +2802,7 @@ function crCompetitors(p){
   var links = cr.links.split(/\s+/).filter(function(x){ return /^https?:\/\//.test(x); }).length;
   return '<div class="card"><div class="card-h"><h2>'+t("crComp")+'</h2></div><p class="note" style="margin-bottom:12px">'+t("crCompSub")+'</p>'+
     '<div class="cr-row">'+
-      '<div class="seg" role="group">'+[["noon","Noon"],["amazon","Amazon.sa"]].map(function(x){ return '<button type="button" data-crch="'+x[0]+'" aria-pressed="'+(cr.channel === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div>'+
+      '<div class="seg" role="group">'+[["noon","Noon"],["amazon","Amazon.ae"]].map(function(x){ return '<button type="button" data-crch="'+x[0]+'" aria-pressed="'+(cr.channel === x[0])+'">'+x[1]+'</button>'; }).join("")+'</div>'+
       (cr.channel === "amazon" ? '<input id="cr-q" class="cr-q" aria-label="'+t("crQuery")+'" placeholder="'+t("crQuery")+'" value="'+esc(q)+'">'+
       '<button type="button" class="btn btn-ghost" id="cr-find"'+(server && amz && !cr.searching ? "" : " disabled")+'>'+t(cr.searching ? "crFinding" : "crFind")+'</button>' : "")+
     '</div>'+
@@ -2866,7 +2913,7 @@ function crSearch(p){
   var cr = state.cr, el = document.getElementById("cr-q"), q = el ? el.value.trim() : "";
   cr.query[p.id] = q; if (!q) return;
   cr.searching = true; cr.error = null; render();
-  post("/api/creator/search", {channel: cr.channel, query: q, region: cr.region, host: "amazon.sa", limit: 12})
+  post("/api/creator/search", {ws:state.ws, channel: cr.channel, query: q, region: cr.region, host: "amazon.ae", limit: 12})
     .then(function(r){ r.items.forEach(function(x, i){ x.on = i < 6; }); cr.search[p.id] = r; cr.grid[p.id] = null; })
     .catch(function(e){ cr.error = e.message; })
     .then(function(){ cr.searching = false; render(); });
@@ -2983,7 +3030,7 @@ function setBrandModel(url){
 document.addEventListener("click", function(e){
   var el, p = PM[state.pid];
   if ((el = e.target.closest("[data-crtab]"))){ state.cr.tab = el.dataset.crtab; render(); return; }
-  if ((el = e.target.closest("[data-crch]"))){ state.cr.channel = el.dataset.crch; state.cr.region = el.dataset.crch === "noon" ? "saudi-ar" : state.cr.region; render(); return; }
+  if ((el = e.target.closest("[data-crch]"))){ state.cr.channel = el.dataset.crch; state.cr.region = el.dataset.crch === "noon" ? "uae-ar" : state.cr.region; render(); return; }
   if (e.target.closest("#x-noon-pub")){ runNoonPublish(); return; }
   if (e.target.closest("#x-noon-st")){ runNoonStatus(); return; }
   if ((el = e.target.closest("[data-crvsrc]")) && p){ var vv = (state.cr.video = state.cr.video || {})[p.id] = (state.cr.video[p.id] || {}); vv.src = el.dataset.crvsrc; render(); return; }
@@ -3225,9 +3272,9 @@ document.addEventListener("click", function(e){
 function route(){
   var h = (location.hash || "#overview").slice(1), m;
   if ((m = h.match(/^listing-(\w+)$/)) && PM[m[1]]){ state.route = "listing"; state.pid = m[1]; }
-  else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "studio"; state.pid = m[1]; }
-  else if (h === "templates" || h === "photos" || h === "reviews"){ state.cr.tab = h; state.route = "creator"; }
-  else if (["overview","audit","catalog","approvals","creator","brand","batch","results","settings"].indexOf(h) > -1) state.route = h;
+  else if ((m = h.match(/^studio-(\w+)$/)) && PM[m[1]]){ if (state.pid !== m[1]) state.slide = 1; state.route = "creator"; state.pid = m[1]; if(typeof proLegacyRoute==="function")proLegacyRoute(m[1]); }
+  else if (h === "templates" || h === "photos" || h === "reviews"){ state.cr.tab = h; state.route = "creator"; if (typeof cw !== "undefined") cw.tab = h === "photos" ? "models" : h; }
+  else if (["overview","audit","catalog","approvals","creator","brand","batch","settings"].indexOf(h) > -1) state.route = h;
   else state.route = "overview";
   render(true);
 }
@@ -3272,6 +3319,11 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("#ws-btn"))){ state.wsMenu = !state.wsMenu; renderSide(); return; }
   if ((el = e.target.closest("[data-ws]"))){ switchWs(el.dataset.ws); return; }
   if ((el = e.target.closest("#ws-create"))){ createWs(); return; }
+  if (e.target.closest("#amazon-connect")){ var am=document.getElementById("amazon-market"); post("/api/amazon/oauth/start", {ws:state.ws, marketplace:am.value}).then(function(j){ location.href=j.url; }).catch(function(err){ toast(err.message); }); return; }
+  if (e.target.closest("#amazon-disconnect")){ post("/api/amazon/disconnect", {ws:state.ws}).then(function(){ refreshConnections(); }).catch(function(err){ toast(err.message); }); return; }
+  if (e.target.closest("#salla-connect")){ var st=document.getElementById("salla-token"); post("/api/salla/connect", {ws:state.ws, accessToken:st.value}).then(function(){ st.value=""; state.sallaReviewSeen={}; refreshConnections(); toast("Salla connected"); }).catch(function(err){ toast(err.message); }); return; }
+  if (e.target.closest("#salla-disconnect")){ post("/api/salla/disconnect", {ws:state.ws}).then(function(){ refreshConnections(); toast("Salla disconnected"); }).catch(function(err){ toast(err.message); }); return; }
+  if (e.target.closest("#salla-reviews")){ fetchSallaReviewData(false); return; }
   if ((el = e.target.closest("[data-bd-status]"))){ var bs = el.dataset.bdStatus.split("|"); setStatus(genome(), bs[0], bs[1]); commit(); render(); return; }
   if ((el = e.target.closest("[data-bd-why]"))){ state.bd.why = state.bd.why === el.dataset.bdWhy ? null : el.dataset.bdWhy; render(); return; }
   if ((el = e.target.closest("[data-pal-del]"))){ var gp = genome(); gp.identity.palette.splice(+el.dataset.palDel, 1); touch(gp, "palette"); commit(); render(); return; }
@@ -3454,7 +3506,7 @@ function approve(id){
   var ex0 = b0 ? Object.assign({}, templateById(b0.tpl).sample, b0.fields) : {};
   it.learned = learnedNote(recordAll([{type:"approve", product:p0.id, edits: it.edits || 0, label: set0.length+" "+t("slidesN"), issues: (p0.issues || []).slice(), templates: set0.map(function(x){ return x.tpl; }), content: b0 ? slideContent(p0, b0) : null, exemplar: {template: b0 && b0.tpl, headAr: ex0.headAr, headEn: ex0.headEn}, ctx:{channel:p0.ch[0], category:catOf(p0), lang:"ar", template: b0 && b0.tpl}}]));
   // Approval marks the fix ready; nothing reaches a marketplace until it is exported or published from Bulk fixes.
-  it.status = "approved"; p0.fixed = true; p0.score = p0.target; p0.imgs = Math.max(p0.imgs, set0.length);
+  it.status = "approved"; p0.fixed = true; p0.imgs = Math.max(p0.imgs, set0.length);
   render(); toast(t("approvedToast"));
 }
 
@@ -3466,6 +3518,7 @@ function setLang(l){
   render();
 }
 
+/*@CREATOR_WORKSPACE@*/
 addEventListener("hashchange", route);
 if (/^https?:$/.test(location.protocol)){
   // Hidden until we know whether this is the server and who is signed in, so no sample data flashes first.

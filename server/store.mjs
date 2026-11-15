@@ -3,6 +3,7 @@
 // when several instances run.
 import { mkdir, readFile, writeFile, appendFile, rename, rm, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 import { sampleData } from "./brand-seed.mjs";
 import { newGenome } from "./brand-dna.mjs";
 
@@ -27,13 +28,14 @@ export function createStore(dir, { seed = true } = {}) {
   }
   async function writeJson(file, data) {
     await mkdir(join(file, ".."), { recursive: true });
-    const tmp = file + "." + process.pid + "." + Date.now() + ".tmp";
+    const tmp = file + "." + process.pid + "." + randomBytes(8).toString("hex") + ".tmp";
     await writeFile(tmp, JSON.stringify(data));
     await rename(tmp, file);
   }
 
   /** First run: write the two sample client workspaces so the demo has a brand that has already learned something. */
-  async function ensureSeeded() {
+  let seedInFlight;
+  async function seedOnce() {
     const list = await readJson(wsFile, null);
     if (list) return list;
     if (!seed) { await writeJson(wsFile, []); return []; }
@@ -44,6 +46,10 @@ export function createStore(dir, { seed = true } = {}) {
     }
     await writeJson(wsFile, d.workspaces);
     return d.workspaces;
+  }
+  function ensureSeeded() {
+    if (!seedInFlight) seedInFlight = seedOnce().finally(() => { seedInFlight = null; });
+    return seedInFlight;
   }
 
   const assetPath = (id, batch, rel) => {
@@ -56,9 +62,51 @@ export function createStore(dir, { seed = true } = {}) {
   // Account writes go one at a time so two requests can't lose each other's usage counts.
   const accountFile = join(dir, "account.json");
   let accountQueue = Promise.resolve();
+  const creatorQueues = new Map();
+  function creatorUpdate(key, file, initial, fn) {
+    const run = (creatorQueues.get(key) || Promise.resolve()).then(async () => {
+      const data = await readJson(file, initial());
+      const out = await fn(data);
+      await writeJson(file, data);
+      return out === undefined ? data : out;
+    });
+    creatorQueues.set(key, run.catch(() => null));
+    return run;
+  }
 
   return {
     async listWorkspaces() { return ensureSeeded(); },
+    async getCatalog(id) {
+      await this.getGenome(id);
+      return readJson(join(wsDir(id), "catalog.json"), { version: 0, products: [] });
+    },
+    async updateCatalog(id, fn) {
+      await this.getGenome(id);
+      return creatorUpdate("catalog:" + id, join(wsDir(id), "catalog.json"), () => ({ version: 0, products: [] }), fn);
+    },
+
+    async getProduction(id) {
+      await this.getGenome(id);
+      return readJson(join(wsDir(id), "production.json"), { jobs: [] });
+    },
+    async updateProduction(id, fn) {
+      await this.getGenome(id);
+      return creatorUpdate("production:" + id, join(wsDir(id), "production.json"), () => ({ jobs: [] }), fn);
+    },
+    async getCreator(id) {
+      await this.getGenome(id);
+      return readJson(join(wsDir(id), "creator.json"), { schemaVersion: 1, projects: [], models: [] });
+    },
+    async updateCreator(id, fn) {
+      await this.getGenome(id);
+      return creatorUpdate(id, join(wsDir(id), "creator.json"), () => ({ schemaVersion: 1, projects: [], models: [] }), fn);
+    },
+    async getCreatorTemplates() {
+      return readJson(join(dir, "creator-templates.json"), { schemaVersion: 1, templates: [] });
+    },
+    updateCreatorTemplates(fn) {
+      return creatorUpdate("templates", join(dir, "creator-templates.json"), () => ({ schemaVersion: 1, templates: [] }), fn);
+    },
 
     async updateWorkspace(id, patch) {
       const list = await ensureSeeded();
@@ -83,7 +131,7 @@ export function createStore(dir, { seed = true } = {}) {
           assets.push({ batch: b, createdAt: m && m.createdAt, channel: m && m.channel, products: m ? m.items.length : null });
         }
       } catch (e) { if (e.code !== "ENOENT") throw e; }
-      return { exportedAt: new Date().toISOString(), workspace: ws, genome: await this.getGenome(id), events: await this.listEvents(id, { limit: 1e9 }), portal: await this.getPortal(id), assets };
+      return { exportedAt: new Date().toISOString(), workspace: ws, genome: await this.getGenome(id), events: await this.listEvents(id, { limit: 1e9 }), portal: await this.getPortal(id), creator: await this.getCreator(id), catalog: await this.getCatalog(id), production: await this.getProduction(id), assets };
     },
 
     /** Delete a client and everything stored for it (PDPL right of erasure). */
@@ -91,6 +139,8 @@ export function createStore(dir, { seed = true } = {}) {
       const list = await ensureSeeded();
       const i = list.findIndex((w) => w.id === id);
       if (i < 0) throw new StoreError("Unknown workspace", 404);
+      const production = await this.getProduction(id);
+      if (production.jobs.some(j => ["queued", "running"].includes(j.status))) throw new StoreError("Cancel active production and wait for it to finish before deleting this client", 409);
       await rm(wsDir(id), { recursive: true, force: true });
       list.splice(i, 1);
       await writeJson(wsFile, list);
@@ -144,6 +194,23 @@ export function createStore(dir, { seed = true } = {}) {
       const g = await readJson(join(wsDir(id), "genome.json"), null);
       if (!g) throw new StoreError("Unknown workspace", 404);
       return g;
+    },
+
+    // Marketplace secrets are encrypted before reaching this store and are never exported.
+    async getMarketplaceSecret(id, provider) {
+      await this.getGenome(id);
+      if (!/^(amazon|salla)$/.test(provider)) throw new StoreError("Unknown provider");
+      return readJson(join(wsDir(id), `integration-${provider}.json`), null);
+    },
+    async putMarketplaceSecret(id, provider, encrypted) {
+      await this.getGenome(id);
+      if (!/^(amazon|salla)$/.test(provider)) throw new StoreError("Unknown provider");
+      await writeJson(join(wsDir(id), `integration-${provider}.json`), encrypted);
+    },
+    async deleteMarketplaceSecret(id, provider) {
+      await this.getGenome(id);
+      if (!/^(amazon|salla)$/.test(provider)) throw new StoreError("Unknown provider");
+      await rm(join(wsDir(id), `integration-${provider}.json`), { force: true });
     },
 
     /** Save a genome. baseVersion must match the stored one, so a stale tab can't overwrite newer learning. */

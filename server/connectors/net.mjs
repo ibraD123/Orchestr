@@ -38,7 +38,7 @@ export async function assertPublicUrl(raw) {
  * Fetch a public URL. Redirects are followed manually so every hop is checked.
  * @returns {Promise<{ status:number, url:string, headers:Headers, body:Buffer }>}
  */
-export async function safeFetch(raw, { maxBytes = 3_000_000, timeoutMs = 12_000, headers = {}, method = "GET", body, allowStatus = [] } = {}) {
+export async function safeFetch(raw, { maxBytes = 3_000_000, timeoutMs = 12_000, headers = {}, method = "GET", body, allowStatus = [], forbidRedirect = false } = {}) {
   let url = await assertPublicUrl(raw);
   for (let hop = 0; hop < 5; hop++) {
     const ctrl = new AbortController();
@@ -55,6 +55,7 @@ export async function safeFetch(raw, { maxBytes = 3_000_000, timeoutMs = 12_000,
     }
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       clearTimeout(timer);
+      if (forbidRedirect) throw new ConnectorError("Unexpected redirect from marketplace API", 502);
       url = await assertPublicUrl(new URL(res.headers.get("location"), url).href);
       continue;
     }

@@ -5,10 +5,10 @@
 // the invoice status before switching the plan. Needs MOYASAR_SECRET_KEY.
 
 export const PLANS = {
-  trial:      { name: ["Free trial", "تجربة مجانية"], priceSar: 0, fixes: 20, clients: 1 },
-  seller:     { name: ["Seller", "بائع"], priceSar: 399, fixes: 50, clients: 2 },
-  agency:     { name: ["Agency", "وكالة"], priceSar: 1490, fixes: 400, clients: 10 },
-  enterprise: { name: ["Enterprise", "المؤسسات"], priceSar: null, fixes: null, clients: null }
+  trial:      { name: ["Free trial", "تجربة مجانية"], priceSar: 0, fixes: 20, clients: 1, credits: 40 },
+  seller:     { name: ["Seller", "بائع"], priceSar: 399, fixes: 50, clients: 2, credits: 600 },
+  agency:     { name: ["Agency", "وكالة"], priceSar: 1490, fixes: 400, clients: 10, credits: 6000 },
+  enterprise: { name: ["Enterprise", "المؤسسات"], priceSar: null, fixes: null, clients: null, credits: 30000 }
 };
 export const VAT_SA = 0.15;
 

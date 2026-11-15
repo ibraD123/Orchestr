@@ -1,6 +1,8 @@
+import { homePhotoAuditRoutes } from "./home-photo-audit.mjs";
+import { agencyOperationsRoutes, agencyClientView, agencyClientAction } from "./agency-operations.mjs";
 // Basira HTTP server: serves the site and app, plus the JSON/PNG API.
 import { createServer } from "node:http";
-import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, appendFile, mkdir, readdir } from "node:fs/promises";
 import { randomBytes, createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
@@ -32,6 +34,18 @@ import { templateById } from "./templates.mjs";
 import { amazonPublish, amazonConfig, amazonConfigured, amazonListingStatus } from "./connectors/amazon.mjs";
 import { AMAZON_MARKETPLACES } from "./connectors/link.mjs";
 import { noonConfigured, noonPublish, noonContent } from "./connectors/noon.mjs";
+import { loadCredentials, sealCredentials } from "./marketplace-credentials.mjs";
+import { startAmazonOAuth, continueAmazonOAuth, finishAmazonOAuth } from "./amazon-oauth.mjs";
+import { fetchSallaReviews } from "./connectors/salla-reviews.mjs";
+import { creatorRoutes } from "./creator-api.mjs";
+import { catalogAuditRoutes } from "./catalog-audit.mjs";
+import { catalogRoutes } from "./catalog-workflow.mjs";
+import { collaborationRoutes, collaborationRoom, clientBatchAction, exportBatch, takeComment } from "./collaboration.mjs";
+import { createCreatorProjectStore } from "./creator-projects.mjs";
+import { studioRoutes } from "./studio-flow.mjs";
+import { creditStatus, runGeneration } from "./generation-budget.mjs";
+import { createProduction } from "./production.mjs";
+import { createBatch } from "./collaboration.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Keys from a local .env file (not committed), only when this file is the program being run, so
@@ -42,7 +56,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);
 const MAX_BODY = 30 * 1024 * 1024;
-const STATIC = { "/": "index.html", "/index.html": "index.html", "/app": "app.html", "/app.html": "app.html" };
+const STATIC = { "/": "index.html", "/index.html": "index.html", "/app": "app.html", "/app.html": "app.html", "/assets/home/model-example.webp":"src/assets/home/model-example.webp", "/assets/content-sets.png": "src/assets/content-sets.png", "/assets/content-set-frames.png": "src/assets/content-set-frames.png", "/assets/models/gulf-woman.webp": "src/assets/models/gulf-woman.webp", "/assets/models/gulf-man.webp": "src/assets/models/gulf-man.webp", "/assets/models/levant-woman.webp": "src/assets/models/levant-woman.webp", "/assets/models/north-africa-man.webp": "src/assets/models/north-africa-man.webp", "/assets/models/south-asia-woman.webp": "src/assets/models/south-asia-woman.webp", "/assets/models/curvy-woman.webp": "src/assets/models/curvy-woman.webp" };
 const TYPES = { ".html": "text/html; charset=utf-8", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".pdf": "application/pdf", ".zip": "application/zip" };
 
 const fail = (message, status = 400) => { throw new StoreError(message, status); };
@@ -94,6 +108,14 @@ const COOKIE = "basira_session";
 function readCookie(req) {
   const m = new RegExp("(?:^|;\\s*)" + COOKIE + "=([^;]+)").exec(req.headers.cookie || "");
   return m ? decodeURIComponent(m[1]) : null;
+}
+function namedCookie(req, name) {
+  const m = new RegExp("(?:^|;\\s*)" + name + "=([^;]+)").exec(req.headers.cookie || "");
+  return m ? decodeURIComponent(m[1]) : "";
+}
+async function amazonFor(ctx, ws) {
+  const connected = await loadCredentials(ctx, String(ws || ""), "amazon");
+  return connected ? { ...amazonConfig(), ...connected } : {};
 }
 function sessionCookie(req, token) {
   const secure = origin(req).startsWith("https://") ? "; Secure" : "";
@@ -204,9 +226,9 @@ async function guardPlan(store) {
 }
 
 function accountView(a, ctx) {
-  const plans = Object.entries(PLANS).map(([id, p]) => ({ id, name: p.name, priceSar: p.priceSar, fixes: p.fixes, clients: p.clients, amountWithVat: invoiceAmount(id) }));
+  const plans = Object.entries(PLANS).map(([id, p]) => ({ id, name: p.name, priceSar: p.priceSar, fixes: p.fixes, clients: p.clients, credits: p.credits, amountWithVat: invoiceAmount(id) }));
   return {
-    ...usageStatus(a), billing: billingConfigured(), plans, agency: a.agency || null, invoices: (a.invoices || []).slice(-10).reverse(),
+    ...usageStatus(a), credits: creditStatus(a), billing: billingConfigured(), plans, agency: a.agency || null, invoices: (a.invoices || []).slice(-10).reverse(),
     type: ctx.account.type, accountName: ctx.account.name, role: ctx.user ? ctx.user.role : "owner", auth: AUTH
   };
 }
@@ -301,10 +323,11 @@ async function buildExport(body, ctx) {
   };
 }
 
-async function publishAmazon(body, { store }) {
+async function publishAmazon(body, ctx) {
+  const { store } = ctx;
   const mk = AMAZON_MARKETPLACES[String(body.marketplace || "amazon.sa").replace(/^www\./, "")] || fail("marketplace must be amazon.sa, amazon.ae or amazon.eg");
-  const c = amazonConfig();
-  if (!amazonConfigured(c) || !c.sellerId) fail("Publishing to Amazon needs a connected seller account (SPAPI_CLIENT_ID, SPAPI_CLIENT_SECRET, SPAPI_REFRESH_TOKEN and SPAPI_SELLER_ID).", 503);
+  const c = await amazonFor(ctx, body.ws);
+  if (!amazonConfigured(c) || !c.sellerId) fail("Connect this client's Amazon seller account in Settings before publishing.", 503);
   let items, imagesIncluded = false;
   if (body.batch) {
     const m = await store.getManifest(String(body.ws || ""), String(body.batch));
@@ -380,11 +403,28 @@ const paramRoutes = [
   ["GET", /^\/api\/c\/([A-Za-z0-9_-]{20,40})$/, async (m) => {
     const { store, ws } = await portalContext(m[1]);
     const a = await store.getAccount(newAccount);
-    return clientView(await store.getPortal(ws.id), { brand: { name: ws.name, nameAr: ws.nameAr || "" }, agency: { name: (a.agency && a.agency.name) || "", colour: (a.agency && a.agency.colour) || null, logo: (a.agency && a.agency.logo) || null } });
+    const room = await collaborationRoom(store, ws.id, { client: true });
+    const view=clientView(await store.getPortal(ws.id), { brand: { name: ws.name, nameAr: ws.nameAr || "" }, agency: { name: (a.agency && a.agency.name) || "", colour: (a.agency && a.agency.colour) || null, logo: (a.agency && a.agency.logo) || null } });
+    const operations=await agencyClientView(store,ws.id),stale=new Set(operations.staleRevisionIds);operations.archivedLibrary=view.library.filter(it=>it.creator&&stale.has(it.creator.revisionId));view.library=view.library.filter(it=>!it.creator||!stale.has(it.creator.revisionId));
+    return {...view,room,operations};
+  }, true],
+  ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/agency$/, async(m,body)=>{const {store,ws}=await portalContext(m[1]);return agencyClientAction(store,ws.id,body);},true],
+  ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/batches$/, async (m, body) => {
+    const { store, ws, key } = await portalContext(m[1]);
+    if (body.action === "export") return exportBatch({ store, key }, { ...body, ws: ws.id }, (b, ctx) => routes["POST /api/creator/release/export"](b, ctx));
+    return clientBatchAction(store, ws.id, body);
   }, true],
   ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/reviews\/([a-z0-9]+)\/items\/(\d+)$/, async (m, body) => {
-    const { store, ws } = await portalContext(m[1]);
-    return store.updatePortal(ws.id, (p) => decide(p, m[2], m[3], body));
+    const { store, ws, key } = await portalContext(m[1]);
+    const item = (await store.getPortal(ws.id)).reviews.find((r) => r.id === m[2])?.items[Number(m[3])];
+    if (item?.creator) {
+      const project = await createCreatorProjectStore(store).getProject(ws.id, item.creator.projectId);
+      if(project.slots.find(s=>s.id===item.creator.slotId)?.revisions.find(r=>r.id===item.creator.revisionId)?.factStale)fail("Product facts changed. Wait for an updated version from the agency.",409);
+      if (project.slots.find((s) => s.id === item.creator.slotId)?.selected[item.creator.language] !== item.creator.revisionId) fail("This version has been replaced. Refresh to review the current version.", 409);
+    }
+    const result = await store.updatePortal(ws.id, (p) => decide(p, m[2], m[3], body));
+    if (result.creator && body.decision === "changes" && result.comments.length) await takeComment({ store, key }, { ws: ws.id, projectId: result.creator.projectId, revisionId: result.creator.revisionId, reviewId: m[2], commentId: result.comments.at(-1).id });
+    return result;
   }, true],
   ["POST", /^\/api\/c\/([A-Za-z0-9_-]{20,40})\/requests$/, async (m, body) => {
     const { store, ws } = await portalContext(m[1]);
@@ -454,7 +494,7 @@ const paramRoutes = [
   ["PUT", /^\/api\/portal\/([a-z0-9-]+)\/settings$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { p.settings = normaliseSettings(body || {}, p.settings); return p.settings; })],
   ["POST", /^\/api\/portal\/([a-z0-9-]+)\/brief\/applied$/, async (m, body, { store }) => store.updatePortal(m[1], (p) => { if (p.brief) p.brief.appliedAt = new Date().toISOString(); return { ok: true }; })],
   // Hosted export files: images marketplaces fetch by link, and the ZIP. Public on purpose: account and batch ids are long and random.
-  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|webp|mp4|pdf|zip))$/, async (m) => {
+  ["GET", /^\/assets\/([a-z0-9-]+)\/([a-z0-9-]+)\/([a-z0-9-]{8,64})\/((?:images\/[A-Za-z0-9._-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.(?:png|jpg|jpeg|webp|mp4|pdf|zip))$/, async (m) => {
     const known = AUTH ? await auth.accountExists(m[1]) : m[1] === "local";
     if (!known) fail("Not found", 404);
     const ext = extname(m[4]);
@@ -465,17 +505,34 @@ const paramRoutes = [
 // Routes anyone can call; everything else needs a signed-in user when accounts are on.
 const PUBLIC = new Set(["GET /api/health", "POST /api/leads", "POST /api/auth/signup", "POST /api/auth/login", "POST /api/auth/logout", "GET /api/auth/me", "GET /api/auth/invite", "POST /api/auth/join"]);
 
+const creatorRaw = creatorRoutes({guardPlan:async()=>{},meter});
+const creatorBudgeted = {...creatorRaw};
+for(const path of ["POST /api/creator/edit","POST /api/creator/models"]){
+  creatorBudgeted[path]=async(body,ctx)=>{
+    if(path.endsWith("models")&&!['create','tryon','runway'].includes(body.action))return creatorRaw[path](body,ctx);
+    const kind=path.endsWith("edit")?'image':({create:'model',tryon:'tryon',runway:'video'})[body.action];
+    return runGeneration(ctx,kind,body,input=>creatorRaw[path](input,ctx));
+  };
+}
+const production = createProduction({edit:creatorRaw["POST /api/creator/edit"],createBatch,enabled:()=>imageGenConfigured()&&aiConfigured()});
 const routes = {
+  ...homePhotoAuditRoutes({guardPlan,meter}),
+  ...agencyOperationsRoutes(),
+  ...studioRoutes({ createProject: (body, ctx) => routes["POST /api/creator/project"](body, ctx) }),
+  ...collaborationRoutes({ exportRelease: (body, ctx) => routes["POST /api/creator/release/export"](body, ctx) }),
+  ...catalogAuditRoutes({ createProject: (body, ctx) => routes["POST /api/creator/project"](body, ctx), guardPlan, meter }),
+  ...catalogRoutes({ exportRelease: (body, ctx) => routes["POST /api/creator/release/export"](body, ctx) }),
+  ...creatorBudgeted,
+  ...production.routes,
   "GET /api/workspaces": async (body, { store }) => store.listWorkspaces(),
   "POST /api/workspaces": async (body, { store }) => store.createWorkspace(body),
   "POST /api/brand/analyze": async (body, { store }) => { await guardPlan(store); const r = await analyseBrand(body); await meter(store, "ai"); return r; },
   "POST /api/copy": async (body, { store }) => { await guardPlan(store); const r = await writeCopy(body); await meter(store, "ai"); return r; },
   "GET /api/health": async () => {
-    const c = amazonConfig();
     return {
       ok: true, render: await rendererAvailable(), ai: aiConfigured(), model: llmModelName(), llm: llmProvider(),
       imageGen: imageGenConfigured(), imageProvider: imageGenConfigured() ? imageProvider() : null, imageProviders: imageProviders().map((p) => p.name), slideGen: slideGenConfigured(),
-      videoGen: videoGenConfigured(), billing: billingConfigured(), amazonPublish: amazonConfigured(c) && Boolean(c.sellerId), noonPublish: noonConfigured(), amazonSearch: amazonConfigured(c),
+      videoGen: videoGenConfigured(), billing: billingConfigured(), amazonPublish: false, noonPublish: noonConfigured(), amazonSearch: false,
       publicUrl: Boolean(process.env.PUBLIC_URL), auth: AUTH
     };
   },
@@ -487,6 +544,41 @@ const routes = {
   },
   "POST /api/reviews/analyze": async (body, { store }) => { const r = await analyseReviews(body); if (aiConfigured()) await meter(store, "ai"); return r; },
   "POST /api/reviews/reply": async (body, { store }) => { const r = await draftReply(body); await meter(store, "ai"); return r; },
+  "POST /api/salla/connect": async (body, ctx) => {
+    const ws = String(body.ws || ""), token = String(body.accessToken || "").trim();
+    if (!token || token.length > 4096 || /[\r\n]/.test(token)) fail("Enter a Salla access token");
+    const prev = await loadCredentials(ctx, ws, "salla");
+    await ctx.store.putMarketplaceSecret(ws, "salla", sealCredentials({ accessToken: token, products: prev?.products || {} }, ctx.key, ws, "salla"));
+    return { connected: true };
+  },
+  "GET /api/salla/connection": async (body, ctx) => ({ connected: Boolean(await loadCredentials(ctx, String(ctx.url.searchParams.get("ws") || ""), "salla")) }),
+  "POST /api/salla/disconnect": async (body, ctx) => { await ctx.store.deleteMarketplaceSecret(String(body.ws || ""), "salla"); return { disconnected: true }; },
+  "POST /api/reviews/salla": async (body, ctx) => {
+    const ws = String(body.ws || ""), c = await loadCredentials(ctx, ws, "salla");
+    if (!c) fail("Connect Salla for this client first", 503);
+    const productKey = String(body.productKey || "");
+    if (!/^[A-Za-z0-9_-]{1,100}$/.test(productKey)) fail("Choose a product");
+    const productId = String(body.productId || c.products?.[productKey] || "");
+    if (!productId) return { reviews: [], unmapped: true };
+    const reviews = await fetchSallaReviews(c.accessToken, productId);
+    if (body.productId && c.products?.[productKey] !== productId) {
+      c.products = { ...(c.products || {}), [productKey]: productId };
+      await ctx.store.putMarketplaceSecret(ws, "salla", sealCredentials(c, ctx.key, ws, "salla"));
+    }
+    return { reviews, productId };
+  },
+  "POST /api/amazon/oauth/start": async (body, ctx) => {
+    const r = await startAmazonOAuth(ctx, String(body.ws || ""), String(body.marketplace || "amazon.ae"), readCookie(ctx.req));
+    return withCookie(`basira_amz=${encodeURIComponent(r.id)}; HttpOnly; Secure; SameSite=Lax; Path=/api/amazon/oauth; Max-Age=600`, { url: r.url });
+  },
+  "GET /api/amazon/connection": async (body, ctx) => {
+    const c = await loadCredentials(ctx, String(ctx.url.searchParams.get("ws") || ""), "amazon");
+    return c ? { connected: true, sellerId: c.sellerId, marketplace: c.marketplace, connectedAt: c.connectedAt } : { connected: false };
+  },
+  "POST /api/amazon/disconnect": async (body, ctx) => {
+    await ctx.store.deleteMarketplaceSecret(String(body.ws || ""), "amazon");
+    return { disconnected: true };
+  },
   "POST /api/keywords": async (body) => keywordCoverage(body.listing || body),
   "POST /api/fetch-image": async (body) => {
     const r = await safeFetch(String(body.url || ""), { maxBytes: 8_000_000, headers: { Accept: "image/png,image/jpeg,image/webp" } });
@@ -495,8 +587,8 @@ const routes = {
     return { dataUrl: `data:${type};base64,${r.body.toString("base64")}` };
   },
   "POST /api/photos/review": async (body) => reviewPhotos(body),
-  "GET /api/connectors": async () => connectorStatus(),
-  "POST /api/import": async (body) => importLink(String(body.url || ""), { limit: Math.min(Number(body.limit) || 60, 200) }),
+  "GET /api/connectors": async (body, ctx) => connectorStatus(ctx.url.searchParams.get("ws") ? await amazonFor(ctx, ctx.url.searchParams.get("ws")) : {}),
+  "POST /api/import": async (body, ctx) => importLink(String(body.url || ""), { limit: Math.min(Number(body.limit) || 60, 200), amazon: body.ws ? await amazonFor(ctx, body.ws) : {} }),
   "POST /api/import/csv": async (body) => importCsv(String(body.csv || ""), { channel: body.channel, category: body.category, measure: Boolean(body.measure) }),
   "POST /api/leads": async (body) => {
     const lead = {
@@ -514,10 +606,11 @@ const routes = {
   "POST /api/publish/noon": async (body, ctx) => publishNoon(body, ctx),
   "POST /api/noon/status": async (body, ctx) => noonStatus(body, ctx),
   // Amazon's view of the products of a published batch: buyable or not, and Amazon's issues.
-  "POST /api/amazon/status": async (body, { store }) => {
+  "POST /api/amazon/status": async (body, ctx) => {
+    const { store } = ctx;
     const mk = AMAZON_MARKETPLACES[String(body.marketplace || "amazon.sa").replace(/^www\./, "")] || fail("marketplace must be amazon.sa, amazon.ae or amazon.eg");
-    const c = amazonConfig();
-    if (!amazonConfigured(c) || !c.sellerId) fail("Amazon status needs the connected seller account (SPAPI_SELLER_ID)", 503);
+    const c = await amazonFor(ctx, body.ws);
+    if (!amazonConfigured(c) || !c.sellerId) fail("Connect this client's Amazon seller account in Settings to check its status.", 503);
     const m = await store.getManifest(String(body.ws || ""), String(body.batch || ""));
     const out = [];
     for (const it of m.items.slice(0, 50)) {
@@ -573,18 +666,13 @@ const routes = {
     return { ...v, account: accountView(after, ctx) };
   },
 
-  // A slide drawn whole by the image model, shown only after its text is read back and matches (server/slidegen.mjs).
-  "POST /api/slides/generate": async (body, { store }) => {
-    if (!templateById(body.template)) fail("Unknown slide template");
-    if (!slideGenConfigured()) fail("Generated slides need an image model (IMAGE_PROVIDER, IMAGE_API_KEY) and ANTHROPIC_API_KEY for the text check", 503);
-    await guardPlan(store);
-    const r = await generateSlide(body);
-    await meter(store, "ai", r.attempts.length);
-    await meter(store, "renders", 1);
-    return r;
+  // Old generated assets remain downloadable; new paid work uses the versioned Creator.
+  "POST /api/slides/generate": async () => {
+    if(!slideGenConfigured())fail("Configure image generation to use Creator",503);
+    fail("Open Creator to generate a versioned image and review its credit budget",410);
   },
   // Creator: the listings a buyer sees for a query, and what competitors' galleries show.
-  "POST /api/creator/search": async (body) => searchMarketplace(body),
+  "POST /api/creator/search": async (body, ctx) => searchMarketplace(body, body.ws ? await amazonFor(ctx, body.ws) : {}),
   "POST /api/creator/gallery": async (body, { store }) => {
     if (!aiConfigured()) fail("Reading competitor galleries needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
     await guardPlan(store);
@@ -592,32 +680,14 @@ const routes = {
     await meter(store, "ai", r.competitors.filter((c) => c.kinds.length).length);
     return r;
   },
-  // A short gallery video animated from one approved image, checked frame by frame (server/videogen.mjs).
-  "POST /api/video/generate": async (body, { store, key }) => {
-    if (!videoGenConfigured()) fail("Videos need FAL_KEY on the server", 503);
-    if (!aiConfigured()) fail("Checking videos needs FAL_KEY or ANTHROPIC_API_KEY on the server", 503);
-    if (!(await rendererAvailable())) fail("Checking videos needs Chromium on the server", 503);
-    const ws = String(body.ws || "");
-    await store.getGenome(ws);
-    await guardPlan(store);
-    const r = await generateVideo({ image: body.image, product: body.product, category: body.category, visual: body.visual, seconds: Number(body.seconds) || undefined, scene: Boolean(body.scene), texts: Array.isArray(body.texts) ? body.texts.slice(0, 6).map(String) : [] }, {
-      generate: ({ image, prompt, seconds }) => falVideo(videoInput(VIDEO_MODEL(), { image, prompt, seconds })),
-      frames: (v) => videoFrames(v),
-      readBack: (f) => readBackText(f),
-      checkProduct: (a, b) => checkProduct(a, b)
-    });
-    await meter(store, "ai", r.attempts.length * 3);
-    await meter(store, "renders", r.attempts.length);
-    if (!r.ok) return { ok: false, attempts: r.attempts, model: r.model };
-    const batch = new Date().toISOString().slice(0, 10) + "-video-" + randomBytes(6).toString("hex");
-    await store.saveAsset(ws, batch, "video.mp4", r.video);
-    return { ok: true, url: `/assets/${key}/${ws}/${batch}/video.mp4`, attempts: r.attempts, model: r.model, aiPeople: Boolean(r.aiPeople), bytes: r.video.length };
+  "POST /api/video/generate": async () => {
+    if(!videoGenConfigured())fail("Configure video generation to use Creator",503);
+    fail("Open Creator to generate a reviewed video with a reserved credit budget",410);
   },
-  "POST /api/imagegen/onmodel": async (body, { store }) => {
+  "POST /api/imagegen/onmodel": async (body,{store}) => {
     await guardPlan(store);
-    const r = await generateOnModel(body);
-    await meter(store, "ai"); await meter(store, "renders", r.images.length);
-    return r;
+    if(!imageGenConfigured())fail("Configure image generation to use Creator",503);
+    fail("Open Creator → Models for versioned try-on generation",410);
   },
 
   /* sign-in, accounts, teams */
@@ -660,6 +730,16 @@ export const server = createServer(async (req, res) => {
   try {
     if (req.method !== "GET" && req.method !== "HEAD" && !sameOrigin(req)) fail("Cross-site request refused", 403);
     const signedIn = (ctx) => { if (!ctx.store) fail("Sign in to continue", 401); };
+    if (req.method === "GET" && (url.pathname === "/api/amazon/oauth/login" || url.pathname === "/api/amazon/oauth/callback")) {
+      const ctx = await context(req, url); signedIn(ctx);
+      const id = namedCookie(req, "basira_amz"), session = readCookie(req);
+      const location = url.pathname.endsWith("/login")
+        ? continueAmazonOAuth(ctx, url.searchParams, id, session)
+        : (await finishAmazonOAuth(ctx, url.searchParams, id, session), "/app?amazon=connected");
+      const headers = { Location: location, "Referrer-Policy": "no-referrer", "Cache-Control": "no-store" };
+      if (url.pathname.endsWith("/callback")) headers["Set-Cookie"] = "basira_amz=; HttpOnly; Secure; SameSite=Lax; Path=/api/amazon/oauth; Max-Age=0";
+      res.writeHead(303, headers); return res.end();
+    }
     if (req.method === "POST" && url.pathname === "/api/render") {
       const ctx = await context(req, url);
       signedIn(ctx);
@@ -699,7 +779,7 @@ export const server = createServer(async (req, res) => {
     }
     // The client portal page; its data comes from /api/c/<token>.
     if (req.method === "GET" && /^\/c\/[A-Za-z0-9_-]{20,40}$/.test(url.pathname)) {
-      return send(res, 200, await readFile(join(ROOT, "src", "portal.html")), "text/html; charset=utf-8", { "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" });
+      return send(res, 200, await readFile(join(ROOT, "portal.html")), "text/html; charset=utf-8", { "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" });
     }
     if (req.method === "GET" && STATIC[url.pathname]) {
       const f = normalize(join(ROOT, STATIC[url.pathname]));
@@ -714,5 +794,11 @@ export const server = createServer(async (req, res) => {
 });
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  server.listen(PORT, () => console.log(`Basira running at http://localhost:${PORT}  (app: /app)`));
+  (async()=>{
+    try {
+      if(!AUTH)await production.registerAndRecover({key:"local",store:storeFor("local")});
+      else for(const entry of await readdir(join(DATA,"accounts"),{withFileTypes:true}).catch(()=>[]))if(entry.isDirectory()&&await auth.accountExists(entry.name))await production.registerAndRecover({key:entry.name,store:storeFor(entry.name)});
+    } catch(e){console.error('Production recovery:',e.message);}
+    server.listen(PORT, AUTH ? undefined : "127.0.0.1", () => console.log(`Basira running at http://localhost:${PORT}  (app: /app)`));
+  })();
 }

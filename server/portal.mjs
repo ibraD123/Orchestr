@@ -75,7 +75,8 @@ export function decide(portal, reviewId, index, body, at = new Date().toISOStrin
   const settings = Object.assign(defaultSettings(), portal.settings || {});
   const approver = settings.approvers.find((a) => a.id === body.approver);
   const who = approver ? approver.name : str(body.name, 80) || "Client";
-  if (text || pins.length) it.comments.push({ id: id("c"), by: who, role: approver ? approver.role : null, text, pins, at, resolved: false });
+  if (text || pins.length) it.comments.push({ id: id("c"), by: who, role: approver ? approver.role : null, text, pins,
+    ...(it.creator?.assetType === "video" && body.time !== undefined && Number.isFinite(Number(body.time)) && Number(body.time) >= 0 && Number(body.time) <= 300 ? { time: Number(body.time) } : {}), at, resolved: false });
   if (decision === "changes") { it.status = "changes"; it.decidedAt = at; it.synced = false; }
   if (decision === "approved") {
     // Every approval the item needs: anyone for "any"; a legal approver for "legal", when the client has one.
@@ -172,7 +173,7 @@ export function clientView(portal, { brand, agency }, now = new Date()) {
     library: library(portal),
     files: (portal.files || []).slice().reverse().map((f) => ({ id: f.id, name: f.name, ext: f.ext, by: f.by, at: f.at, url: f.url })),
     results: portal.results || null,
-    reviews: portal.reviews.slice(-20).reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments, needs: it.needs || ["any"], approvals: it.approvals || {}, waitingOn: waitingOn(it, settings), minor: Boolean(it.minor) })) })),
+    reviews: portal.reviews.filter((r,i) => i >= portal.reviews.length-20 || r.creator).slice().reverse().map((r) => ({ id: r.id, title: r.title, sentAt: r.sentAt, items: r.items.map((it) => ({ key: it.key, name: it.name, creator: it.creator || null, superseded: Boolean(it.superseded), before: it.before, after: it.after, status: it.status, decidedAt: it.decidedAt, comments: it.comments, needs: it.needs || ["any"], approvals: it.approvals || {}, waitingOn: waitingOn(it, settings), minor: Boolean(it.minor) })) })),
     requests: portal.requests.slice(-30).reverse(),
     brief: portal.brief ? { ...portal.brief, logo: portal.brief.logo ? true : null } : null
   };
@@ -201,7 +202,7 @@ export function monthReport(portal, now = new Date()) {
 
 /** Everything the client approved, newest first: the images they can reuse anywhere. */
 export function library(portal) {
-  return portal.reviews.slice().reverse().flatMap((r) => r.items.filter((it) => it.status === "approved").map((it) => ({ name: it.name, at: it.decidedAt, images: it.after.images }))).slice(0, 60);
+  return portal.reviews.slice().reverse().flatMap((r) => r.items.filter((it) => it.status === "approved").map((it) => ({ name: it.name, at: it.decidedAt, images: it.after.images, ...(it.creator?{creator:structuredClone(it.creator)}:{}) }))).slice(0, 60);
 }
 
 /** Counts for the agency: what waits on the client, what the client answered and hasn't been handled. */

@@ -19,7 +19,7 @@ async function accessToken(c) {
   const key = c.clientId + c.refreshToken;
   if (cached.token && cached.key === key && Date.now() < cached.expires - 60_000) return cached.token;
   const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: c.refreshToken, client_id: c.clientId, client_secret: c.clientSecret });
-  const r = await safeFetch(c.tokenUrl, { method: "POST", body: body.toString(), headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, allowStatus: [400, 401] });
+  const r = await safeFetch(c.tokenUrl, { method: "POST", forbidRedirect: true, body: body.toString(), headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, allowStatus: [400, 401] });
   const j = JSON.parse(r.body.toString("utf8") || "{}");
   if (!j.access_token) throw new ConnectorError(`Amazon sign-in failed: ${j.error_description || j.error || r.status}. Reconnect the Amazon account.`, 502);
   cached = { token: j.access_token, expires: Date.now() + (j.expires_in || 3600) * 1000, key };
@@ -29,7 +29,7 @@ async function accessToken(c) {
 async function spapi(c, path, params) {
   const token = await accessToken(c);
   const url = `${c.endpoint}${path}?${new URLSearchParams(params)}`;
-  return fetchJson(url, { headers: { "x-amz-access-token": token }, timeoutMs: 15_000 });
+  return fetchJson(url, { headers: { "x-amz-access-token": token }, forbidRedirect: true, timeoutMs: 15_000 });
 }
 
 // Attribute values are arrays of { value, language_tag, marketplace_id }.
@@ -71,14 +71,14 @@ async function catalogItem(c, asin, marketplace, locale) {
 }
 
 export async function amazonProduct(asin, marketplace, c = amazonConfig()) {
-  if (!amazonConfigured(c)) throw new ConnectorError("Connect an Amazon seller account to read Amazon listings (set SPAPI_CLIENT_ID, SPAPI_CLIENT_SECRET and SPAPI_REFRESH_TOKEN).", 503);
+  if (!amazonConfigured(c)) throw new ConnectorError("Connect this client's Amazon seller account in Settings to read Amazon listings.", 503);
   const [en, ar] = await Promise.all([catalogItem(c, asin, marketplace, marketplace.locales[0]), catalogItem(c, asin, marketplace, marketplace.locales[1])]);
   const base = en || ar || (await catalogItem(c, asin, marketplace, null));
   return itemFromCatalog(base, marketplace, ar);
 }
 
 export async function amazonStore(sellerId, marketplace, { limit = 60 } = {}, c = amazonConfig()) {
-  if (!amazonConfigured(c)) throw new ConnectorError("Connect an Amazon seller account to import a store (set SPAPI_CLIENT_ID, SPAPI_CLIENT_SECRET, SPAPI_REFRESH_TOKEN and SPAPI_SELLER_ID).", 503);
+  if (!amazonConfigured(c)) throw new ConnectorError("Connect this client's Amazon seller account in Settings to import its store.", 503);
   const own = sellerId === c.sellerId || (!sellerId && c.sellerId);
   if (!own) throw new ConnectorError("Amazon only shares the full catalog of the connected seller account. For other stores, paste product links one by one.", 422);
   const items = [];
@@ -152,7 +152,7 @@ export function listingPatches({ copy, images }, marketplace) {
 async function spapiSend(c, method, path, params, body) {
   const token = await accessToken(c);
   const r = await safeFetch(`${c.endpoint}${path}?${new URLSearchParams(params)}`, {
-    method, body: body ? JSON.stringify(body) : undefined, timeoutMs: 20_000, allowStatus: [400, 404],
+    method, body: body ? JSON.stringify(body) : undefined, forbidRedirect: true, timeoutMs: 20_000, allowStatus: [400, 404],
     headers: { "x-amz-access-token": token, "Content-Type": "application/json", Accept: "application/json" }
   });
   let j = {};

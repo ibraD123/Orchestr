@@ -35,7 +35,8 @@ main{padding:20px 0 60px}
 .lbl{font-size:12px;color:var(--ink-3);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
 .imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .shot{position:relative;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--line);cursor:crosshair}
-.shot img{display:block;width:100%;height:auto}
+.shot img,.shot video{display:block;width:100%;height:auto}
+.shot.video{cursor:default}
 .before .shot{cursor:default;opacity:.85}
 .pin{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--bad);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .pin.draft{background:var(--accent);color:var(--accent-ink)}
@@ -61,6 +62,12 @@ label.f{display:grid;gap:6px;font-size:13.5px;color:var(--ink-2)}
 .err{color:var(--bad);font-size:13.5px}
 .ok{color:var(--good);font-size:13.5px}
 [hidden]{display:none!important}
+.room-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.room-counts{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-bottom:12px}.room-progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden;margin-bottom:22px}.room-progress i{display:block;height:100%;background:var(--accent)}.room-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:20px}.room-products{display:grid;gap:9px;margin-bottom:12px}.room-product{padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}.room-product .btn{width:100%;text-align:start;border:0;padding:4px}.room-product small{display:block;color:var(--ink-2);margin-top:5px}.room-product .btn[aria-pressed=true]{color:var(--accent)}.room-check{display:flex;align-items:flex-start;gap:6px;margin-top:8px;font-size:12px}.room-check input{width:auto;flex-shrink:0}.room-layout section{min-width:0}.room-layout .ba{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}@media(max-width:760px){.room-layout{grid-template-columns:1fr}.room-products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.room-products,.room-layout .ba{grid-template-columns:1fr}}
+.room-film{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.room-film [aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}.room-layout .ba:not(:has(.before .shot)):not(:has(.before .copy)){grid-template-columns:1fr}.room-layout .ba:not(:has(.before .shot)):not(:has(.before .copy)) .before{display:none}.room-layout .imgs:has(>:only-child){grid-template-columns:minmax(0,1fr)}.room-layout .shot img{max-height:540px;object-fit:contain}.room-product{overflow-wrap:anywhere}
+/* Studio visual language shared with the agency workspace. */
+:root{--bg:#f5f5f0;--surface:#fff;--line:#e3e6de;--ink:#202820;--ink-2:#5d675e;--ink-3:#71806e;--accent:#224d39;--accent-ink:#fff;--good-soft:#e3f2d9}
+@media(prefers-color-scheme:dark){:root{--bg:#141a16;--surface:#1d2620;--line:#354137;--ink:#edf3e7;--ink-2:#becab8;--ink-3:#94a58f;--accent:#caeca8;--accent-ink:#1b2e1d;--good-soft:#30452c}}
+header{border:0}.wrap{max-width:1200px;padding-inline:28px}.top{min-height:78px}.top h1{font-size:22px;letter-spacing:-.04em}.tabs{padding-bottom:12px}nav.tabs button{border:0;border-radius:8px;font-size:12px;padding:9px 14px}nav.tabs button[aria-selected=true]{background:var(--ink);color:var(--surface)}main{padding-top:26px}.card{border-radius:18px;padding:22px}.card h2{font-size:17px;letter-spacing:-.025em}.btn{font-size:12px;border-radius:10px}.tag{font-size:11px}.room-products{gap:10px}.room-product{border-radius:13px;padding:13px}.room-product .btn{font-size:12px}.room-product .btn[aria-pressed=true]{font-weight:600}.room-product:has([aria-pressed=true]){border-color:var(--accent);background:var(--good-soft)}.room-head{margin-bottom:20px}.room-counts{font-size:12px;gap:22px}.room-progress{height:4px;margin-bottom:26px}.room-layout{gap:24px;grid-template-columns:235px minmax(0,1fr)}.room-layout .lbl{font-size:10px}.room-film{gap:8px}.room-film .btn{font-size:11px}.room-layout .card{box-shadow:0 5px 20px -17px #1e331e30}.note{font-size:12px}.room-check{font-size:11px}.room-layout aside>.btn{margin-top:8px;width:100%}.room-head select{background:var(--surface)}@media(max-width:760px){.wrap{padding-inline:16px}.room-layout{grid-template-columns:1fr}.room-counts{gap:12px}.room-products{grid-template-columns:1fr 1fr}.room-layout aside>.btn{width:auto}.card{padding:17px}}@media(max-width:430px){.room-products{grid-template-columns:1fr}.top h1{font-size:19px}}
 </style>
 </head>
 <body>
@@ -98,7 +105,7 @@ var T = {
   rpMonth:["This month","هذا الشهر"], rpSent:["Sent for approval","أُرسل للموافقة"], rpApproved:["Approved","تمت الموافقة"], rpWaiting:["Waiting for you","بانتظارك"], rpChanges:["Changes requested","طُلبت تعديلات"],
   rpReqOpen:["Requests in work","طلبات قيد العمل"], rpReqDone:["Requests done","طلبات منجزة"], rpPackage:["Monthly package","الباقة الشهرية"], rpUsed:["{used} of {limit} fixes used","استُخدم {used} من {limit} تعديلاً"], rpOver:["{n} over the package","{n} فوق الباقة"], rpRecent:["Recently approved","تمت الموافقة مؤخراً"],
   libEmpty:["Approved images appear here.","تظهر هنا الصور المعتمدة."], download:["Download","تنزيل"],
-  files:["Files","الملفات"], addFile:["Add a file (PNG, JPEG, WebP or PDF, up to 10 MB)","أضف ملفاً (PNG أو JPEG أو WebP أو PDF حتى 10 ميغابايت)"], uploading:["Uploading…","جارٍ الرفع…"], approvedImgs:["Approved images","الصور المعتمدة"],
+  files:["Files","الملفات"], addFile:["Add a file (PNG, JPEG, WebP or PDF, up to 10 MB)","أضف ملفاً (PNG أو JPEG أو WebP أو PDF حتى 10 ميغابايت)"], uploading:["Uploading…","جارٍ الرفع…"], approvedImgs:["Approved images and videos","الصور ومقاطع الفيديو المعتمدة"],
   rpMinor:["Small fixes made without approval","تعديلات صغيرة دون موافقة"], minorTag:["Small fix, approved by the agency","تعديل صغير وافقت عليه الوكالة"],
   rsT:["Sales results","نتائج المبيعات"], rsChanged:["Improved products","المنتجات المحسّنة"], rsControl:["Unchanged products","المنتجات دون تغيير"], rsUplift:["Conversion uplift","زيادة التحويل"], rsConv:["conversion","التحويل"], rsUnits:["units","الوحدات"], rsSales:["sales","المبيعات"], rsPts:["pts","نقطة"],
   err:["Something went wrong:","حدث خطأ:"], gone:["This link isn't valid any more. Ask your agency for a new one.","هذا الرابط لم يعد صالحاً. اطلب رابطاً جديداً من الوكالة."]
@@ -107,6 +114,8 @@ var token = location.pathname.split("/").pop(), data = null, tab = "reviews", dr
 try { lang = localStorage.getItem("basira-portal-lang") || ((navigator.language || "").slice(0, 2) === "ar" ? "ar" : "en"); } catch (e) {}
 function t(k){ var v = T[k]; return v ? v[lang === "ar" ? 1 : 0] : k; }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function isVideo(src){ return /\.mp4(?:$|[?#])/i.test(String(src)); }
+function mediaHTML(src){ return isVideo(src) ? '<video controls playsinline preload="metadata" src="' + esc(src) + '"></video>' : '<img src="' + esc(src) + '" alt="">'; }
 function api(path, opts){ return fetch("/api/c/" + token + path, opts).then(function(r){ return r.json().then(function(j){ if (!r.ok){ var e = new Error(j.error || r.status); e.status = r.status; throw e; } return j; }); }); }
 function send(path, method, body){ return api(path, {method: method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)}); }
 function name(){ try { return localStorage.getItem("basira-portal-name") || ""; } catch (e) { return ""; } }
@@ -135,7 +144,7 @@ function copyHTML(c){
 }
 function vReviews(){
   var items = [];
-  data.reviews.forEach(function(r){ r.items.forEach(function(it, i){ items.push({r: r, it: it, i: i}); }); });
+  data.reviews.forEach(function(r){ r.items.forEach(function(it, i){ if(!it.superseded)items.push({r: r, it: it, i: it._roomIndex == null ? i : it._roomIndex}); }); });
   if (!items.length) return '<p class="empty">' + t("nothing") + "</p>";
   var whoSel = data.approvers && data.approvers.length ? '<div class="card"><label class="f">' + t("who") + '<select id="who"><option value="">' + t("choose") + "</option>" + data.approvers.map(function(a){ return '<option value="' + esc(a.id) + '"' + (approver() === a.id ? " selected" : "") + ">" + esc(a.name) + " · " + t("ro_" + a.role) + "</option>"; }).join("") + "</select></label></div>" : "";
   items.sort(function(a, b){ return (a.it.status === "pending" ? 0 : 1) - (b.it.status === "pending" ? 0 : 1); });
@@ -145,12 +154,14 @@ function vReviews(){
     it.comments.forEach(function(c){ c.pins.forEach(function(p){ n++; (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: n, done: c.resolved}); }); });
     d.pins.forEach(function(p, j){ (pinsByImg[p.image] = pinsByImg[p.image] || []).push({x: p.x, y: p.y, n: "+" + (j + 1), draft: true}); });
     var st = it.status === "pending" ? "warn" : it.status === "approved" ? "good" : "bad";
-    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + (it.minor ? '<span class="tag">' + t("minorTag") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
+    return '<section class="card" data-k="' + k + '"><div class="row"><h2>' + esc(it.name) + (it.creator?' · v'+(it.creator.version||'?'):'') + '</h2><span class="tag ' + st + '">' + t(it.waitingOn === "legal" ? "waitLegal" : "st_" + it.status) + "</span>" + (it.needs && it.needs.indexOf("legal") > -1 ? '<span class="tag">' + t("needsLegal") + "</span>" : "") + (it.minor ? '<span class="tag">' + t("minorTag") + "</span>" : "") + '<span class="note" style="margin-inline-start:auto">' + esc(x.r.title) + " · " + new Date(x.r.sentAt).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + "</span></div>" +
       '<div class="ba"><div class="before"><span class="lbl">' + t("before") + "</span>" + (it.before.image ? '<div class="shot"><img src="' + esc(it.before.image) + '" alt=""></div>' : "") + copyHTML(it.before.copy) + "</div>" +
       '<div><span class="lbl">' + t("after") + '</span><div class="imgs">' + it.after.images.map(function(src, j){
+        if (isVideo(src)) return '<div class="shot video">' + mediaHTML(src) + '</div>';
         return '<div class="shot" data-img="' + j + '"><img src="' + esc(src) + '" alt="">' + (pinsByImg[j] || []).map(function(p){ return '<span class="pin' + (p.draft ? " draft" : p.done ? " done" : "") + '" style="left:' + (p.x * 100) + "%;top:" + (p.y * 100) + '%">' + p.n + "</span>"; }).join("") + "</div>";
       }).join("") + "</div>" + copyHTML(it.after.copy) + "</div></div>" +
-      (it.comments.length ? '<div class="comments">' + it.comments.map(function(c){ return '<div class="cm' + (c.resolved ? "" : " open") + '"><small>' + esc(c.by) + " · " + new Date(c.at).toLocaleString(lang === "ar" ? "ar" : "en-GB") + (c.resolved ? " · " + t("resolved") : "") + "</small><div>" + esc(c.text) + "</div>" + c.pins.map(function(p){ return "<div>📍 " + esc(p.text) + "</div>"; }).join("") + "</div>"; }).join("") + "</div>" : "") +
+      (it.creator?.assetType === "video" ? '<label class="f" style="margin-top:10px">'+(lang==="ar"?"موضع التعليق بالثواني":"Comment time (seconds)")+'<input type="number" min="0" max="300" step="0.1" data-video-time="'+k+'" value="'+esc(d.time==null?"":d.time)+'"></label>' : "")+
+      (it.comments.length ? '<div class="comments">' + it.comments.map(function(c){ return '<div class="cm' + (c.resolved ? "" : " open") + '"><small>' + esc(c.by) + " · " + new Date(c.at).toLocaleString(lang === "ar" ? "ar" : "en-GB") + (c.resolved ? " · " + t("resolved") : "") + "</small><div>" + (c.time!==undefined?esc(c.time)+" s · ":"")+esc(c.text) + "</div>" + c.pins.map(function(p){ return "<div>📍 " + esc(p.text) + "</div>"; }).join("") + "</div>"; }).join("") + "</div>" : "") +
       (d.pins.length ? '<div class="drafts">' + d.pins.map(function(p, j){ return '<div class="draft"><span>+' + (j + 1) + '</span><input data-pintext="' + k + "|" + j + '" placeholder="' + esc(t("pinPh")) + '" value="' + esc(p.text) + '"><button type="button" class="btn" data-pindel="' + k + "|" + j + '">' + t("removePin") + "</button></div>"; }).join("") + "</div>" : "") +
       '<div style="margin-top:12px"><textarea data-text="' + k + '" placeholder="' + esc(t("commentPh")) + '">' + esc(d.text) + "</textarea></div>" +
       '<div class="row" style="margin-top:10px">' + (it.status === "pending" ? '<button type="button" class="btn primary" data-act="approve|' + k + '">' + t("approve") + '</button><button type="button" class="btn" data-act="changes|' + k + '">' + t("changes") + "</button>" : '<button type="button" class="btn" data-act="comment|' + k + '">' + t("comment") + "</button>") +
@@ -165,7 +176,7 @@ function vReport(){
     '<div class="imgs" style="margin-top:12px">' + stat("rpSent", r.sent) + stat("rpApproved", r.approved) + stat("rpWaiting", r.waiting) + stat("rpChanges", r.changes) + stat("rpReqOpen", r.requestsOpen) + stat("rpReqDone", r.requestsDone) + "</div>" +
     (r.minor ? '<p class="note" style="margin-top:10px">' + t("rpMinor") + ": " + r.minor + "</p>" : "") +
     (r.package ? '<div style="margin-top:14px"><span class="lbl">' + t("rpPackage") + '</span><div style="height:10px;border-radius:6px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, Math.round(r.package.used / r.package.limit * 100)) + '%;background:var(--accent)"></i></div><p class="note" style="margin-top:6px">' + t("rpUsed").replace("{used}", r.package.used).replace("{limit}", r.package.limit) + (r.package.over ? " · " + t("rpOver").replace("{n}", r.package.over) : "") + "</p></div>" : "") + "</section>" +
-    resultsHTML() + (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? '<img src="' + esc(x.image) + '" alt="">' : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
+    resultsHTML() + (r.recent.length ? '<section class="card"><h2>' + t("rpRecent") + '</h2><div class="imgs" style="margin-top:10px">' + r.recent.map(function(x){ return '<div><div class="shot" style="cursor:default">' + (x.image ? mediaHTML(x.image) : "") + '</div><div class="note" style="margin-top:4px">' + esc(x.name) + "</div></div>"; }).join("") + "</div></section>" : "");
 }
 function resultsHTML(){
   var x = data.results; if (!x) return "";
@@ -181,7 +192,7 @@ function vLibrary(){
   var files = '<section class="card"><h2>' + t("files") + '</h2><div class="imgs" style="margin-top:10px">' + data.files.map(function(f){ return '<div><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><div class="shot" style="cursor:pointer;display:grid;place-items:center;min-height:90px">' + (f.ext === "pdf" ? "<b>PDF</b>" : '<img src="' + esc(f.url) + '" alt="">') + '</div></a><div class="note" style="margin-top:4px">' + esc(f.name) + " · " + esc(f.by) + "</div></div>"; }).join("") + "</div>" +
     '<label class="f" style="margin-top:12px">' + t("addFile") + '<input type="file" id="lib-file" accept="image/png,image/jpeg,image/webp,application/pdf"></label>' + (upMsg ? '<p class="' + (upMsg.ok ? "ok" : "err") + '">' + esc(upMsg.text) + "</p>" : "") + "</section>";
   if (!data.library.length) return files + '<p class="empty">' + t("libEmpty") + "</p>";
-  return files + '<h2 style="font-size:16px;margin:18px 0 10px">' + t("approvedImgs") + "</h2>" + data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default"><img src="' + esc(src) + '" alt=""></div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
+  return files + '<h2 style="font-size:16px;margin:18px 0 10px">' + t("approvedImgs") + "</h2>" + data.library.map(function(x){ return '<section class="card"><div class="row"><h2>' + esc(x.name) + '</h2><span class="note" style="margin-inline-start:auto">' + new Date(x.at).toLocaleDateString(lang === "ar" ? "ar" : "en-GB") + '</span></div><div class="imgs" style="margin-top:10px">' + x.images.map(function(src, j){ return '<div><div class="shot" style="cursor:default">' + mediaHTML(src) + '</div><a class="note" href="' + esc(src) + '" download="product-' + (j + 1) + '">' + t("download") + "</a></div>"; }).join("") + "</div></section>"; }).join("");
 }
 var req = {kind: "season", text: "", links: "", due: "", msg: null};
 function vRequests(){
@@ -219,7 +230,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("[data-act]"))){
     var a = el.dataset.act.split("|"), key = a[1], parts = key.split(":"), dd = drafts[key] || {pins: [], text: ""};
     dd.err = null; dd.ok = false;
-    send("/reviews/" + parts[0] + "/items/" + parts[1], "POST", {decision: a[0], comment: dd.text, pins: dd.pins, name: name(), approver: approver()})
+    send("/reviews/" + parts[0] + "/items/" + parts[1], "POST", {decision: a[0], comment: dd.text, pins: dd.pins, time: dd.time, name: name(), approver: approver()})
       .then(function(){ drafts[key] = {pins: [], text: "", ok: true}; return load(); })
       .catch(function(err){ dd.err = err.message; render(); });
     return;
@@ -237,6 +248,7 @@ document.addEventListener("click", function(e){
 });
 document.addEventListener("input", function(e){
   var el = e.target;
+  if(el.dataset.videoTime){var d=drafts[el.dataset.videoTime]||(drafts[el.dataset.videoTime]={pins:[],text:""});d.time=el.value===""?undefined:Number(el.value);}
   if (el.dataset.text) (drafts[el.dataset.text] = drafts[el.dataset.text] || {pins: [], text: ""}).text = el.value;
   if (el.dataset.pintext){ var p = el.dataset.pintext.split("|"); drafts[p[0]].pins[+p[1]].text = el.value; }
   if (el.id === "rq-text") req.text = el.value; if (el.id === "rq-links") req.links = el.value; if (el.id === "rq-due") req.due = el.value;
@@ -254,6 +266,7 @@ document.addEventListener("change", function(e){
   }
   if (el.id === "bf-logo" && el.files && el.files[0]){ var fr = new FileReader(); fr.onload = function(){ brief.logo = fr.result; }; fr.readAsDataURL(el.files[0]); }
 });
+/*@PORTAL_ROOM@*/
 setLang(lang); load();
 })();
 </script>

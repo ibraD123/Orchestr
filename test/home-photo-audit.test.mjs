@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {homePhotoAuditRoutes} from '../server/home-photo-audit.mjs';
+const image='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAAAASUVORK5CYII=';
+const finding={type:'improvement',priority:'medium',title:{en:'Show detail',ar:'أظهر التفاصيل'},why:{en:'The finish is hard to see',ar:'التشطيب غير واضح'},proposal:{en:'Create a closer detail frame',ar:'أنشئ إطار تفاصيل أقرب'},role:'details',imageIndex:0,evidence:[{field:'image',quote:'Small product'}],needs:[]};
+test('single-photo review validates the input, consumes only AI allowance and never claims a complete listing audit',async()=>{let guarded=0,metered=0,read=0;const route=homePhotoAuditRoutes({guardPlan:async()=>guarded++,meter:async(_s,key)=>{assert.equal(key,'ai');metered++;},configured:()=>true,read:async input=>{read++;assert.equal(input.mode,'photo');assert.equal(input.images.length,1);return {findings:[finding,{...finding,role:'copy'},{...finding,imageIndex:1}],coveredRoles:['details']};}})['POST /api/home/photo-audit'],ctx={store:{getGenome:async ws=>{assert.equal(ws,'client-a');}}};
+ await assert.rejects(route({ws:'client-a',image:'bad'},ctx));assert.equal(read,0);assert.equal(guarded,0);
+ const r=await route({ws:'client-a',image,channel:'amazon',category:'general'},ctx);assert.equal(r.scope,'single_photo');assert.equal(r.findings.length,1);assert.equal(read,1);assert.equal(metered,1);assert.equal(guarded,1);
+ await assert.rejects(route({ws:'client-a',image,channel:'__proto__'},ctx));assert.equal(read,1);
+});
+test('unavailable or exhausted AI cannot call the provider',async()=>{let read=0;const ctx={store:{getGenome:async()=>{}}},body={ws:'client-a',image};const off=homePhotoAuditRoutes({configured:()=>false,read:async()=>read++})['POST /api/home/photo-audit'];await assert.rejects(off(body,ctx),e=>e.status===503);const limited=homePhotoAuditRoutes({configured:()=>true,guardPlan:async()=>{throw Error('Limit reached');},read:async()=>read++})['POST /api/home/photo-audit'];await assert.rejects(limited(body,ctx),/Limit reached/);assert.equal(read,0);});

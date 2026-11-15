@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createContext,runInContext} from 'node:vm';
+const source=readFileSync(new URL('../src/agency-operations.js',import.meta.url),'utf8');
+function browser({post=async()=>({offers:[],directions:[]}),cwLoad=async()=>{}}={}){const events={},state={ws:'layali',me:{account:{id:'agency1'}},lang:'en'},context=createContext({state,document:{addEventListener:(type,handler)=>(events[type]||=[]).push(handler)},post,cwLoad,render:()=>{},vListing:()=>'',vCreator:()=>'',vApprovals:()=>'',vCatalog:()=>'',agencyRoomView:()=>'',cwt:en=>en,cw:{projects:[]}});runInContext(source,context);return {context,state,click(selector,dataset){for(const handler of events.click)handler({target:{closest:query=>query===selector?{dataset}:null}});}};}
+const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('direction dialog keeps the clicked batch across asynchronous project loading',async()=>{let done;const b=browser({cwLoad:()=>new Promise(resolve=>done=resolve)});b.click('[data-ao-direction]',{aoDirection:'batch-clicked'});done();await flush();assert.equal(b.context.aoUi.directionBatch,'batch-clicked');assert.equal(b.context.aoUi.modal,'direction');assert.equal(b.context.aoUi.error,'');});
+test('a delayed proposal never opens in another client after a workspace switch',async()=>{let done;const b=browser({post:async(path,body)=>body.action==='offer_prepare'?new Promise(resolve=>done=resolve):{offers:[],directions:[]}});b.click('[data-ao-proposal]',{aoProposal:'catalog-product'});b.state.ws='noor';runInContext('aoEnsure()',b.context);done({id:'private-proposal',status:'draft',lines:[],currency:'AED'});await flush();assert.equal(b.context.aoUi.offer,null);assert.equal(b.context.aoUi.modal,null);assert.equal(b.context.aoUi.key,'agency1:noor');});
