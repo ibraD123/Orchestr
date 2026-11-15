@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "basira",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "env": { "BASIRA_AUTH": "off" },
+      "port": 8787
+    },
+    {
+      "name": "theme-lab",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tmp/theme-lab/server.mjs"],
+      "env": { "TARGET": "http://localhost:8788", "PORT": "8799" },
+      "port": 8799
+    }
+  ]
+}

@@ -48,10 +48,12 @@ import { createProduction } from "./production.mjs";
 import { createBatch } from "./collaboration.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-// Keys from a local .env file (not committed), only when this file is the program being run, so
-// tests that import the server never pick up real keys. Variables already set in the environment win.
+// Private overrides first, then committed defaults. Only the server entry point loads files,
+// so tests that import it never pick up real keys. Existing environment variables win.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  try { process.loadEnvFile(join(ROOT, ".env")); } catch { /* no .env: use the environment as it is */ }
+  for (const name of [".env.local", ".env"]) {
+    try { process.loadEnvFile(join(ROOT, name)); } catch { /* optional local configuration */ }
+  }
 }
 const DATA = process.env.BASIRA_DATA_DIR || join(ROOT, "data");
 const PORT = Number(process.env.PORT || 8787);

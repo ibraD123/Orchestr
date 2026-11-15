@@ -77,7 +77,7 @@ npm install
 ANTHROPIC_API_KEY=sk-ant-... npm start
 ```
 
-The server also reads keys from a `.env` file in the project folder (not committed), for example `FAL_KEY=…` and `ANTHROPIC_API_KEY=…`. Variables set in the environment win.
+The committed `.env` contains shared configuration without API keys. Keep real credentials in `.env.local` (ignored by Git), for example `FAL_KEY=…` and `ANTHROPIC_API_KEY=…`. The server entry point loads `.env.local` first, then `.env` defaults. Variables already set in the environment win. Tests that import the server do not load either file.
 
 Open http://localhost:8787 for the site and http://localhost:8787/app for the app. Project storage, uploads, templates, manual reviews and ZIP exports work without AI keys. Image generation, AI edits, try-on, video and AI analyses require their configured providers.
 
