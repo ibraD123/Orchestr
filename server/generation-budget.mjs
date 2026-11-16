@@ -1,4 +1,4 @@
-// Basira credits are product units, not estimates of the provider's invoice.
+// Shoof credits are product units, not estimates of the provider's invoice.
 import { randomBytes } from 'node:crypto';
 import { newAccount, effectivePlan, PLANS, monthKey } from './billing.mjs';
 import { StoreError } from './store.mjs';
@@ -8,7 +8,7 @@ export function creditStatus(account, at){
   const plan=effectivePlan(account,at), month=monthKey(at), data=account.generationBudget||{used:{},holds:{}};
   const used=data.used[month]||0, held=Object.values(data.holds).filter(h=>h.status==='reserved').reduce((n,h)=>n+h.amount,0);
   const limit=PLANS[plan].credits??allowances[plan];
-  return {month,limit,used,held,attempted:data.attempted?.[month]||0,attemptLimit:limit*3,left:Math.max(0,limit-used-held),rates:GENERATION_RATES,unit:'Basira credits'};
+  return {month,limit,used,held,attempted:data.attempted?.[month]||0,attemptLimit:limit*3,left:Math.max(0,limit-used-held),rates:GENERATION_RATES,unit:'Shoof credits'};
 }
 export async function reserveCredits(store,id,amount,scope){
   if(!/^[A-Za-z0-9_-]{8,100}$/.test(id)||!Number.isSafeInteger(amount)||amount<1)throw new StoreError('Invalid generation reservation');
@@ -35,7 +35,7 @@ export async function settleCredits(store,id,spent){
 export async function recordGenerationAttempt(store,amount){
  return store.updateAccount(newAccount,a=>{
   const status=creditStatus(a),b=a.generationBudget||=( {used:{},holds:{}} ),month=monthKey();b.attempted||={};
-  if((b.attempted[month]||0)+amount>status.attemptLimit)throw new StoreError('Generation is paused after repeated attempts. Contact Basira before retrying; unused reserved credits are returned.',429);
+  if((b.attempted[month]||0)+amount>status.attemptLimit)throw new StoreError('Generation is paused after repeated attempts. Contact Shoof before retrying; unused reserved credits are returned.',429);
   b.attempted[month]=(b.attempted[month]||0)+amount;
  });
 }

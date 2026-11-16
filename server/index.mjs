@@ -1,6 +1,6 @@
 import { homePhotoAuditRoutes } from "./home-photo-audit.mjs";
 import { agencyOperationsRoutes, agencyClientView, agencyClientAction } from "./agency-operations.mjs";
-// Basira HTTP server: serves the site and app, plus the JSON/PNG API.
+// Shoof HTTP server: serves the site and app, plus the JSON/PNG API.
 import { createServer } from "node:http";
 import { readFile, writeFile, appendFile, mkdir, readdir } from "node:fs/promises";
 import { randomBytes, createHash } from "node:crypto";
@@ -314,7 +314,7 @@ async function buildExport(body, ctx) {
   for (const f of files) zipFiles.push({ name: f.name, data: f.content });
   const labelled = manifest.items.flatMap((x) => (x.aiPeople || []).map((r) => "images/" + r));
   zipFiles.push({ name: "README.txt", data: exportReadme(channel, manifest.items.length, { client: manifest.client, at: now, imageBase: hosted ? base : "", aiPeople: labelled, videos: manifest.items.filter((x) => x.video).map((x) => x.video) }) });
-  const zipName = `basira-${channel}-${safeName(manifest.client || ws)}-${now.toISOString().slice(0, 10)}.zip`;
+  const zipName = `shoof-${channel}-${safeName(manifest.client || ws)}-${now.toISOString().slice(0, 10)}.zip`;
   await store.saveAsset(ws, batch, zipName, Buffer.from(makeZip(zipFiles, now)));
   manifest.zip = zipName;
   await store.saveAsset(ws, batch, "manifest.json", JSON.stringify(manifest));
@@ -399,7 +399,7 @@ const paramRoutes = [
   }],
   ["PATCH", /^\/api\/workspaces\/([a-z0-9-]+)$/, (m, body, { store }) => store.updateWorkspace(m[1], body)],
   ["DELETE", /^\/api\/workspaces\/([a-z0-9-]+)$/, (m, body, { store }) => store.deleteWorkspace(m[1])],
-  ["GET", /^\/api\/workspaces\/([a-z0-9-]+)\/export$/, async (m, body, { store }) => file(JSON.stringify(await store.exportWorkspace(m[1]), null, 2), "application/json", `basira-${m[1]}-data.json`)],
+  ["GET", /^\/api\/workspaces\/([a-z0-9-]+)\/export$/, async (m, body, { store }) => file(JSON.stringify(await store.exportWorkspace(m[1]), null, 2), "application/json", `shoof-${m[1]}-data.json`)],
   ["DELETE", /^\/api\/team\/([a-z0-9]+)$/, (m, body, ctx) => { if (!AUTH) fail("Teams need accounts on this server", 404); return auth.removeMember(ctx.account.id, ctx.user, m[1]); }],
   // Client portal, the client's side: a private link, no sign-in.
   ["GET", /^\/api\/c\/([A-Za-z0-9_-]{20,40})$/, async (m) => {
@@ -801,6 +801,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       if(!AUTH)await production.registerAndRecover({key:"local",store:storeFor("local")});
       else for(const entry of await readdir(join(DATA,"accounts"),{withFileTypes:true}).catch(()=>[]))if(entry.isDirectory()&&await auth.accountExists(entry.name))await production.registerAndRecover({key:entry.name,store:storeFor(entry.name)});
     } catch(e){console.error('Production recovery:',e.message);}
-    server.listen(PORT, AUTH ? undefined : "127.0.0.1", () => console.log(`Basira running at http://localhost:${PORT}  (app: /app)`));
+    server.listen(PORT, AUTH ? undefined : "127.0.0.1", () => console.log(`Shoof running at http://localhost:${PORT}  (app: /app)`));
   })();
 }

@@ -54,7 +54,7 @@ export function catalogRoutes({ exportRelease }) {
         const columns = ["partner_sku", "channel", "title_en", "title_ar", "category", "attributes_json", "size_chart", ...Array.from({length:12}, (_,i) => `bullet_${i+1}`), ...Array.from({length:12}, (_,i) => `bullet_${i+1}_ar`), ...Array.from({length:12}, (_,i) => `image_${i+1}`)];
         const rows = [columns];
         products.forEach((p) => rows.push([p.sku, p.ch[0], p.listing.titleEn, p.listing.titleAr, p.category, JSON.stringify(p.listing.attributes), p.listing.sizeChart ? "true" : "", ...Array.from({length:12},(_,i)=>p.listing.bulletsEn[i]||""), ...Array.from({length:12},(_,i)=>p.listing.bulletsAr[i]||""), ...Array.from({length:12},(_,i)=>p.listing.images[i]?.src||(i===0?p.image:"")||"")]));
-        return { $file: { data: "\ufeff" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"), type: "text/csv; charset=utf-8", name: "basira-catalog.csv" } };
+        return { $file: { data: "\ufeff" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n"), type: "text/csv; charset=utf-8", name: "shoof-catalog.csv" } };
       }
       const ps = createCreatorProjectStore(ctx.store, { assetPrefix: `/assets/${ctx.key}/` });
       if (body.action === "projects") {
@@ -102,7 +102,7 @@ export function catalogRoutes({ exportRelease }) {
         const out = await exportRelease({ ws, projectId: project.id, releaseId: release.id }, ctx);
         for (const entry of readZip(out.$file.data)) { totalBytes+=entry.data.length; if(totalBytes>100_000_000) fail("Select a smaller batch: ZIP source files exceed 100 MB",413); files.push({ name: `${safeName(project.sku)}-${project.id}/${entry.name}`, data: entry.data }); }
       }
-      return { $file: { data: Buffer.from(makeZip(files)), type: "application/zip", name: "basira-client-approved.zip" } };
+      return { $file: { data: Buffer.from(makeZip(files)), type: "application/zip", name: "shoof-client-approved.zip" } };
     }
   };
 }

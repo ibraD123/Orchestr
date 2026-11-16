@@ -1,4 +1,4 @@
-// Basira slide templates. Each template answers one buyer question.
+// Shoof slide templates. Each template answers one buyer question.
 // Pure functions with no imports: render.mjs uses them for PNG export, and
 // scripts/build.mjs inlines them into the app for the live preview, so both match exactly.
 

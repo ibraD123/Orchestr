@@ -23,7 +23,7 @@ export async function createCheckout(planId, { callbackUrl, account }) {
   const plan = PLANS[planId];
   const inv = await call("/invoices", "POST", {
     amount, currency: "SAR",
-    description: `Basira ${plan.name[0]} plan, 1 month (incl. 15% VAT)`,
+    description: `Shoof ${plan.name[0]} plan, 1 month (incl. 15% VAT)`,
     callback_url: callbackUrl,
     metadata: { plan: planId, account: account || "default" }
   });

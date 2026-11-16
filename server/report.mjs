@@ -10,7 +10,7 @@ const RT = {
     chartTitle: "Conversion before and after", before: "Before", after: "After", changedG: "Changed products", controlG: "Untouched products (control)",
     table: "Products", sku: "SKU / ASIN", convB: "Conv. before", convA: "Conv. after", d: "Change", unitsB: "Units before", unitsA: "Units after", changedTag: "changed", controlTag: "control",
     method: "How this is measured",
-    methodText: "Sessions, units and sales come from the marketplace reports uploaded to Basira. Conversion is units ordered divided by sessions. Changed products are compared with products that weren't touched over the same weeks, so a season or a sale that lifts the whole store isn't credited to the content. The uplift is the changed products' change minus the control group's change, in percentage points.",
+    methodText: "Sessions, units and sales come from the marketplace reports uploaded to Shoof. Conversion is units ordered divided by sessions. Changed products are compared with products that weren't touched over the same weeks, so a season or a sale that lifts the whole store isn't credited to the content. The uplift is the changed products' change minus the control group's change, in percentage points.",
     caveat: "Small products move a lot by chance: treat changes on fewer than 100 sessions as noise. This is a comparison, not a controlled experiment.",
     noData: "—"
   },
@@ -21,7 +21,7 @@ const RT = {
     chartTitle: "معدل التحويل قبل وبعد", before: "قبل", after: "بعد", changedG: "المنتجات المعدلة", controlG: "منتجات لم تتغير (مقارنة)",
     table: "المنتجات", sku: "SKU / ASIN", convB: "التحويل قبل", convA: "التحويل بعد", d: "التغير", unitsB: "الوحدات قبل", unitsA: "الوحدات بعد", changedTag: "معدل", controlTag: "مقارنة",
     method: "طريقة القياس",
-    methodText: "الجلسات والوحدات والمبيعات مأخوذة من تقارير المتجر المرفوعة إلى بصيرة. معدل التحويل هو الوحدات المطلوبة مقسومة على الجلسات. تُقارن المنتجات المعدلة بمنتجات لم تتغير خلال الأسابيع نفسها، حتى لا يُنسب أثر موسم أو تخفيضات على المتجر كله إلى المحتوى. التحسن هو تغير المنتجات المعدلة ناقص تغير مجموعة المقارنة، بالنقاط المئوية.",
+    methodText: "الجلسات والوحدات والمبيعات مأخوذة من تقارير المتجر المرفوعة إلى شوف. معدل التحويل هو الوحدات المطلوبة مقسومة على الجلسات. تُقارن المنتجات المعدلة بمنتجات لم تتغير خلال الأسابيع نفسها، حتى لا يُنسب أثر موسم أو تخفيضات على المتجر كله إلى المحتوى. التحسن هو تغير المنتجات المعدلة ناقص تغير مجموعة المقارنة، بالنقاط المئوية.",
     caveat: "المنتجات الصغيرة تتغير كثيراً بالصدفة: اعتبر التغير على أقل من ١٠٠ جلسة ضجيجاً. هذه مقارنة وليست تجربة محكمة.",
     noData: "—"
   }

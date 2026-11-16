@@ -38,7 +38,7 @@ vCreator=function(){
   var head='<div class="cw-header"><div><div class="cw-section-label">'+esc(wsInfo().name)+' · UAE</div><h1>Creator</h1><p>'+cwt("From product photos to a reviewed content set.","من صور المنتج إلى مجموعة محتوى جاهزة للمراجعة.")+'</p></div>'+'<div class="cw-actions">'+cwButton("quick",cwt("Quick edit","تعديل سريع"))+cwButton("new",cwt("＋ New project","＋ مشروع جديد"),true,false)+'</div>'+'</div>'+
     '<div class="cw-nav">'+nav.map(function(x){return '<button type="button" class="chip" data-cwtab="'+x[0]+'" aria-pressed="'+(cw.tab===x[0])+'">'+x[1]+'</button>';}).join("")+'</div>';
   var alerts=(cw.error?'<div class="cw-error" role="alert">'+esc(cw.error)+'</div>':"")+(cw.busy?'<div class="cw-busy" role="status">'+esc(cw.busy)+'…</div>':"");
-  if(!state.api||!state.api.store)return head+'<div class="cw-empty"><h2>'+cwt("Connect to the Basira server","اتصل بخادم بصيرة")+'</h2><p>'+cwt("Projects, models and revision history are saved securely for each client on the server.","تُحفظ المشاريع والعارضون وسجل النسخ لكل عميل على الخادم.")+'</p></div>';
+  if(!state.api||!state.api.store)return head+'<div class="cw-empty"><h2>'+cwt("Connect to the Shoof server","اتصل بخادم شوف")+'</h2><p>'+cwt("Projects, models and revision history are saved securely for each client on the server.","تُحفظ المشاريع والعارضون وسجل النسخ لكل عميل على الخادم.")+'</p></div>';
   if(cw.newProject)return head+alerts+cwNewProject();
   if(cw.tab==="intelligence")cw.tab="projects";
   if(cw.tab==="batches")return head+alerts+agencyRoomView();

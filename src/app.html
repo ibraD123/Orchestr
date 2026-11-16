@@ -1,4 +1,4 @@
-<title>Basira App</title>
+<title>Shoof App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -610,9 +610,9 @@ var S = {
   at_weight:["Weight","الوزن"], at_origin:["Origin","المنشأ"], at_shelfLife:["Shelf life","مدة الصلاحية"], at_skinType:["Skin type","نوع البشرة"], at_ingredients:["Ingredients","المكوّنات"], at_dimensions:["Dimensions","الأبعاد"],
   photo:["Product photo","صورة المنتج"], photoNote:["PNG with a transparent background works best. Stays in your browser until you render.","يفضّل PNG بخلفية شفافة. تبقى في متصفحك حتى العرض."], photoTooBig:["Photo must be under 8 MB.","يجب أن تكون الصورة أقل من ٨ ميجابايت."],
   st4r:["Render PNGs at 1600 × 2000","تصدير صور PNG بمقاس ١٦٠٠ × ٢٠٠٠"], rendered:["Rendered slides","الشرائح المصدّرة"], download:["Download","تنزيل"],
-  demoTag:["Demo preview","معاينة تجريبية"], serverOn:["Connected to the Basira server","متصل بخادم بصيرة"], renderErr:["Rendering failed:","فشل التصدير:"],
+  demoTag:["Demo preview","معاينة تجريبية"], serverOn:["Connected to the Shoof server","متصل بخادم شوف"], renderErr:["Rendering failed:","فشل التصدير:"],
   analyse:["Analyse your reviews","حلّل تقييماتك"], analyseSub:["Paste reviews, one per line, in any dialect. Claude tags dialect, sentiment and aspects, then proposes fixes.","الصق التقييمات، سطر لكل تقييم، بأي لهجة. يحدد Claude اللهجة والانطباع والجوانب، ثم يقترح تعديلات."],
-  analyseBtn:["Analyse with Claude","حلّل مع Claude"], analysing:["Analysing…","جارٍ التحليل…"], needsServer:["Runs on the Basira server with an Anthropic API key. Start it with npm start.","يعمل على خادم بصيرة بمفتاح Anthropic API. شغّله بالأمر npm start."],
+  analyseBtn:["Analyse with Claude","حلّل مع Claude"], analysing:["Analysing…","جارٍ التحليل…"], needsServer:["Runs on the Shoof server with an Anthropic API key. Start it with npm start.","يعمل على خادم شوف بمفتاح Anthropic API. شغّله بالأمر npm start."],
   fixes:["Suggested fixes","تعديلات مقترحة"],
   templates:["Templates","القوالب"], tplSub:["Slide templates built around buyer questions. Pick one to add it to the product you're working on.","قوالب شرائح مبنية على أسئلة المشترين. اختر قالباً لإضافته إلى المنتج الحالي."],
   addTo:["Add to","أضف إلى"], forCat:["Best for","الأنسب لـ"], slides:["Slides","الشرائح"], addSlide:["Add slide","أضف شريحة"],
@@ -622,11 +622,11 @@ var S = {
   importPh:["amazon.sa/dp/…  ·  noon.com/…  ·  yourstore.com","amazon.sa/dp/…  ·  noon.com/…  ·  متجرك.com"], importBtn:["Import","استورد"], importing:["Importing…","جارٍ الاستيراد…"],
   uploadCsv:["Upload CSV","ارفع ملف CSV"], sampleCsv:["Try a sample Noon export","جرّب ملف نون تجريبي"], csvNote:["Noon Seller Lab, Amazon, Salla or Zid export saved as CSV","ملف تصدير من نون أو أمازون أو سلة أو زد بصيغة CSV"],
   importedTag:["Imported","مستورد"], importedN:["Imported {n} listings · average score {s}","تم استيراد {n} منتج · متوسط التقييم {s}"],
-  linkNeedsServer:["Importing from a link runs on the Basira server. CSV files work right here.","الاستيراد من رابط يعمل على خادم بصيرة. ملفات CSV تعمل هنا مباشرة."],
+  linkNeedsServer:["Importing from a link runs on the Shoof server. CSV files work right here.","الاستيراد من رابط يعمل على خادم شوف. ملفات CSV تعمل هنا مباشرة."],
   amazonOff:["Amazon not connected","أمازون غير متصل"], amazonOn:["Amazon connected","أمازون متصل"], src_all:["All","الكل"], src_sample:["Sample","تجريبي"], src_imported:["Imported","مستورد"],
   openSource:["Open on marketplace","افتح في المنصة"], noReviewsYet:["Connect reviews to see what buyers say about this listing.","اربط التقييمات لترى ما يقوله المشترون عن هذا المنتج."],
   keywords:["Search terms","كلمات البحث"], kwSub:["Common Gulf searches for this category. A term counts when it appears in the title or bullets.","عمليات بحث شائعة في الخليج لهذه الفئة. تُحتسب الكلمة إذا ظهرت في العنوان أو النقاط."],
-  reply:["Draft reply","اكتب رداً"], replying:["Writing…","جارٍ الكتابة…"], replyNeeds:["Replies are written by Claude on the Basira server.","يكتب Claude الردود على خادم بصيرة."],
+  reply:["Draft reply","اكتب رداً"], replying:["Writing…","جارٍ الكتابة…"], replyNeeds:["Replies are written by Claude on the Shoof server.","يكتب Claude الردود على خادم شوف."],
   copy:["Copy","نسخ"],
   photos:["Photo check","فحص الصور"], photosSub:["Check main-image candidates against marketplace rules, fix the background in one click, and let Claude pick the photo most likely to be clicked.","افحص الصور المرشحة للصورة الرئيسية وفق قواعد المنصات، وأصلح الخلفية بنقرة، ودع Claude يختار الصورة الأكثر جذباً للنقر."],
   addPhotos:["Add photos","أضف صوراً"], upTo4:["Up to 4 candidates · PNG, JPEG or WebP","حتى ٤ صور · PNG أو JPEG أو WebP"], trySample:["Try with sample photos","جرّب بصور تجريبية"],
@@ -635,12 +635,12 @@ var S = {
   reviewAi:["Pick the best with Claude","اختر الأفضل مع Claude"], reviewing:["Reviewing…","جارٍ المراجعة…"], winner:["Most likely to be clicked","الأكثر جذباً للنقر"],
   sc_clarity:["Clarity","الوضوح"], sc_lighting:["Lighting","الإضاءة"], sc_focus:["Focus","التركيز"], sc_thumbnail:["Small-screen read","الوضوح على الجوال"], sc_trust:["Trust","الثقة"],
   arText_broken:["Arabic text is broken","النص العربي مكسور"], arText_correct:["Arabic text is correct","النص العربي صحيح"], aiNote:["Claude's judgement before launch, not measured clicks.","تقدير Claude قبل النشر، وليس نقرات مقاسة."],
-  photoNeeds:["Claude review runs on the Basira server with an Anthropic API key. Rule checks and background fixes work here.","مراجعة Claude تعمل على خادم بصيرة بمفتاح API. الفحوصات وإصلاح الخلفية تعمل هنا."],
+  photoNeeds:["Claude review runs on the Shoof server with an Anthropic API key. Rule checks and background fixes work here.","مراجعة Claude تعمل على خادم شوف بمفتاح API. الفحوصات وإصلاح الخلفية تعمل هنا."],
   processing:["Working…","جارٍ العمل…"], mainReady:["Main image ready","صورة رئيسية جاهزة"], usedInStudio:["Photo set for","تم تعيين الصورة لـ"], bgDone:["Background removed","أُزيلت الخلفية"],
-  brand:["Brand DNA","هوية العلامة"], bdSub:["Everything Basira knows about this brand. Each rule both guides new content and checks it, and shows the evidence behind it.","كل ما تعرفه بصيرة عن هذه العلامة. كل قاعدة توجّه المحتوى الجديد وتفحصه، وتعرض الأدلة التي بُنيت عليها."],
+  brand:["Brand DNA","هوية العلامة"], bdSub:["Everything Shoof knows about this brand. Each rule both guides new content and checks it, and shows the evidence behind it.","كل ما تعرفه شوف عن هذه العلامة. كل قاعدة توجّه المحتوى الجديد وتفحصه، وتعرض الأدلة التي بُنيت عليها."],
   bdActive:["Active rules","قواعد مفعّلة"], bdFromBook:["from the brand book or you","من دليل العلامة أو منك"], bdLearnedN:["learned from your team","تعلّمتها من فريقك"],
-  bdLearning:["Learning now","قيد التعلّم"], bdLearningSub:["Patterns Basira noticed in your edits. Three consistent signals turn one into a rule, or decide yourself.","أنماط لاحظتها بصيرة في تعديلاتك. ثلاث إشارات متسقة تحوّلها إلى قاعدة، أو قرّر بنفسك."],
-  bdEdits:["Edits per approval","تعديلات لكل موافقة"], bdEditsSub:["Falls as Basira learns the brand","تنخفض كلما تعلّمت بصيرة العلامة"],
+  bdLearning:["Learning now","قيد التعلّم"], bdLearningSub:["Patterns Shoof noticed in your edits. Three consistent signals turn one into a rule, or decide yourself.","أنماط لاحظتها شوف في تعديلاتك. ثلاث إشارات متسقة تحوّلها إلى قاعدة، أو قرّر بنفسك."],
+  bdEdits:["Edits per approval","تعديلات لكل موافقة"], bdEditsSub:["Falls as Shoof learns the brand","تنخفض كلما تعلّمت شوف العلامة"],
   bdIdentity:["Identity","الهوية"], bdName:["Brand name","اسم العلامة"], bdNameAr:["Brand name in Arabic","اسم العلامة بالعربية"], bdLogo:["Logo","الشعار"], bdUploadLogo:["Upload logo","ارفع الشعار"],
   bdLogoPos:["Logo position on slides","موضع الشعار في الشرائح"], pos_top_end:["Top corner","الزاوية العليا"], pos_top_start:["Opposite top corner","الزاوية العليا المقابلة"], pos_bottom:["Bottom centre","أسفل الوسط"],
   bdPalette:["Palette","الألوان"], bdAddColour:["Add colour","أضف لوناً"], role_background:["Background","الخلفية"], role_primary:["Primary","أساسي"], role_accent:["Accent","مميز"], role_text:["Text","النص"],
@@ -648,21 +648,21 @@ var S = {
   bdNoRules:["No rules here yet.","لا توجد قواعد هنا بعد."], bdWhy:["Why","لماذا"], bdOff:["Switch off","أوقف"], bdOn:["Switch on","فعّل"], bdAccept:["Make it a rule","اجعلها قاعدة"], bdDismiss:["Dismiss","تجاهل"],
   bdSignals:["{n} of 3 signals","{n} من ٣ إشارات"], bdOffList:["Switched off","موقوفة"],
   origin_brandbook:["Brand book","دليل العلامة"], origin_learned:["Learned","مكتسبة"], origin_analysis:["AI analysis","تحليل ذكي"], origin_manual:["Added by you","أضفتها أنت"], origin_declared:["Brand book","دليل العلامة"],
-  bdTeach:["Teach Basira this brand","علّم بصيرة هذه العلامة"], bdTeachSub:["Add what you have. Colours are read from images right here; Claude reads the rest and proposes rules for you to accept.","أضف ما لديك. تُقرأ الألوان من الصور هنا مباشرة؛ ويقرأ Claude الباقي ويقترح قواعد لتوافق عليها."],
+  bdTeach:["Teach Shoof this brand","علّم شوف هذه العلامة"], bdTeachSub:["Add what you have. Colours are read from images right here; Claude reads the rest and proposes rules for you to accept.","أضف ما لديك. تُقرأ الألوان من الصور هنا مباشرة؛ ويقرأ Claude الباقي ويقترح قواعد لتوافق عليها."],
   bdSite:["Website or store link","رابط الموقع أو المتجر"], bdBook:["Brand book (PDF)","دليل العلامة (PDF)"], bdImages:["Logo, product photos, ads","الشعار وصور المنتجات والإعلانات"], bdTexts:["Copy the brand liked, one example per line","نصوص أعجبت العلامة، مثال في كل سطر"],
   bdChoose:["Choose files","اختر ملفات"], bdChooseOne:["Choose file","اختر ملفاً"], bdExtracted:["Colours found in your images","ألوان وُجدت في صورك"], bdUse:["Use","استخدم"],
-  bdAnalyse:["Analyse with Claude","حلّل مع Claude"], bdAnalysing:["Reading the brand…","جارٍ قراءة العلامة…"], bdAnalyseNeeds:["Runs on the Basira server with an Anthropic API key. Colours from images work here.","يعمل على خادم بصيرة بمفتاح API. استخراج الألوان من الصور يعمل هنا."],
+  bdAnalyse:["Analyse with Claude","حلّل مع Claude"], bdAnalysing:["Reading the brand…","جارٍ قراءة العلامة…"], bdAnalyseNeeds:["Runs on the Shoof server with an Anthropic API key. Colours from images work here.","يعمل على خادم شوف بمفتاح API. استخراج الألوان من الصور يعمل هنا."],
   bdProposals:["Proposed rules","قواعد مقترحة"], bdAddSelected:["Add selected rules","أضف القواعد المحددة"], bdAdded:["Rules added","أُضيفت القواعد"],
   bdAddRule:["Add a rule","أضف قاعدة"], bdRuleType:["Rule","القاعدة"], bdRuleValue:["Value","القيمة"], bdRuleScope:["Applies to","تنطبق على"], bdAllProducts:["All products","كل المنتجات"], bdAdd:["Add","أضف"],
   rt_avoidWord:["Avoid a word","تجنّب كلمة"], rt_preferWord:["Prefer a word","فضّل كلمة"], rt_maxHeadline:["Headline length limit","حد طول العنوان"], rt_textDensity:["Text limit per slide","حد النص في الشريحة"], rt_noExclamation:["No exclamation marks","بدون علامات تعجب"], rt_noEmoji:["No emoji","بدون رموز تعبيرية"], rt_numerals:["Digits in Arabic text","الأرقام في النص العربي"], rt_logo:["Logo on every slide","الشعار في كل شريحة"], rt_palette:["Brand colours only","ألوان العلامة فقط"], rt_bilingual:["Arabic and English on slides","العربية والإنجليزية في الشرائح"], rt_voice:["Tone of voice note","ملاحظة عن النبرة"], rt_visual:["Visual style note","ملاحظة عن الأسلوب البصري"],
   bdLog:["What changed","ما الذي تغيّر"], log_promoted:["Learned a rule","تعلّمت قاعدة"], log_candidate:["Noticed a pattern","لاحظت نمطاً"], log_added:["Rule added","أُضيفت قاعدة"], log_accepted:["You accepted","وافقت على"], log_retired:["Rule retired","أُلغيت قاعدة"], log_approved:["Approved","تمت الموافقة"], log_identity:["Identity updated","حُدّثت الهوية"], "log_switched-off":["You switched off","أوقفت"], log_off:["You switched off","أوقفت"],
-  bdBrief:["What Basira tells the AI","ما تقوله بصيرة للذكاء الاصطناعي"], bdBriefSub:["Compiled from the active rules for one context: only rules in scope, strongest first, with approved examples.","مجمّعة من القواعد المفعّلة لسياق واحد: القواعد المنطبقة فقط، الأقوى أولاً، مع أمثلة معتمدة."],
+  bdBrief:["What Shoof tells the AI","ما تقوله شوف للذكاء الاصطناعي"], bdBriefSub:["Compiled from the active rules for one context: only rules in scope, strongest first, with approved examples.","مجمّعة من القواعد المفعّلة لسياق واحد: القواعد المنطبقة فقط، الأقوى أولاً، مع أمثلة معتمدة."],
   bdVersion:["Version","الإصدار"], bdSample:["Sample history","سجل تجريبي"],
   evBook:["brand book","دليل العلامة"], evYou:["added by you","أضفتها أنت"], evAi:["AI analysis","تحليل ذكي"], evEdits:["edits","تعديلات"], evApprovals:["approvals","موافقات"], evRejects:["rejections","رفض"], evAgainst:["against","ضدها"],
   bcs:["Brand consistency","الاتساق مع العلامة"], beta:["beta","تجريبي"], bcsChecked:["{n} rules checked","فُحصت {n} قواعد"], bcsAllGood:["Follows every brand rule that applies here.","يلتزم بكل قواعد العلامة المنطبقة هنا."], bcsNone:["No checkable brand rules apply here yet. Add some in Brand DNA.","لا توجد قواعد قابلة للفحص هنا بعد. أضفها في هوية العلامة."],
-  learnedT:["What Basira learned","ما تعلّمته بصيرة"], learnedPromoted:["New rule","قاعدة جديدة"], learnedCandidate:["Noticed","لاحظت"], learnedRetired:["Dropped","أسقطت"], learnedNone:["Saved as an example. No new patterns yet.","حُفظ كمثال. لا أنماط جديدة بعد."],
-  copyT:["Title and bullets","العنوان والنقاط"], copyCurrent:["Live now","المنشور حالياً"], copyWrite:["Write with Basira","اكتب مع بصيرة"], copyWriting:["Writing in the brand's voice…","جارٍ الكتابة بصوت العلامة…"], copySample:["Show sample draft","اعرض مسودة تجريبية"], copySampleTag:["Sample draft","مسودة تجريبية"], copyAiTag:["Draft by Claude","مسودة من Claude"],
-  copyNeeds:["Drafts are written by Claude on the Basira server. Edit and approve below, and Basira learns from what you change.","يكتب Claude المسودات على خادم بصيرة. عدّل ووافق أدناه، وتتعلّم بصيرة مما تغيّره."], copyEditHint:["Edit anything you'd change before it goes live. Basira learns from the difference.","عدّل أي شيء قبل النشر. تتعلّم بصيرة من الفرق."],
+  learnedT:["What Shoof learned","ما تعلّمته شوف"], learnedPromoted:["New rule","قاعدة جديدة"], learnedCandidate:["Noticed","لاحظت"], learnedRetired:["Dropped","أسقطت"], learnedNone:["Saved as an example. No new patterns yet.","حُفظ كمثال. لا أنماط جديدة بعد."],
+  copyT:["Title and bullets","العنوان والنقاط"], copyCurrent:["Live now","المنشور حالياً"], copyWrite:["Write with Shoof","اكتب مع شوف"], copyWriting:["Writing in the brand's voice…","جارٍ الكتابة بصوت العلامة…"], copySample:["Show sample draft","اعرض مسودة تجريبية"], copySampleTag:["Sample draft","مسودة تجريبية"], copyAiTag:["Draft by Claude","مسودة من Claude"],
+  copyNeeds:["Drafts are written by Claude on the Shoof server. Edit and approve below, and Shoof learns from what you change.","يكتب Claude المسودات على خادم شوف. عدّل ووافق أدناه، وتتعلّم شوف مما تغيّره."], copyEditHint:["Edit anything you'd change before it goes live. Shoof learns from the difference.","عدّل أي شيء قبل النشر. تتعلّم شوف من الفرق."],
   copyApprove:["Approve copy","وافق على النص"], copyDiscard:["Discard","تجاهل"], copyChanges:["What changed and why","ما الذي تغيّر ولماذا"], titleEnS:["Title · English","العنوان · إنجليزي"], titleArS:["Title · Arabic","العنوان · عربي"], bulletsEnS:["Bullets · English","النقاط · إنجليزي"], bulletsArS:["Bullets · Arabic","النقاط · عربي"], copyApproved:["Copy approved","تمت الموافقة على النص"],
   memory:["Product memory","ذاكرة المنتج"], memorySub:["Everything that happened to this listing","كل ما حدث لهذا المنتج"], memEmpty:["Nothing yet. Imports, edits and approvals appear here.","لا شيء بعد. يظهر هنا الاستيراد والتعديلات والموافقات."],
   mem_edit:["Edited","عدّل"], mem_approve:["Approved","وافق"], mem_reject:["Changes requested","طُلبت تعديلات"], mem_removeSlide:["Removed slide","حذف شريحة"], mem_import:["Imported","استورد"], mem_kit:["Changed colours","غيّر الألوان"], edits:["edits","تعديلات"],
@@ -828,7 +828,7 @@ function navHTML(mobile){
 }
 function renderSide(){
   document.getElementById("side").innerHTML =
-    '<a class="brand" href="#overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#d6ff3f"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#0d0b19"/><circle cx="16" cy="16" r="3" fill="#d6ff3f"/></svg>Basira <small>بصيرة</small></a>'+
+    '<a class="brand" href="#overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#d6ff3f"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#0d0b19"/><circle cx="16" cy="16" r="3" fill="#d6ff3f"/></svg>Shoof <small>شوف</small></a>'+
     wsBlock()+
     '<nav class="navl" aria-label="Sections">'+navHTML(false)+'</nav>'+
     '<div class="side-foot">'+usageMeter()+'<a href="./">'+t("site")+'</a></div>';
@@ -1088,7 +1088,7 @@ function defaultSet(p){
 }
 function setOf(p){
   var set = state.sets[p.id] || (state.sets[p.id] = defaultSet(p));
-  // Each slide remembers what Basira proposed, so edits can be learned from.
+  // Each slide remembers what Shoof proposed, so edits can be learned from.
   set.forEach(function(sl){ if (!sl.orig) sl.orig = Object.assign({}, (templateById(sl.tpl) || {sample:{}}).sample, sl.fields); });
   return set;
 }
@@ -1750,7 +1750,7 @@ Object.assign(S, {
   batch:["Bulk fixes","تعديلات بالجملة"], results:["Results","النتائج"], settings:["Settings","الإعدادات"],
   usageT:["Fixes this month","التعديلات هذا الشهر"], usageOf:["{used} of {limit} used","{used} من {limit}"], usageNoLimit:["{used} used · no limit","{used} · بلا حد"], usageLocal:["Counted in this browser","محسوبة في هذا المتصفح"], planL:["Plan","الخطة"],
   fixedThisMonth:["{n} approved this month","{n} معتمدة هذا الشهر"],
-  previewOnly:["Browser preview","معاينة في المتصفح"], photoAsIs:["Product photo used as-is","صورة المنتج كما هي دون تعديل"], pngNeedsServer:["PNG export needs the Basira server","تصدير PNG يحتاج خادم بصيرة"],
+  previewOnly:["Browser preview","معاينة في المتصفح"], photoAsIs:["Product photo used as-is","صورة المنتج كما هي دون تعديل"], pngNeedsServer:["PNG export needs the Shoof server","تصدير PNG يحتاج خادم شوف"],
   st4p:["Check slides against Brand DNA","فحص الشرائح مقابل هوية العلامة"],
   approveOnly:["Approve","وافق"], approvedReady:["Approved · ready to export","تمت الموافقة · جاهز للتصدير"], toExport:["Export","صدّر"], approvedToast:["Approved. Export it from Bulk fixes.","تمت الموافقة. صدّره من التعديلات بالجملة."],
   selectAll:["Select all shown","حدد الكل"], clearSel:["Clear","إلغاء"], nSelected:["{n} selected","{n} محدد"], prepare:["Prepare fixes","جهّز التعديلات"], selectRow:["Select","تحديد"],
@@ -1788,14 +1788,14 @@ Object.assign(S, {
   agencyT:["Agency profile","ملف الوكالة"], agencyName:["Agency name","اسم الوكالة"], agencyColour:["Report colour","لون التقرير"], agencyLogo:["Logo","الشعار"], uploadLogo:["Upload logo","ارفع الشعار"], save:["Save","حفظ"], saved:["Saved","تم الحفظ"], agencyHint:["Used on client reports.","يظهر في تقارير العملاء."],
   planT:["Plan and usage","الخطة والاستخدام"], currentPlan:["Current plan","الخطة الحالية"], paidUntil:["Paid until {d}","مدفوعة حتى {d}"], expiredNote:["The paid month ended, so the trial limits apply. Renew to continue.","انتهى الشهر المدفوع وتُطبَّق حدود التجربة. جدّد للمتابعة."],
   rendersL:["Slides rendered","شرائح مُصدّرة"], aiL:["AI calls","طلبات الذكاء"], perMonth:["SAR / month","ريال / شهر"], withVat:["{v} SAR with 15% VAT","{v} ريال مع ضريبة ١٥٪"], fixesL:["{n} fixes a month","{n} تعديل شهرياً"], clientsL:["{n} clients","{n} عملاء"], customL:["Custom","حسب الاتفاق"],
-  upgrade:["Upgrade","ترقية"], renew:["Renew","تجديد"], contactSales:["Talk to us","تواصل معنا"], payNeeds:["Online payment needs MOYASAR_SECRET_KEY on the server (Mada, cards, Apple Pay).","الدفع الإلكتروني يحتاج MOYASAR_SECRET_KEY على الخادم (مدى والبطاقات وApple Pay)."], payServer:["Payments run on the Basira server.","الدفع يعمل على خادم بصيرة."],
+  upgrade:["Upgrade","ترقية"], renew:["Renew","تجديد"], contactSales:["Talk to us","تواصل معنا"], payNeeds:["Online payment needs MOYASAR_SECRET_KEY on the server (Mada, cards, Apple Pay).","الدفع الإلكتروني يحتاج MOYASAR_SECRET_KEY على الخادم (مدى والبطاقات وApple Pay)."], payServer:["Payments run on the Shoof server.","الدفع يعمل على خادم شوف."],
   redirecting:["Opening the payment page…","جارٍ فتح صفحة الدفع…"], paidOk:["Payment received: the {p} plan is on","تم الدفع: خطة {p} مفعّلة"], payPending:["Payment not completed ({s})","لم يكتمل الدفع ({s})"],
   overLimit:["This month's fixes are used. AI drafting pauses until next month or an upgrade; approvals and exports keep working.","استُخدمت تعديلات هذا الشهر. تتوقف مسودات الذكاء حتى الشهر القادم أو الترقية، وتستمر الموافقات والتصدير."],
   privacyT:["Client data and privacy","بيانات العملاء والخصوصية"],
   privacySub:["Each client's brand rules, history and exports are kept apart. Under the Saudi PDPL your client can ask for a copy or for deletion.","قواعد كل عميل وسجله وتصديراته منفصلة. وفق نظام حماية البيانات الشخصية يحق لعميلك طلب نسخة أو الحذف."],
-  consentL:["Allow anonymised use to improve Basira","السماح باستخدام مجهول الهوية لتحسين بصيرة"], consentHint:["Off by default. When on, approved edits may be used without names or images to improve shared models.","مغلق افتراضياً. عند تفعيله قد تُستخدم التعديلات المعتمدة دون أسماء أو صور لتحسين النماذج المشتركة."],
+  consentL:["Allow anonymised use to improve Shoof","السماح باستخدام مجهول الهوية لتحسين شوف"], consentHint:["Off by default. When on, approved edits may be used without names or images to improve shared models.","مغلق افتراضياً. عند تفعيله قد تُستخدم التعديلات المعتمدة دون أسماء أو صور لتحسين النماذج المشتركة."],
   dlData:["Download data","نزّل البيانات"], delClient:["Delete client","احذف العميل"], delConfirm:["Delete {name} with its brand rules, history and exports? This can't be undone.","حذف {name} مع قواعده وسجله وتصديراته؟ لا يمكن التراجع."], delYes:["Delete for good","احذف نهائياً"], deletedT:["{name} deleted","حُذف {name}"], keepOne:["Keep at least one client","أبقِ عميلاً واحداً على الأقل"],
-  storedServer:["Stored on the Basira server. For clients under the PDPL, run the server in a Saudi region.","محفوظة على خادم بصيرة. لعملاء نظام حماية البيانات شغّل الخادم في منطقة سعودية."], storedLocal:["Stored only in this browser.","محفوظة في هذا المتصفح فقط."],
+  storedServer:["Stored on the Shoof server. For clients under the PDPL, run the server in a Saudi region.","محفوظة على خادم شوف. لعملاء نظام حماية البيانات شغّل الخادم في منطقة سعودية."], storedLocal:["Stored only in this browser.","محفوظة في هذا المتصفح فقط."],
   legalT:["Contracts","العقود"], legalText:["Drafts of the terms of service, the data processing agreement (PDPL) and the privacy notice are in the repository under docs/legal. Have a lawyer licensed in Saudi Arabia review them before you sign with clients.","مسودات شروط الخدمة واتفاقية معالجة البيانات (نظام حماية البيانات) وإشعار الخصوصية في المستودع ضمن docs/legal. راجعها مع محامٍ مرخص في السعودية قبل التوقيع مع العملاء."],
   omT:["On-model photos","صور على عارضة"], omSub:["Show the garment worn, with modest styling. The product photo is the reference, and every result is checked for colour against it.","اعرض القطعة ملبوسة بأسلوب محتشم. صورة المنتج هي المرجع ويُفحص لون كل نتيجة مقابلها."],
   omLook:["Model","العارضة"], omCover:["Head cover","غطاء الرأس"], omSetting:["Setting","المكان"], omCount:["Photos","عدد الصور"],
@@ -2034,7 +2034,7 @@ function runExport(){
     var rows = items.map(function(it){ var p = PM[it.pid]; return {sku:p.sku, name:tr(p.name), copy:it.copy, images:[]}; });
     var files = exportFiles(ch, rows, {});
     var all = files.map(function(f){ return {name:f.name, data:f.content}; }).concat([{name:"README.txt", data:exportReadme(ch, rows.length, {client:client})}]);
-    download(new Blob([makeZip(all)], {type:"application/zip"}), "basira-"+ch+"-"+date+".zip");
+    download(new Blob([makeZip(all)], {type:"application/zip"}), "shoof-"+ch+"-"+date+".zip");
     b.exp = {result:{files:files.map(function(f){ return f.name; }).concat(["README.txt"])}};
   } catch(e){ b.exp = {error:e.message}; }
   render();
@@ -2287,7 +2287,7 @@ document.addEventListener("click", function(e){
   if ((el = e.target.closest("#x-print"))){ var fr = document.getElementById("x-rep-frame"); try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch(err){ var wnd = window.open("", "_blank"); if (wnd){ wnd.document.write(lastReport); wnd.document.close(); wnd.print(); } } return; }
   if ((el = e.target.closest("#x-ag-save"))){ saveAgency(); return; }
   if ((el = e.target.closest("[data-xplan]"))){ runCheckout(el.dataset.xplan); return; }
-  if ((el = e.target.closest("[data-xdl]"))){ var id0 = el.dataset.xdl; download(new Blob([JSON.stringify(wsDataLocal(id0), null, 2)], {type:"application/json"}), "basira-"+id0+"-data.json"); return; }
+  if ((el = e.target.closest("[data-xdl]"))){ var id0 = el.dataset.xdl; download(new Blob([JSON.stringify(wsDataLocal(id0), null, 2)], {type:"application/json"}), "shoof-"+id0+"-data.json"); return; }
   if ((el = e.target.closest("[data-xdel]"))){ state.delAsk = el.dataset.xdel; render(); return; }
   if ((el = e.target.closest("[data-xdelno]"))){ state.delAsk = null; render(); return; }
   if ((el = e.target.closest("[data-xdelyes]"))){ deleteWs(el.dataset.xdelyes); return; }
@@ -2334,14 +2334,14 @@ document.addEventListener("input", function(e){
 /* ---------- accounts: sign-in, agency or single brand, team ---------- */
 Object.assign(S, {
   authSignIn:["Sign in","تسجيل الدخول"], authSignUp:["Create account","إنشاء حساب"], authJoin:["Join the team","انضم إلى الفريق"],
-  authSignInT:["Sign in to Basira","سجّل الدخول إلى بصيرة"], authSignUpT:["Create your Basira account","أنشئ حسابك في بصيرة"], authJoinT:["Join {name} on Basira","انضم إلى {name} في بصيرة"],
+  authSignInT:["Sign in to Shoof","سجّل الدخول إلى شوف"], authSignUpT:["Create your Shoof account","أنشئ حسابك في شوف"], authJoinT:["Join {name} on Shoof","انضم إلى {name} في شوف"],
   authSub:["Product content for Amazon, Noon, Salla and Zid, in Arabic and English.","محتوى المنتجات لأمازون ونون وسلة وزد بالعربية والإنجليزية."],
   authJoinSub:["You were invited to work on this account's brands.","دُعيت للعمل على علامات هذا الحساب."],
   authEmail:["Work email","البريد الإلكتروني للعمل"], authPassword:["Password","كلمة المرور"], authPassNew:["Password, at least 8 characters","كلمة المرور، ٨ أحرف على الأقل"], authName:["Your name","اسمك"],
   authWho:["Who is the account for?","لمن هذا الحساب؟"], typeAgency:["An agency","وكالة"], typeAgencySub:["You run listings for several brands","تدير منتجات عدة علامات تجارية"],
   typeBrand:["My own brand","علامتي التجارية"], typeBrandSub:["You sell your own products","تبيع منتجاتك بنفسك"],
   authCompanyA:["Agency name","اسم الوكالة"], authCompanyB:["Brand name","اسم العلامة التجارية"],
-  authNew:["New to Basira?","جديد على بصيرة؟"], authHave:["Already have an account?","لديك حساب؟"], authBusy:["One moment…","لحظة…"],
+  authNew:["New to Shoof?","جديد على شوف؟"], authHave:["Already have an account?","لديك حساب؟"], authBusy:["One moment…","لحظة…"],
   authErrEmail:["Enter a valid email","أدخل بريداً إلكترونياً صحيحاً"], authErrPass:["Use a password of at least 8 characters","استخدم كلمة مرور من ٨ أحرف على الأقل"], authErrName:["Enter your name","أدخل اسمك"],
   authErrCompanyA:["Enter your agency's name","أدخل اسم وكالتك"], authErrCompanyB:["Enter your brand's name","أدخل اسم علامتك"],
   authWrong:["Wrong email or password","البريد أو كلمة المرور غير صحيحة"], authExists:["An account with this email already exists. Sign in instead.","يوجد حساب بهذا البريد. سجّل الدخول بدلاً من ذلك."],
@@ -2349,14 +2349,14 @@ Object.assign(S, {
   authForgot:["Forgot your password? Ask your account owner or write to us; reset by email isn't available yet.","نسيت كلمة المرور؟ اطلب من مالك الحساب أو راسلنا، فإعادة التعيين بالبريد غير متاحة بعد."],
   inviteSignedIn:["You're already signed in. Sign out first to accept the invite with another email.","أنت مسجل الدخول. سجّل الخروج أولاً لقبول الدعوة ببريد آخر."],
   signOut:["Sign out","تسجيل الخروج"], helloName:["Hello, {name}","أهلاً {name}"], roleOwner:["Owner","المالك"], roleMember:["Member","عضو"],
-  accountT:["Account","الحساب"], accountTypeL:["How you use Basira","كيف تستخدم بصيرة"],
+  accountT:["Account","الحساب"], accountTypeL:["How you use Shoof","كيف تستخدم شوف"],
   modeAgency:["Agency","وكالة"], modeAgencySub:["Several client brands: client switcher, client reports under your logo, data controls per client.","عدة علامات لعملاء: مبدّل العملاء وتقارير العملاء بشعارك والتحكم في بيانات كل عميل."],
   modeBrand:["Single brand","علامة واحدة"], modeBrandSub:["Your own products: a simpler app without the agency tools.","منتجاتك أنت: تطبيق أبسط بدون أدوات الوكالات."],
   modeOwnerOnly:["Only the account owner can change this.","يستطيع مالك الحساب فقط تغيير هذا."], modeLocal:["Saved in this browser.","محفوظ في هذا المتصفح."], modeSaved:["Switched to {m}","تم التحويل إلى {m}"],
   teamT:["Team","الفريق"], teamSub:["Everyone here works on the same brands and sees the same history.","كل من هنا يعمل على العلامات نفسها ويرى السجل نفسه."],
   teamInvite:["Invite a teammate","ادعُ زميلاً"], teamLink:["Send this link to one person. It works once and expires on {d}.","أرسل هذا الرابط لشخص واحد. يعمل مرة واحدة وينتهي في {d}."], teamCopy:["Copy link","انسخ الرابط"],
   teamRemove:["Remove","إزالة"], teamRemoveQ:["Remove {name} from the account? They'll be signed out.","إزالة {name} من الحساب؟ سيُسجَّل خروجه."], teamRemoved:["{name} removed","أُزيل {name}"], teamYou:["you","أنت"],
-  teamNeedsServer:["Teams need the Basira server with accounts on. In this browser-only version everything stays on this device.","الفرق تحتاج خادم بصيرة مع تفعيل الحسابات. في هذه النسخة داخل المتصفح يبقى كل شيء على هذا الجهاز."],
+  teamNeedsServer:["Teams need the Shoof server with accounts on. In this browser-only version everything stays on this device.","الفرق تحتاج خادم شوف مع تفعيل الحسابات. في هذه النسخة داخل المتصفح يبقى كل شيء على هذا الجهاز."],
   teamOff:["Accounts are off on this server (BASIRA_AUTH=off), so everyone who opens it shares one workspace.","الحسابات مغلقة على هذا الخادم (BASIRA_AUTH=off)، فكل من يفتحه يشارك مساحة واحدة."],
   teamOnlyOwner:["Only the account owner can invite or remove people.","يستطيع مالك الحساب فقط دعوة الأشخاص أو إزالتهم."], loadingT:["Loading…","جارٍ التحميل…"],
   planFits:["Fits you","مناسبة لك"], wsBrands:["Your brands","علاماتك"],
@@ -2365,7 +2365,7 @@ Object.assign(S, {
   privacyTB:["Your data and privacy","بياناتك والخصوصية"], privacySubB:["Your brand rules, history and exports stay in your account. Download a copy at any time.","قواعد علامتك وسجلها وتصديراتها تبقى في حسابك. نزّل نسخة في أي وقت."],
   changedHintB:["Filled from your approvals. Edit it if the report uses ASINs.","مأخوذة من موافقاتك. عدّلها إن كان التقرير يستخدم ASIN."],
   noProductsB:["No products yet","لا توجد منتجات بعد"], delClientB:["Delete brand","احذف العلامة"], keepOneB:["Keep at least one brand","أبقِ علامة واحدة على الأقل"], clientsLB:["{n} brands","{n} علامات"],
-  storedServerB:["Stored on the Basira server.","محفوظة على خادم بصيرة."],
+  storedServerB:["Stored on the Shoof server.","محفوظة على خادم شوف."],
   reportPreviewB:["Results report","تقرير النتائج"], agencyBrandHintB:["The report carries your brand's name, logo and colour from Settings.","يحمل التقرير اسم علامتك وشعارها ولونها من الإعدادات."]
 });
 state.me = null; state.needAuth = false; state.authView = "signin"; state.authForm = {type:"agency"}; state.authErr = null; state.authBusy = false;
@@ -2399,7 +2399,7 @@ function renderMe(){
 function vAuth(){
   var v = state.authView, f = state.authForm, inv = state.invite, busy = state.authBusy;
   var inp = function(k, type, label, ac, dir){ return '<div class="field"><label for="au-'+k+'">'+label+'</label><input id="au-'+k+'" name="'+k+'" type="'+type+'" data-auth="'+k+'" autocomplete="'+ac+'"'+(dir ? ' dir="'+dir+'"' : "")+' value="'+esc(f[k] || "")+'"></div>'; };
-  var mark = '<div class="auth-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#d6ff3f"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#0d0b19"/><circle cx="16" cy="16" r="3" fill="#d6ff3f"/></svg>Basira <small>بصيرة</small></div>';
+  var mark = '<div class="auth-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#d6ff3f"/><path d="M16 6l3.2 6.8L26 16l-6.8 3.2L16 26l-3.2-6.8L6 16l6.8-3.2z" fill="#0d0b19"/><circle cx="16" cy="16" r="3" fill="#d6ff3f"/></svg>Shoof <small>شوف</small></div>';
   if (v === "join" && inv && inv.info && !inv.info.valid){
     return '<div class="auth"><div class="auth-card">'+mark+'<div><h1>'+t("authJoin")+'</h1><p class="err" style="margin-top:10px">'+t("authBadInvite")+'</p></div>'+
       '<p class="auth-alt">'+t("authHave")+' <button type="button" data-authv="signin">'+t("authSignIn")+'</button></p></div></div>';
@@ -2633,7 +2633,7 @@ function productByKey(key){
   key = String(key || "").trim();
   return WP().filter(function(p){ return p.sku === key || p.asin === key || (p.listing && (p.listing.sku === key || p.listing.asin === key)); })[0] || null;
 }
-/** What Basira changed on a product, from its approvals: the approved content, slide templates and the issues it fixed. */
+/** What Shoof changed on a product, from its approvals: the approved content, slide templates and the issues it fixed. */
 function appliedTo(p){
   var evs = wsEvents().filter(function(e){ return e.product === p.id && e.type === "approve"; }), contents = [], tpls = {}, fixes = {};
   evs.forEach(function(e){
@@ -2713,14 +2713,14 @@ document.addEventListener("click", function(e){
 Object.assign(S, {
   creator:["Creator","المصمم"], crSub:["Images planned from what buyers say, what the audit found and what competitors show. Every image is checked before anyone sees it.","صور مبنية على ما يقوله المشترون وما وجده الفحص وما يعرضه المنافسون. كل صورة تُفحص قبل أن يراها أحد."],
   crTabCard:["Product set","مجموعة المنتج"], crTabReviews:["Reviews","التقييمات"], crTabCatalog:["Catalog and seasons","الكتالوج والمواسم"], crTabModel:["Brand model","عارضة العلامة"], crTabTemplates:["Templates","القوالب"], crTabPhotos:["Photos","الصور"],
-  crKnows:["What Basira knows","ما تعرفه بصيرة"], crReviews:["Reviews","التقييمات"], crAudit:["Audit","الفحص"], crSales:["Sales","المبيعات"],
+  crKnows:["What Shoof knows","ما تعرفه شوف"], crReviews:["Reviews","التقييمات"], crAudit:["Audit","الفحص"], crSales:["Sales","المبيعات"],
   crNoReviews:["No reviews analysed for this product yet.","لم تُحلَّل تقييمات هذا المنتج بعد."], crNoIssues:["No open issues.","لا مشكلات مفتوحة."], crNoSales:["No sales results yet. Upload reports in Results.","لا نتائج مبيعات بعد. ارفع التقارير في النتائج."],
   crWorked:["raised conversion","رفع التحويل"], crHurt:["lowered conversion","خفّض التحويل"],
   crComp:["Competitors","المنافسون"], crCompSub:["What a buyer sees next to this product. Search the marketplace or paste competitor links.","ما يراه المشتري بجانب هذا المنتج. ابحث في المنصة أو الصق روابط المنافسين."],
   crNoonLinks:["Noon has no search API for sellers: open Noon, search as a buyer would, and paste the links of the products around yours.","لا توفر نون واجهة بحث للبائعين: افتح نون وابحث كما يبحث المشتري، والصق روابط المنتجات المحيطة بمنتجك."],
   crAmazonNeeds:["Searching Amazon uses the connected seller account (SP-API). Without it, paste links.","البحث في أمازون يستخدم حساب البائع المربوط (SP-API). بدونه الصق الروابط."],
   crQuery:["Search query","عبارة البحث"], crFind:["Find","ابحث"], crFinding:["Searching…","جارٍ البحث…"], crLinks:["Competitor links, one per line","روابط المنافسين، رابط في كل سطر"],
-  crRead:["Read their galleries","حلّل معارضهم"], crReading:["Reading galleries…","جارٍ تحليل المعارض…"], crNeedsAi:["Reading galleries needs the Claude key on the server.","تحليل المعارض يحتاج مفتاح Claude على الخادم."], crNeedsServer:["Search needs the Basira server.","البحث يحتاج خادم بصيرة."],
+  crRead:["Read their galleries","حلّل معارضهم"], crReading:["Reading galleries…","جارٍ تحليل المعارض…"], crNeedsAi:["Reading galleries needs the Claude key on the server.","تحليل المعارض يحتاج مفتاح Claude على الخادم."], crNeedsServer:["Search needs the Shoof server.","البحث يحتاج خادم شوف."],
   crCoverage:["What their galleries show","ما تعرضه معارضهم"], crOfN:["{n} of {of}","{n} من {of}"], crOurs:["we have it","لدينا"], crMust:["most have it, we don't","لدى معظمهم وليس لدينا"], crWhite:["almost nobody shows it","لا يعرضه أحد تقريباً"],
   crArabicShare:["{p}% of competitors have Arabic on their images","{p}% من المنافسين لديهم نص عربي على الصور"], crBrokenComp:["{n} competitors have broken Arabic on their images","{n} منافسين لديهم نص عربي مكسور على الصور"],
   crSearchView:["How it looks in search","كيف يبدو في نتائج البحث"], crSearchSub:["Your main image among the real results for this query, on a phone. The score says how much it stands out.","صورتك الرئيسية بين النتائج الحقيقية لهذا البحث على الهاتف. الدرجة تقول مدى تميّزها."],
@@ -3283,7 +3283,7 @@ function render(scroll){
   if (state.needAuth){
     shell.classList.add("is-auth"); renderMe();
     view.innerHTML = vAuth();
-    document.title = "Basira · " + t(state.authView === "signup" ? "authSignUp" : state.authView === "join" ? "authJoin" : "authSignIn");
+    document.title = "Shoof · " + t(state.authView === "signup" ? "authSignUp" : state.authView === "join" ? "authJoin" : "authSignIn");
     return;
   }
   shell.classList.remove("is-auth");
@@ -3292,7 +3292,7 @@ function render(scroll){
   if (!state.pid && (r === "listing" || r === "studio" || r === "templates")) r = "empty";
   view.innerHTML = r === "empty" ? vNoProducts() : r === "creator" ? vCreator() : r === "catalog" ? vCatalog() : r === "listing" ? vListing() : r === "studio" ? vStudio() : r === "reviews" ? vReviews() : r === "approvals" ? vApprovals() : r === "audit" ? vAudit() : r === "templates" ? vTemplates() : r === "photos" ? vPhotos() : r === "brand" ? vBrand() : r === "batch" ? vBatch() : r === "results" ? vResults() : r === "settings" ? vSettings() : vOverview();
   hydrate(view); paintReport();
-  document.title = "Basira · " + t(r === "listing" || r === "empty" ? "catalog" : r);
+  document.title = "Shoof · " + t(r === "listing" || r === "empty" ? "catalog" : r);
   if (scroll){
     window.scrollTo(0,0);
     view.classList.remove("enter"); void view.offsetWidth; view.classList.add("enter");

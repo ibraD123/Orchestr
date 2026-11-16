@@ -11,14 +11,14 @@
 //   POST /content/v1/product/content/get { sku_parent } → images[{ url, review_status, issues }],
 //   statuses[{ language, content{ completeness, missing_attributes }, qc{ status, rejection_reasons, comment } }], overall_status.
 //   POST /content/v1/categories/attributes/list { category_code } → attributes[{ attribute_code, is_localizable, is_multivalued, max_characters, … }].
-// Which attribute holds the title, bullets and description differs by category; Basira finds them in
+// Which attribute holds the title, bullets and description differs by category; Shoof finds them in
 // the category's attributes by name (NOON_ATTR_TITLE, NOON_ATTR_BULLETS, NOON_ATTR_DESCRIPTION override).
 // Not called live yet: there are no Noon credentials on this server.
 import { createSign, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { safeFetch, ConnectorError } from "./net.mjs";
 
-const UA = "Basira/0.1 (+https://basira.ai)";
+const UA = "Shoof/0.1";
 
 export function noonConfig(env = process.env) {
   let c = {};

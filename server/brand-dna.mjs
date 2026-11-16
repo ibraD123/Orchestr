@@ -281,7 +281,7 @@ export function declare(g, spec, kind, at, note) {
 /* ---------- observation: turning feedback into evidence ---------- */
 
 /**
- * What an edit says about the brand. before = what Basira proposed, after = what a person kept.
+ * What an edit says about the brand. before = what Shoof proposed, after = what a person kept.
  * Returns trait specs with evidence signs; learn() applies them.
  */
 export function observeEdit(before, after, ctx) {

@@ -362,7 +362,7 @@ test("Noon Content API: signed login, the session, the product body and Noon's r
   assert.equal(logins, 2, "an expired session signs in again once");
   assert.equal(calls[0].body.default_project_code, "PRJ1");
   assert.equal(calls.at(-1).cookie, "sid=s2");
-  assert.ok(calls.every((x) => /^Basira\//.test(x.ua)), "every call names the app");
+  assert.ok(calls.every((x) => /^Shoof\//.test(x.ua)), "every call names the app");
 
   const codes = copyAttributes([{ attribute_code: "product_title", attribute_type: "ATTRIBUTE_TYPE_TEXT" }, { attribute_code: "feature_bullets", attribute_type: "ATTRIBUTE_TYPE_TEXT", is_multivalued: true }, { attribute_code: "long_description", attribute_type: "ATTRIBUTE_TYPE_TEXT" }, { attribute_code: "colour_name", attribute_type: "ATTRIBUTE_TYPE_SELECT" }], {});
   assert.deepEqual(codes, { title: "product_title", bullets: "feature_bullets", description: "long_description" });

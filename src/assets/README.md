@@ -1,8 +1,8 @@
 # Template example assets · 2026-11-11
 
-Home also reuses these illustrative tiles. `home/model-example.webp` is an unchanged copy of the user-supplied Damu asset `fashley-app/public/img/hero-model-outfit-v2.webp` from `/Users/ibragimdaudov/Desktop/avatar`. It illustrates the model/try-on entry, is not a generated Basira customer result, and is copied into `dist/assets/home/` by the build. The source project was not modified.
+Home also reuses these illustrative tiles. `home/model-example.webp` is an unchanged copy of the user-supplied Damu asset `fashley-app/public/img/hero-model-outfit-v2.webp` from `/Users/ibragimdaudov/Desktop/avatar`. It illustrates the model/try-on entry, is not a generated Shoof customer result, and is copied into `dist/assets/home/` by the build. The source project was not modified.
 
-Created with the built-in imagegen tool via the imagegen skill. These are fictional, illustrative AI images, not Basira customer results. Both PNGs are copied into `dist/assets/` by the build and served publicly as example assets. CSS selects tiles without altering the source bitmaps.
+Created with the built-in imagegen tool via the imagegen skill. These are fictional, illustrative AI images, not Shoof customer results. Both PNGs are copied into `dist/assets/` by the build and served publicly as example assets. CSS selects tiles without altering the source bitmaps.
 
 - `content-sets.png`: 3 columns × 4 rows, source / English / Arabic. Rows: ivory vase, amber perfume bottle, sand abaya, sage skincare bottle.
 - `content-set-frames.png`: 5 columns × 4 rows, clean main / macro detail / English creative / Arabic creative / lifestyle. Same row order. The template preview shows all five examples and the original source reference.

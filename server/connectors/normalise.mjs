@@ -1,4 +1,4 @@
-// Helpers that turn marketplace data into Basira's listing shape.
+// Helpers that turn marketplace data into Shoof's listing shape.
 const ARABIC = /[؀-ۿ]/;
 export const hasArabic = (s) => ARABIC.test(String(s || ""));
 

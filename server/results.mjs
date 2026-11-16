@@ -61,7 +61,7 @@ const pct = (a, b) => (a == null || b == null || !b ? null : Math.round(((a - b)
 const pts = (a, b) => (a == null || b == null ? null : Math.round((a - b) * 10000) / 100);
 
 /**
- * @param {{ before: rows[], after: rows[], changed: string[] }} input  changed = SKUs/ASINs that got Basira fixes
+ * @param {{ before: rows[], after: rows[], changed: string[] }} input  changed = SKUs/ASINs that got Shoof fixes
  * Optional: a single report with dates plus changedAt { key: ISO date } splits each product at its own change date.
  */
 export function compareResults({ before, after, changed, rows, changedAt }) {

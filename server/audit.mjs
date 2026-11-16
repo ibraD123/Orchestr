@@ -1,4 +1,4 @@
-// Basira listing audit engine.
+// Shoof listing audit engine.
 // Pure functions with no imports: the server uses this module directly, and
 // scripts/build.mjs inlines it into the app so audits also run in the browser.
 

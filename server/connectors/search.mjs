@@ -1,7 +1,7 @@
 // Marketplace search results: the listings a buyer sees next to ours for one query.
 //
 // Amazon: the Catalog Items search of the official Selling Partner API, for a connected seller
-//   account. Basira doesn't read marketplace search pages: they refuse automated requests.
+//   account. Shoof doesn't read marketplace search pages: they refuse automated requests.
 // Noon: no public search API, so Creator works from competitor links the seller pastes; each
 //   link is read like any product link (server/importer.mjs).
 import { ConnectorError } from "./net.mjs";

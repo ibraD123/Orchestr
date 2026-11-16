@@ -1,4 +1,4 @@
-/* Basira studio: quiet navigation, editorial hierarchy, distinct creative surfaces. */
+/* Shoof studio: quiet navigation, editorial hierarchy, distinct creative surfaces. */
 :root{--bg:#f4f3fa;--surface:#fff;--surface-2:#ece9f7;--line:#dedaf0;--ink:#14112a;--ink-2:#4c4768;--ink-3:#7f7a99;--brand:#5b3df5;--brand-soft:#eae5ff;--on-brand:#fff;--side:#faf9fe;--side-ink:#504a6e;--side-ink-2:#7e76a3;--side-hi:#eeebfa;--shadow:0 5px 24px -12px #1a143320;--studio-lime:#d6ff3f;--studio-dark:#14112a;--studio-paper:#fcfbff;--studio-muted:#b1abce}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0b19;--surface:#151226;--surface-2:#1e1a35;--line:#2c2748;--ink:#f1effa;--ink-2:#bfbad8;--ink-3:#8d87aa;--brand:#b3a4ff;--brand-soft:#2a2257;--on-brand:#0d0b19;--side:#0a0814;--side-ink:#beb9d7;--side-ink-2:#8a83a9;--side-hi:#211c3c;--studio-paper:#1c1833}}
 :root[data-theme="dark"]{--bg:#0d0b19;--surface:#151226;--surface-2:#1e1a35;--line:#2c2748;--ink:#f1effa;--ink-2:#bfbad8;--ink-3:#8d87aa;--brand:#b3a4ff;--brand-soft:#2a2257;--on-brand:#0d0b19;--side:#0a0814;--side-ink:#beb9d7;--side-ink-2:#8a83a9;--side-hi:#211c3c;--studio-paper:#1c1833}

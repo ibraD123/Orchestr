@@ -60,16 +60,16 @@ export function exportFiles(channel, items, opts) {
 export function exportReadme(channel, count, opts) {
   const o = opts || {};
   return [
-    `Basira export · ${o.client || ""} · ${new Date(o.at || Date.now()).toISOString().slice(0, 10)}`,
+    `Shoof export · ${o.client || ""} · ${new Date(o.at || Date.now()).toISOString().slice(0, 10)}`,
     `${count} products for ${channel}.`,
     "",
     channel === "noon" ? "images/   1600 × 2000 JPEG slides (Noon accepts JPEG only), in the order to upload (the first is the main image)." : "images/   1600 × 2000 PNG slides, in the order to upload (the first is the main image).",
     o.imageBase ? `Images are also hosted at ${o.imageBase} and those links are filled in the upload file.` : "Images are not hosted: upload them from images/ or host them and fill in the image columns.",
     "",
     channel === "amazon" ? "Amazon: use the flat file in Seller Central (Catalogue → Add products via upload) for the category's template; update_delete is PartialUpdate, so only these fields change. The -ar file carries the Arabic copy for Amazon.sa / Amazon.ae." :
-        "Columns use Basira's generic names. If the channel's current bulk template uses different headers, copy the columns across.",
+        "Columns use Shoof's generic names. If the channel's current bulk template uses different headers, copy the columns across.",
     "",
-    "Review every row before uploading. Basira does not change your listings until you upload this file or publish from the app."
+    "Review every row before uploading. Shoof does not change your listings until you upload this file or publish from the app."
   ].concat(o.videos && o.videos.length ? [
     "",
     channel === "noon" ? "videos/   Gallery videos (MP4, no text added, no audio). Upload each in Seller Lab: Catalog → My Catalog → the SKU → Content → Additional Media. If your account has no \"Add video\" button yet, send the file in a Seller Support ticket titled \"Video Upload Request – SKU …\"." :

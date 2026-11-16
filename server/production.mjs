@@ -132,7 +132,7 @@ export function createProduction({edit,createBatch,enabled=()=>true,autoRun=true
    }
    if(!files.length)fail('Agency-approve generated images in Creator before downloading them',409);
    files.push({name:'README.txt',data:'Agency-approved production files. Client approval and destination upload specifications are separate. Use Client portal for final client-approved delivery.'});
-   return {$file:{data:Buffer.from(makeZip(files)),type:'application/zip',name:'basira-reviewed-production.zip'}};
+   return {$file:{data:Buffer.from(makeZip(files)),type:'application/zip',name:'shoof-reviewed-production.zip'}};
   }
   if(body.action!=='list')fail('Unknown production action');
   schedule();return {jobs:(await ctx.store.getProduction(ws)).jobs.slice().reverse(),budget:creditStatus(await ctx.store.getAccount(newAccount))};

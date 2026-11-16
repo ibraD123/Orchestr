@@ -47,7 +47,7 @@ export async function safeFetch(raw, { maxBytes = 3_000_000, timeoutMs = 12_000,
     try {
       res = await impl.fetch(url.href, {
         method, body, redirect: "manual", signal: ctrl.signal,
-        headers: { "User-Agent": "BasiraBot/0.1 (+https://basira.ai/bot; listing audit on behalf of the seller)", "Accept-Language": "en,ar;q=0.8", ...headers }
+        headers: { "User-Agent": "ShoofBot/0.1 (listing audit on behalf of the seller)", "Accept-Language": "en,ar;q=0.8", ...headers }
       });
     } catch (e) {
       clearTimeout(timer);
