@@ -137,6 +137,24 @@ test("images with AI-generated people carry the IPTC label and are listed in the
   assert.doesNotMatch(exportReadme("noon", 1, {}), /trainedAlgorithmicMedia/);
 });
 
+test("videos with AI-generated people carry Amazon's synthetic-performer keyword in an XMP box at the end", async () => {
+  const { labelMp4, hasSyntheticPerformer, SYNTHETIC_PERFORMER } = await import("../server/ai-label.mjs");
+  const box = (type, body) => { const head = Buffer.alloc(8); head.writeUInt32BE(8 + body.length); head.write(type, 4, "latin1"); return Buffer.concat([head, body]); };
+  const mp4 = Buffer.concat([box("ftyp", Buffer.from("isom\0\0\0\0isom", "latin1")), box("moov", Buffer.from("offsets")), box("mdat", Buffer.from("frames"))]);
+  const out = labelMp4(mp4);
+  assert.deepEqual(out.subarray(0, mp4.length), mp4, "media data keeps its offsets: nothing is inserted before it");
+  const tail = out.subarray(mp4.length);
+  assert.equal(tail.readUInt32BE(0), tail.length);
+  assert.equal(tail.subarray(4, 8).toString("latin1"), "uuid");
+  assert.equal(tail.subarray(8, 24).toString("hex"), "be7acfcb97a942e89c71999491e3afac");
+  assert.match(tail.subarray(24).toString("utf8"), new RegExp(`<dc:subject><rdf:Bag><rdf:li>${SYNTHETIC_PERFORMER}</rdf:li>`));
+  assert.ok(hasSyntheticPerformer(out) && !hasSyntheticPerformer(mp4));
+  assert.deepEqual(labelMp4(out), out, "labelling twice adds nothing");
+  assert.deepEqual(labelMp4(Buffer.from("not a video")), Buffer.from("not a video"));
+  const png = Buffer.from(PX.split(",")[1], "base64");
+  assert.deepEqual(labelMp4(png), png, "images are left to the image labels");
+});
+
 test("image models: text goes to Gemini first, scenes and people to OpenAI, with the brand model as a reference", async () => {
   const env = { OPENAI_IMAGE_KEY: "o", GEMINI_IMAGE_KEY: "g", GEMINI_IMAGE_MODEL: "nano" };
   assert.deepEqual(routeProviders("text", env).map((p) => p.name), ["gemini", "openai"]);

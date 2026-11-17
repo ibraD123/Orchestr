@@ -5,6 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createStore } from "../server/store.mjs";
 import { creatorRoutes } from "../server/creator-api.mjs";
+import { hasSyntheticPerformer } from "../server/ai-label.mjs";
+
+// The smallest MP4 shape the label code accepts: ftyp, moov and mdat boxes.
+const box = (type, body) => { const head = Buffer.alloc(8); head.writeUInt32BE(8 + body.length); head.write(type, 4, "latin1"); return Buffer.concat([head, body]); };
+const GENERATED_MP4 = Buffer.concat([box("ftyp", Buffer.from("isom\0\0\0\0isom", "latin1")), box("moov", Buffer.from("movie header")), box("mdat", Buffer.from("exact generated frames"))]);
 
 const PRODUCT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAAAASUVORK5CYII=";
 const MODEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/mT8AAAAASUVORK5CYII=";
@@ -28,7 +33,7 @@ test("Creator model API persists real references and animates only the exact app
       calls.tryons.push(input);
       return { ok: true, images: [calls.tryons.length === 1 ? FIRST_TRYON : SELECTED_TRYON], prompt: "The exact product on the selected model", results: [{ status: "passed", productCheck: PRODUCT_CHECK, reasons: [] }] };
     },
-    makeRunway: async (input) => { calls.runway.push(input); return { ok: true, video: Buffer.from("exact generated MP4 bytes"), prompt: "Slow runway steps", model: "mock-runway-model", attempts: [{ ok: true, frames: 3, reasons: [] }] }; },
+    makeRunway: async (input) => { calls.runway.push(input); return { ok: true, video: GENERATED_MP4, prompt: "Slow runway steps", model: "mock-runway-model", attempts: [{ ok: true, frames: 3, reasons: [] }] }; },
     editImage: async () => { throw new Error("Model shortcuts must not use the generic edit route"); }
   });
   const ctx = { store, key: "account-a" };
@@ -78,6 +83,8 @@ test("Creator model API persists real references and animates only the exact app
   assert.equal(runwaySlot.revisions[0].asset.type, "video");
   assert.equal(runwaySlot.revisions[0].asset.seconds, 6);
   assert.equal(runwaySlot.revisions[0].review.status, "unreviewed", "video approval cannot inherit from its source frame");
-  assert.deepEqual(await readSaved(runwaySlot.revisions[0].asset), Buffer.from("exact generated MP4 bytes"));
+  const savedVideo = await readSaved(runwaySlot.revisions[0].asset);
+  assert.deepEqual(savedVideo.subarray(0, GENERATED_MP4.length), GENERATED_MP4, "the generated video is saved byte for byte, with the label only appended");
+  assert.ok(hasSyntheticPerformer(savedVideo) && !hasSyntheticPerformer(GENERATED_MP4), "the saved runway video is marked for Amazon as showing a synthetic performer");
   assert.equal((await createStore(dir, { seed: false }).getCreator(ws)).projects[0].slots.find((slot) => slot.id === existingRunwayId).revisions[0].id, runwaySlot.revisions[0].id);
 });

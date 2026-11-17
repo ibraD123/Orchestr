@@ -61,7 +61,7 @@ Strategy, target pipeline and the status of every part: [`ROADMAP.md`](ROADMAP.m
 | `server/videogen.mjs` | Gallery videos: one approved image animated through the fal queue (MiniMax Hailuo 2.3 Fast by default; other MiniMax models, Kling and Veo 3.1 also work), no text added and no audio; frames from the start, middle and end are read by Claude for added text and compared with the product photo; one retry |
 | `server/creator.mjs` | Creator's planning, shared with the app: the slide set a product needs from reviews, audit, competitor galleries and sales results; what competitors' galleries cover; how much a main image stands out in search; season packs with roll-back |
 | `server/gallery.mjs` | Reads competitor galleries image by image with Claude (main, lifestyle, size chart, comparison…, Arabic on the image, broken Arabic) |
-| `server/ai-label.mjs` | Writes the IPTC "trainedAlgorithmicMedia" label into PNGs that show AI-generated people (Amazon asks for such images to be labelled) |
+| `server/ai-label.mjs` | Writes the IPTC "trainedAlgorithmicMedia" label into PNGs and JPEGs that show AI-generated people, and Amazon's `contains-synthetic-performer` keyword (XMP `dc:subject`, uuid box appended at the end) into runway MP4s when they are saved (Amazon asks for both labels) |
 | `server/reviews.mjs` | Claude: review analysis (dialect, sentiment, aspects, fixes) and reply drafts |
 | `server/index.mjs` | HTTP server for the pages and the API |
 | `scripts/build.mjs` | Builds `index.html`, `app.html` and the `dist/` fragments |

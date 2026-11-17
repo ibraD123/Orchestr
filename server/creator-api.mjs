@@ -9,6 +9,7 @@ import { safeFetch } from "./connectors/net.mjs";
 import { makeZip } from "./zip.mjs";
 import { sendCreatorRelease, creatorFeedback } from "./creator-portal.mjs";
 import { express } from "./brand-dna.mjs";
+import { labelMp4 } from "./ai-label.mjs";
 
 const problem = (message, status = 400) => { throw new StoreError(message, status); };
 const projectStore = (ctx) => createCreatorProjectStore(ctx.store, { assetPrefix: `/assets/${ctx.key}/` });
@@ -190,7 +191,8 @@ export function creatorRoutes({ guardPlan, meter, editImage = editCreatorImage, 
         await meter(ctx.store, "ai"); await meter(ctx.store, "renders");
         if (!r.ok || !r.video) problem("Runway video did not pass the frame checks", 422);
         const batch = `creator-${id()}`;
-        await ctx.store.saveAsset(ws, batch, "runway.mp4", r.video);
+        // The person in a runway video is drawn by the video model: mark the file for Amazon.
+        await ctx.store.saveAsset(ws, batch, "runway.mp4", labelMp4(r.video));
         const videoSlot = project.slots.find((s) => ["runway", "video"].includes(s.kind)) || await ps.addSlot(ws, project.id, { kind: "runway", name: "Runway video", languages: ["none"], aspect: "4:5" });
         await ps.addRevision(ws, project.id, videoSlot.id, { language: "none", parentId: undefined, asset: { type: "video", url: `/assets/${ctx.key}/${ws}/${batch}/runway.mp4`, seconds: 6 }, generationId: body.generationId, prompt: r.prompt, model: r.model, aiPeople: true, generationStatus: "needs_review", checks: { ok: true, reasons: [] } });
         return ps.getProject(ws, project.id);

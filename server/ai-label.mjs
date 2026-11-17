@@ -34,5 +34,54 @@ export function labelJpeg(jpg, xmp = aiXmp()) {
 /** Label either format. */
 export function labelImage(bytes) { const b = Buffer.from(bytes); return b[0] === 0xff && b[1] === 0xd8 ? labelJpeg(b) : labelPng(b); }
 
+// Videos. Amazon's product video guide (AE and US, checked 2026-11-08) asks for the keyword
+// "contains-synthetic-performer" in XMP dc:subject when a video shows a fully synthetic,
+// photorealistic person. Noon's video guidelines name no AI label; the same file is fine there.
+export const SYNTHETIC_PERFORMER = "contains-synthetic-performer";
+// Adobe's UUID for an XMP box in MP4/MOV (ISO base media file format).
+const XMP_UUID = Buffer.from("be7acfcb97a942e89c71999491e3afac", "hex");
+
+export function videoXmp() {
+  return `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/" Iptc4xmpExt:DigitalSourceType="${AI_SOURCE_TYPE}"><dc:subject><rdf:Bag><rdf:li>${SYNTHETIC_PERFORMER}</rdf:li></rdf:Bag></dc:subject></rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="w"?>`;
+}
+
+/** Top-level boxes of an MP4/MOV, or null when the bytes are not a well-formed box sequence. */
+function mp4Boxes(buf) {
+  const boxes = [];
+  for (let at = 0; at < buf.length;) {
+    if (at + 8 > buf.length) return null;
+    let size = buf.readUInt32BE(at);
+    const type = buf.subarray(at + 4, at + 8).toString("latin1");
+    if (size === 1) { if (at + 16 > buf.length) return null; size = Number(buf.readBigUInt64BE(at + 8)); }
+    else if (size === 0) size = buf.length - at;
+    if (size < 8 || at + size > buf.length) return null;
+    boxes.push({ type, at, size });
+    at += size;
+  }
+  return boxes;
+}
+
+/**
+ * A copy of the MP4/MOV with an XMP uuid box that marks a synthetic performer. The box is appended
+ * at the end of the file, so the sample offsets in moov keep pointing at the same media data.
+ * Anything that is not an MP4/MOV comes back unchanged; an already-labelled file is not labelled twice.
+ */
+export function labelMp4(video, xmp = videoXmp()) {
+  const buf = Buffer.from(video);
+  const boxes = mp4Boxes(buf);
+  if (!boxes || !boxes.length || !["ftyp", "moov", "mdat", "wide", "free"].includes(boxes[0].type) || !boxes.some((b) => b.type === "moov")) return buf;
+  if (hasSyntheticPerformer(buf)) return buf;
+  const payload = Buffer.from(xmp, "utf8");
+  const head = Buffer.alloc(8); head.writeUInt32BE(8 + 16 + payload.length); head.write("uuid", 4, "latin1");
+  return Buffer.concat([buf, head, XMP_UUID, payload]);
+}
+
+/** Whether a video carries the synthetic-performer keyword in an XMP uuid box. */
+export function hasSyntheticPerformer(video) {
+  const buf = Buffer.from(video);
+  const boxes = mp4Boxes(buf) || [];
+  return boxes.some((b) => b.type === "uuid" && buf.subarray(b.at + 8, b.at + 24).equals(XMP_UUID) && buf.subarray(b.at + 24, b.at + b.size).includes(Buffer.from(SYNTHETIC_PERFORMER)));
+}
+
 /** Whether a PNG or JPEG carries the AI label. */
 export function hasAiLabel(png) { return Buffer.from(png).includes(Buffer.from(AI_SOURCE_TYPE)); }
